@@ -10,343 +10,358 @@
 <style>
 :root{
   --bg:#161614;--bg2:#1f1f1c;--bg3:#2a2a26;--bg4:#323230;
-  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --bdr:rgba(255,255,255,0.08);--bdr2:rgba(255,255,255,0.14);
   --text:#f0ede6;--muted:#888880;
-  --green:#7ec87e;--green-dark:#3a8c3a;--green-dim:rgba(126,200,126,0.12);
-  --gold:#c9952a;--gold-dim:rgba(201,149,42,0.15);
-  --blue:#4a7ec0;--blue-dim:rgba(74,126,192,0.14);
+  --green:#7ec87e;--gd:#3a8c3a;--gdim:rgba(126,200,126,0.12);
+  --gold:#c9952a;--gdim2:rgba(201,149,42,0.15);
+  --blue:#4a7ec0;--bdim:rgba(74,126,192,0.14);
   --teal:#3aafb8;--orange:#e8a04a;
-  --font-serif:'IM Fell English',Georgia,serif;
-  --font-sans:'Nunito Sans',sans-serif;
+  --serif:'IM Fell English',Georgia,serif;
+  --sans:'Nunito Sans',sans-serif;
   --r:10px;--rl:16px;
-  --shadow:0 8px 32px rgba(0,0,0,0.55);
+  --shad:0 8px 32px rgba(0,0,0,0.55);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{scroll-behavior:smooth;}
-body{font-family:var(--font-sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 
-/* NAV */
-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 32px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(22,22,20,0.94);backdrop-filter:blur(14px);z-index:300;}
-.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;cursor:pointer;}
-.nav-logo-icon{width:30px;height:30px;background:var(--green-dark);border-radius:7px;display:flex;align-items:center;justify-content:center;}
-.nav-logo-text{font-family:var(--font-serif);font-size:19px;color:var(--text);}
-.nav-right{display:flex;align-items:center;gap:6px;}
-.nav-link{font-size:13px;color:var(--muted);text-decoration:none;padding:5px 10px;border-radius:6px;transition:all .18s;}
-.nav-link:hover{color:var(--text);background:rgba(255,255,255,0.06);}
-.nav-cta{font-size:13px;font-weight:600;color:#fff;background:var(--green-dark);text-decoration:none;padding:6px 16px;border-radius:7px;transition:background .18s;margin-left:4px;}
-.nav-cta:hover{background:#2d7a2d;}
+/* ── NAV ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:11px 28px;border-bottom:1px solid var(--bdr);position:sticky;top:0;background:rgba(22,22,20,0.95);backdrop-filter:blur(14px);z-index:300;}
+.nlogo{display:flex;align-items:center;gap:9px;text-decoration:none;}
+.nico{width:29px;height:29px;background:var(--gd);border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.ntxt{font-family:var(--serif);font-size:18px;color:var(--text);}
+.nright{display:flex;align-items:center;gap:5px;}
+.nlink{font-size:12px;color:var(--muted);text-decoration:none;padding:5px 9px;border-radius:6px;transition:all .18s;}
+.nlink:hover{color:var(--text);background:rgba(255,255,255,0.06);}
+.ncta{font-size:12px;font-weight:600;color:#fff;background:var(--gd);text-decoration:none;padding:6px 14px;border-radius:7px;transition:background .18s;margin-left:3px;}
+.ncta:hover{background:#2d7a2d;}
 
-/* HERO */
-.hero{max-width:860px;margin:0 auto;padding:60px 24px 40px;text-align:center;}
-.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(126,200,126,0.1);border:1px solid rgba(126,200,126,0.22);border-radius:20px;padding:4px 14px;font-size:12px;color:var(--green);margin-bottom:20px;letter-spacing:.04em;}
-.hero-badge b{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;}
-.hero-title{font-family:var(--font-serif);font-size:clamp(50px,8vw,84px);font-weight:400;color:var(--text);line-height:1;letter-spacing:-2px;margin-bottom:8px;}
-.hero-title em{font-style:italic;color:var(--green);}
-.hero-tagline{font-size:14px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:36px;}
+/* ── HERO ── */
+.hero{max-width:860px;margin:0 auto;padding:56px 24px 36px;text-align:center;}
+.hbadge{display:inline-flex;align-items:center;gap:6px;background:rgba(126,200,126,0.1);border:1px solid rgba(126,200,126,0.2);border-radius:20px;padding:4px 13px;font-size:11px;color:var(--green);margin-bottom:18px;letter-spacing:.04em;}
+.hbadge b{width:5px;height:5px;border-radius:50%;background:var(--green);display:inline-block;}
+.htitle{font-family:var(--serif);font-size:clamp(46px,8vw,82px);font-weight:400;color:var(--text);line-height:1;letter-spacing:-2px;margin-bottom:7px;}
+.htitle em{font-style:italic;color:var(--green);}
+.htag{font-size:13px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:34px;}
 
-/* SEARCH */
-.search-wrap{max-width:680px;margin:0 auto 14px;position:relative;}
-.search-row{display:flex;background:var(--bg2);border:1px solid rgba(255,255,255,0.12);border-radius:var(--rl);overflow:visible;transition:border-color .2s,box-shadow .2s;position:relative;}
-.search-row:focus-within{border-color:rgba(126,200,126,0.38);box-shadow:0 0 0 3px rgba(126,200,126,0.08);}
-.loc-btn{height:48px;padding:0 13px;border:none;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-family:var(--font-sans);border-right:1px solid var(--border);white-space:nowrap;flex-shrink:0;transition:color .18s;max-width:170px;}
-.loc-btn:hover{color:var(--text);}
-.loc-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.search-input{flex:1;height:48px;padding:0 12px;background:transparent;border:none;outline:none;font-family:var(--font-sans);font-size:14px;color:var(--text);}
-.search-input::placeholder{color:var(--muted);}
-.search-btn{height:40px;margin:4px;padding:0 20px;background:var(--green-dark);border:none;cursor:pointer;font-family:var(--font-sans);font-size:13px;font-weight:600;color:#fff;transition:background .18s;display:flex;align-items:center;gap:7px;border-radius:11px;flex-shrink:0;}
-.search-btn:hover{background:#2d7a2d;}
-.suggestions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
-.pill{font-size:12px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:4px 13px;cursor:pointer;transition:all .18s;}
-.pill:hover{color:var(--text);border-color:rgba(255,255,255,0.2);}
+/* ── SEARCH ── */
+.swrap{max-width:700px;margin:0 auto 14px;position:relative;}
+.srow{display:flex;background:var(--bg2);border:1px solid rgba(255,255,255,0.12);border-radius:var(--rl);overflow:visible;transition:border-color .2s,box-shadow .2s;position:relative;}
+.srow:focus-within{border-color:rgba(126,200,126,0.38);box-shadow:0 0 0 3px rgba(126,200,126,0.08);}
+.locbtn{height:48px;padding:0 12px;border:none;background:transparent;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-family:var(--sans);border-right:1px solid var(--bdr);white-space:nowrap;flex-shrink:0;transition:color .18s;max-width:160px;}
+.locbtn:hover{color:var(--text);}
+.loctxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.sinput{flex:1;height:48px;padding:0 12px;background:transparent;border:none;outline:none;font-family:var(--sans);font-size:14px;color:var(--text);}
+.sinput::placeholder{color:var(--muted);}
+.sbtn{height:40px;margin:4px;padding:0 20px;background:var(--gd);border:none;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;color:#fff;transition:background .18s;display:flex;align-items:center;gap:6px;border-radius:11px;flex-shrink:0;}
+.sbtn:hover{background:#2d7a2d;}
+.spills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+.spill{font-size:12px;color:var(--muted);background:var(--bg2);border:1px solid var(--bdr);border-radius:20px;padding:4px 12px;cursor:pointer;transition:all .18s;}
+.spill:hover{color:var(--text);border-color:rgba(255,255,255,0.2);}
 
-/* LOCATION DROPDOWN */
-.loc-dropdown{position:absolute;top:calc(100% + 8px);left:0;width:430px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);box-shadow:var(--shadow);z-index:500;display:none;overflow:hidden;}
-.loc-dropdown.open{display:block;}
-.loc-search-row{padding:10px 12px;border-bottom:1px solid var(--border);}
-.loc-search-inp{width:100%;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0 12px;font-family:var(--font-sans);font-size:13px;color:var(--text);outline:none;}
-.loc-search-inp::placeholder{color:var(--muted);}
-.loc-body{display:flex;height:280px;}
-.loc-counties{width:165px;overflow-y:auto;border-right:1px solid var(--border);flex-shrink:0;}
-.loc-county-item{padding:8px 12px;font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s;border-left:2px solid transparent;}
-.loc-county-item:hover,.loc-county-item.active{color:var(--text);background:var(--bg3);border-left-color:var(--green);}
-.loc-towns-panel{flex:1;overflow-y:auto;padding:8px;}
-.loc-towns-title{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 8px 8px;font-weight:600;}
-.loc-town-item{padding:6px 10px;font-size:13px;color:var(--muted);cursor:pointer;border-radius:6px;transition:all .15s;display:flex;align-items:center;gap:6px;}
-.loc-town-item:hover{color:var(--text);background:var(--bg4);}
-.loc-town-item.selected{color:var(--green);background:var(--green-dim);}
-.loc-footer{padding:10px 12px;border-top:1px solid var(--border);display:flex;gap:8px;}
-.loc-clear{font-size:12px;color:var(--muted);cursor:pointer;padding:5px 10px;border-radius:6px;transition:all .15s;}
-.loc-clear:hover{color:var(--text);background:var(--bg3);}
-.loc-apply{flex:1;font-size:12px;font-weight:600;color:#fff;background:var(--green-dark);border:none;border-radius:7px;cursor:pointer;padding:7px;font-family:var(--font-sans);}
-.loc-apply:hover{background:#2d7a2d;}
+/* ── LOCATION DROPDOWN ── */
+.locdrop{position:absolute;top:calc(100% + 8px);left:0;width:430px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);box-shadow:var(--shad);z-index:500;display:none;overflow:hidden;}
+.locdrop.open{display:block;}
+.locsr{padding:10px 12px;border-bottom:1px solid var(--bdr);}
+.locsrinp{width:100%;height:35px;background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:0 12px;font-family:var(--sans);font-size:13px;color:var(--text);outline:none;}
+.locsrinp::placeholder{color:var(--muted);}
+.locbody{display:flex;height:280px;}
+.loccol{width:162px;overflow-y:auto;border-right:1px solid var(--bdr);flex-shrink:0;}
+.loccitem{padding:7px 12px;font-size:12px;color:var(--muted);cursor:pointer;transition:all .14s;border-left:2px solid transparent;}
+.loccitem:hover,.loccitem.active{color:var(--text);background:var(--bg3);border-left-color:var(--green);}
+.loctown{flex:1;overflow-y:auto;padding:8px;}
+.loctowntitle{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:4px 8px 7px;font-weight:600;}
+.loctitem{padding:6px 9px;font-size:12px;color:var(--muted);cursor:pointer;border-radius:6px;transition:all .14s;display:flex;align-items:center;gap:5px;}
+.loctitem:hover{color:var(--text);background:var(--bg4);}
+.loctitem.sel{color:var(--green);background:var(--gdim);}
+.locfooter{padding:9px 12px;border-top:1px solid var(--bdr);display:flex;gap:8px;}
+.locclear{font-size:12px;color:var(--muted);cursor:pointer;padding:5px 9px;border-radius:6px;transition:all .14s;}
+.locclear:hover{color:var(--text);background:var(--bg3);}
+.locapply{flex:1;font-size:12px;font-weight:600;color:#fff;background:var(--gd);border:none;border-radius:7px;cursor:pointer;padding:6px;font-family:var(--sans);}
+.locapply:hover{background:#2d7a2d;}
 
-/* CATEGORIES */
-.categories{max-width:1100px;margin:52px auto 0;padding:0 24px;}
-.cats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
-@media(min-width:721px){.cats-grid{grid-template-columns:repeat(6,1fr);}}
-.cat-wrap{position:relative;}
-.cat-item{display:flex;flex-direction:column;align-items:center;gap:9px;padding:16px 4px 13px;border-radius:var(--r);background:var(--bg2);border:1px solid var(--border);cursor:pointer;text-decoration:none;color:inherit;transition:all .2s;position:relative;overflow:hidden;}
-.cat-item::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s;border-radius:var(--r);}
-.cat-wrap:hover .cat-item,.cat-item.active{transform:translateY(-3px);border-color:rgba(255,255,255,0.18);}
-.cat-wrap:hover .cat-item::before,.cat-item.active::before{opacity:1;}
-.c0::before{background:radial-gradient(ellipse at top,rgba(232,160,74,.18),transparent 70%);}
-.c1::before{background:radial-gradient(ellipse at top,rgba(74,126,192,.18),transparent 70%);}
-.c2::before{background:radial-gradient(ellipse at top,rgba(136,135,128,.22),transparent 70%);}
-.c3::before{background:radial-gradient(ellipse at top,rgba(126,200,126,.16),transparent 70%);}
-.c4::before{background:radial-gradient(ellipse at top,rgba(58,175,184,.16),transparent 70%);}
-.c5::before{background:radial-gradient(ellipse at top,rgba(201,149,42,.2),transparent 70%);}
-.c6::before{background:radial-gradient(ellipse at top,rgba(74,126,192,.16),transparent 70%);}
-.c7::before{background:radial-gradient(ellipse at top,rgba(58,175,184,.18),transparent 70%);}
-.c8::before{background:radial-gradient(ellipse at top,rgba(126,200,126,.18),transparent 70%);}
-.c9::before{background:radial-gradient(ellipse at top,rgba(201,149,42,.22),transparent 70%);}
-.c10::before{background:radial-gradient(ellipse at top,rgba(136,135,128,.24),transparent 70%);}
-.c11::before{background:radial-gradient(ellipse at top,rgba(201,149,42,.22),transparent 70);}
-.cat-icon-box{width:54px;height:54px;border-radius:13px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;}
-.cat-label{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);text-align:center;line-height:1.3;position:relative;z-index:1;transition:color .2s;}
-.cat-wrap:hover .cat-label,.cat-item.active .cat-label{color:var(--text);}
+/* ── CATEGORIES ── */
+.cats{max-width:960px;margin:48px auto 0;padding:0 20px;}
+.cgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:7px;}
+.cwrap{position:relative;}
+.citem{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 4px 11px;border-radius:var(--r);background:var(--bg2);border:1px solid var(--bdr);cursor:pointer;text-decoration:none;color:inherit;transition:all .2s;position:relative;overflow:hidden;}
+.citem::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .2s;border-radius:var(--r);pointer-events:none;}
+.cwrap:hover .citem,.citem.active{transform:translateY(-3px);border-color:rgba(255,255,255,0.18);}
+.cwrap:hover .citem::before,.citem.active::before{opacity:1;}
+/* per-category glow */
+.g0::before{background:radial-gradient(ellipse at top,rgba(126,200,126,.18),transparent 70%);}
+.g1::before{background:radial-gradient(ellipse at top,rgba(136,135,128,.22),transparent 70%);}
+.g2::before{background:radial-gradient(ellipse at top,rgba(74,126,192,.18),transparent 70%);}
+.g3::before{background:radial-gradient(ellipse at top,rgba(232,160,74,.18),transparent 70%);}
+.g4::before{background:radial-gradient(ellipse at top,rgba(58,175,184,.16),transparent 70%);}
+.g5::before{background:radial-gradient(ellipse at top,rgba(58,175,184,.14),transparent 70%);}
+.g6::before{background:radial-gradient(ellipse at top,rgba(74,126,192,.16),transparent 70%);}
+.g7::before{background:radial-gradient(ellipse at top,rgba(201,149,42,.14),transparent 70%);}
+.g8::before{background:radial-gradient(ellipse at top,rgba(126,200,126,.14),transparent 70%);}
+.g9::before{background:radial-gradient(ellipse at top,rgba(201,149,42,.2),transparent 70%);}
+.cicon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;}
+.clabel{font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;line-height:1.25;position:relative;z-index:1;transition:color .2s;}
+.cwrap:hover .clabel,.citem.active .clabel{color:var(--text);}
 
-/* SUBCATEGORY DROPDOWN */
-.sub-dd{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);min-width:190px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);box-shadow:var(--shadow);z-index:400;display:none;overflow:hidden;}
-.sub-dd.open{display:block;}
-.sub-dd-title{padding:9px 14px 6px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);}
-.sub-item{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;transition:background .14s;color:var(--muted);font-size:13px;}
-.sub-item:hover{background:var(--bg3);color:var(--text);}
-.sub-count{margin-left:auto;font-size:11px;color:var(--muted);background:var(--bg3);padding:1px 7px;border-radius:10px;flex-shrink:0;}
-.sub-item:hover .sub-count{background:var(--bg4);}
+/* ── SUBCATEGORY DROPDOWN ── */
+.subdd{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);min-width:185px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:var(--rl);box-shadow:var(--shad);z-index:400;display:none;overflow:hidden;}
+.subdd.open{display:block;}
+.subddtitle{padding:8px 13px 5px;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--bdr);}
+.subi{display:flex;align-items:center;gap:8px;padding:8px 13px;cursor:pointer;transition:background .13s;color:var(--muted);font-size:12px;}
+.subi:hover{background:var(--bg3);color:var(--text);}
+.subcnt{margin-left:auto;font-size:10px;color:var(--muted);background:var(--bg3);padding:1px 6px;border-radius:9px;flex-shrink:0;}
+.subi:hover .subcnt{background:var(--bg4);}
 
-/* STATS & TICKER */
-.divider{max-width:800px;margin:44px auto 0;padding:0 24px;border-top:1px solid var(--border);}
-.stats{max-width:800px;margin:0 auto;padding:22px 24px;display:flex;justify-content:space-around;flex-wrap:wrap;gap:12px;}
-.stat-num{font-family:var(--font-serif);font-size:26px;color:var(--text);display:block;line-height:1;margin-bottom:3px;}
-.stat-label{font-size:11px;color:var(--muted);letter-spacing:.04em;}
-.ticker-wrap{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;padding:9px 0;}
-.ticker-inner{display:flex;gap:40px;animation:ticker 32s linear infinite;white-space:nowrap;}
-@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-.ti{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);flex-shrink:0;}
+/* ── STATS & TICKER ── */
+.divl{max-width:960px;margin:40px auto 0;padding:0 20px;border-top:1px solid var(--bdr);}
+.stats{max-width:960px;margin:0 auto;padding:20px 20px;display:flex;justify-content:space-around;flex-wrap:wrap;gap:10px;}
+.snum{font-family:var(--serif);font-size:24px;color:var(--text);display:block;line-height:1;margin-bottom:2px;}
+.slbl{font-size:10px;color:var(--muted);letter-spacing:.04em;}
+.tickwrap{background:var(--bg2);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);overflow:hidden;padding:8px 0;}
+.tickinner{display:flex;gap:36px;animation:tick 32s linear infinite;white-space:nowrap;}
+@keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ti{display:inline-flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);flex-shrink:0;}
 .tn{color:var(--text);font-weight:600;}.tp{font-weight:600;color:var(--text);}
-.tup{color:#5cb85c;}.tdn{color:#d9534f;}.tdot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.12);}
+.tup{color:#5cb85c;}.tdn{color:#d9534f;}.tdot{width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,0.1);}
 
-/* PANEL OVERLAY */
-.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.58);z-index:600;display:none;align-items:flex-start;justify-content:flex-end;}
-.panel-overlay.open{display:flex;}
-.panel{width:520px;height:100vh;background:var(--bg2);border-left:1px solid var(--border2);display:flex;flex-direction:column;animation:slideIn .24s ease;}
-@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+/* ── PANEL ── */
+.povl{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:600;display:none;align-items:flex-start;justify-content:flex-end;}
+.povl.open{display:flex;}
+.panel{width:500px;height:100vh;background:var(--bg2);border-left:1px solid var(--bdr2);display:flex;flex-direction:column;animation:sli .24s ease;}
+@keyframes sli{from{transform:translateX(100%)}to{transform:translateX(0)}}
 
-/* LIST VIEW */
-.lv{display:flex;flex-direction:column;height:100%;}
-.ph{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
-.p-back{width:30px;height:30px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:15px;flex-shrink:0;transition:all .15s;}
-.p-back:hover{color:var(--text);background:var(--bg4);}
-.p-title{font-size:15px;font-weight:600;color:var(--text);flex:1;}
-.p-sub{font-size:12px;color:var(--muted);}
-.p-filters{padding:10px 20px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;}
-.fp{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .14s;background:transparent;}
-.fp:hover,.fp.on{background:var(--green-dim);border-color:rgba(126,200,126,0.3);color:var(--green);}
-.p-search-row{padding:10px 20px;border-bottom:1px solid var(--border);flex-shrink:0;position:relative;}
-.p-search{width:100%;height:36px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:0 12px 0 34px;font-family:var(--font-sans);font-size:13px;color:var(--text);outline:none;}
-.p-search::placeholder{color:var(--muted);}
-.p-search-icon{position:absolute;left:32px;top:19px;color:var(--muted);}
-.p-body{flex:1;overflow-y:auto;padding:14px 18px;}
+/* list view */
+.lview{display:flex;flex-direction:column;height:100%;}
+.phead{padding:15px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:11px;flex-shrink:0;}
+.pback{width:28px;height:28px;background:var(--bg3);border:1px solid var(--bdr);border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;flex-shrink:0;transition:all .14s;}
+.pback:hover{color:var(--text);background:var(--bg4);}
+.ptitle{font-size:14px;font-weight:600;color:var(--text);flex:1;}
+.psub{font-size:11px;color:var(--muted);}
+.pfilts{padding:9px 18px;border-bottom:1px solid var(--bdr);display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0;}
+.fp{font-size:11px;padding:3px 10px;border-radius:18px;border:1px solid var(--bdr);color:var(--muted);cursor:pointer;transition:all .13s;background:transparent;}
+.fp:hover,.fp.on{background:var(--gdim);border-color:rgba(126,200,126,0.3);color:var(--green);}
+.psrow{padding:9px 18px;border-bottom:1px solid var(--bdr);flex-shrink:0;position:relative;}
+.psearch{width:100%;height:34px;background:var(--bg3);border:1px solid var(--bdr);border-radius:8px;padding:0 10px 0 32px;font-family:var(--sans);font-size:12px;color:var(--text);outline:none;}
+.psearch::placeholder{color:var(--muted);}
+.psicon{position:absolute;left:30px;top:18px;color:var(--muted);}
+.pbody{flex:1;overflow-y:auto;padding:12px 16px;}
 
-/* LISTING CARD */
-.lc{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:13px;margin-bottom:9px;display:flex;gap:11px;cursor:pointer;transition:border-color .18s,background .18s;}
-.lc:hover{border-color:var(--border2);background:var(--bg4);}
-.lav{width:44px;height:44px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
-.lb{flex:1;min-width:0;}
-.ln{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ls{font-size:11px;color:var(--muted);margin-bottom:5px;}
-.ltags{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:5px;}
-.ltag{font-size:10px;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.06);color:var(--muted);}
-.lmeta{display:flex;align-items:center;gap:9px;}
+/* listing card */
+.lcard{background:var(--bg3);border:1px solid var(--bdr);border-radius:var(--r);padding:12px;margin-bottom:8px;display:flex;gap:10px;cursor:pointer;transition:border-color .17s,background .17s;}
+.lcard:hover{border-color:var(--bdr2);background:var(--bg4);}
+.lav{width:42px;height:42px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.lbody{flex:1;min-width:0;}
+.lname{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lsub{font-size:11px;color:var(--muted);margin-bottom:5px;}
+.ltags{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px;}
+.ltag{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.05);color:var(--muted);}
+.lmeta{display:flex;align-items:center;gap:8px;}
 .lrat{font-size:11px;color:var(--gold);}
-.lrev{font-size:11px;color:var(--muted);}
-.lloc{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px;}
-.lr{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;}
-.lp{font-size:13px;font-weight:600;color:var(--green);}
-.lbadge{font-size:10px;padding:2px 8px;border-radius:10px;border:1px solid;white-space:nowrap;}
-.bg{background:rgba(126,200,126,.12);color:#7ec87e;border-color:rgba(126,200,126,.25);}
-.bb{background:rgba(74,126,192,.12);color:#7ab4f0;border-color:rgba(74,126,192,.25);}
-.bgold{background:rgba(201,149,42,.12);color:#e8b84b;border-color:rgba(201,149,42,.25);}
+.lrev{font-size:10px;color:var(--muted);}
+.lloc{font-size:10px;color:var(--muted);display:flex;align-items:center;gap:3px;}
+.lright{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+.lprice{font-size:12px;font-weight:600;color:var(--green);}
+.lbadge{font-size:9px;padding:2px 7px;border-radius:9px;border:1px solid;white-space:nowrap;}
+.bg{background:rgba(126,200,126,.1);color:#7ec87e;border-color:rgba(126,200,126,.25);}
+.bb{background:rgba(74,126,192,.1);color:#7ab4f0;border-color:rgba(74,126,192,.25);}
+.bgold{background:rgba(201,149,42,.1);color:#e8b84b;border-color:rgba(201,149,42,.25);}
 
-.p-empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;}
-.skel-wrap{display:flex;flex-direction:column;gap:10px;padding:2px 0;}
-.skel{height:82px;background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200%;border-radius:var(--r);animation:shim 1.4s infinite;}
+.pempty{text-align:center;padding:36px 16px;color:var(--muted);font-size:12px;}
+.skelwrap{display:flex;flex-direction:column;gap:9px;padding:2px 0;}
+.skel{height:76px;background:linear-gradient(90deg,var(--bg3) 25%,var(--bg4) 50%,var(--bg3) 75%);background-size:200%;border-radius:var(--r);animation:shim 1.4s infinite;}
 @keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
-/* DETAIL VIEW */
-.dv{width:100%;height:100%;background:var(--bg2);flex-direction:column;display:none;}
-.dv.open{display:flex;}
-.dh{padding:15px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
-.dav{width:52px;height:52px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0;}
-.di{flex:1;}
-.dn{font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px;}
-.ds{font-size:12px;color:var(--muted);}
-.db{flex:1;overflow-y:auto;padding:18px;}
-.dsec{margin-bottom:18px;}
-.dsec-t{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;font-weight:600;}
-.d-about{font-size:13px;color:var(--muted);line-height:1.7;}
-.dtags{display:flex;gap:6px;flex-wrap:wrap;}
-.dtag{font-size:12px;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.06);color:var(--muted);border:1px solid var(--border);}
-.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
-.dkv{background:var(--bg3);border-radius:8px;padding:10px 12px;}
-.dk{font-size:11px;color:var(--muted);margin-bottom:3px;}
-.dval{font-size:13px;font-weight:600;color:var(--text);}
-.d-actions{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:9px;flex-shrink:0;}
-.btn-hire{flex:1;padding:10px;background:var(--green-dark);border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:600;font-family:var(--font-sans);cursor:pointer;transition:background .18s;}
-.btn-hire:hover{background:#2d7a2d;}
-.btn-q{padding:10px 16px;background:transparent;border:1px solid var(--border2);border-radius:9px;color:var(--text);font-size:13px;font-family:var(--font-sans);cursor:pointer;transition:all .18s;}
-.btn-q:hover{background:var(--bg3);}
-.btn-mjc{padding:10px 14px;background:var(--gold-dim);border:1px solid rgba(201,149,42,.3);border-radius:9px;color:#e8b84b;font-size:13px;font-family:var(--font-sans);cursor:pointer;transition:all .18s;}
-.btn-mjc:hover{background:rgba(201,149,42,.22);}
+/* detail view */
+.dview{width:100%;height:100%;background:var(--bg2);flex-direction:column;display:none;}
+.dview.open{display:flex;}
+.dhead{padding:14px 17px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:11px;flex-shrink:0;}
+.dav{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;}
+.dinfo{flex:1;}
+.dname{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.dsub{font-size:11px;color:var(--muted);}
+.dbody{flex:1;overflow-y:auto;padding:16px;}
+.dsec{margin-bottom:16px;}
+.dsect{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-weight:600;}
+.dabout{font-size:12px;color:var(--muted);line-height:1.7;}
+.dtags{display:flex;gap:5px;flex-wrap:wrap;}
+.dtag{font-size:11px;padding:3px 9px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--bdr);}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.dkv{background:var(--bg3);border-radius:8px;padding:9px 11px;}
+.dk{font-size:10px;color:var(--muted);margin-bottom:2px;}
+.dv{font-size:12px;font-weight:600;color:var(--text);}
+.dacts{padding:13px 17px;border-top:1px solid var(--bdr);display:flex;gap:8px;flex-shrink:0;}
+.btnhire{flex:1;padding:10px;background:var(--gd);border:none;border-radius:9px;color:#fff;font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;transition:background .17s;}
+.btnhire:hover{background:#2d7a2d;}
+.btnq{padding:10px 14px;background:transparent;border:1px solid var(--bdr2);border-radius:9px;color:var(--text);font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .17s;}
+.btnq:hover{background:var(--bg3);}
+.btnmjc{padding:10px 12px;background:var(--gdim2);border:1px solid rgba(201,149,42,.3);border-radius:9px;color:#e8b84b;font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .17s;}
+.btnmjc:hover{background:rgba(201,149,42,.22);}
 
-/* FEATURES */
-.features{max-width:800px;margin:0 auto;padding:46px 24px;}
-.sec-lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:10px;}
-.sec-ttl{font-family:var(--font-serif);font-size:30px;color:var(--text);margin-bottom:26px;letter-spacing:-.5px;}
-.fg{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
-.fc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:18px;transition:border-color .18s;}
-.fc:hover{border-color:var(--border2);}
-.fi{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:11px;}
-.ft{font-size:13px;font-weight:700;color:var(--text);margin-bottom:5px;}
-.fx{font-size:12px;color:var(--muted);line-height:1.65;}
+/* ── FEATURES ── */
+.feats{max-width:960px;margin:0 auto;padding:42px 20px;}
+.slbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--green);margin-bottom:9px;}
+.sttl{font-family:var(--serif);font-size:28px;color:var(--text);margin-bottom:24px;letter-spacing:-.5px;}
+.fgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.fc{background:var(--bg2);border:1px solid var(--bdr);border-radius:var(--rl);padding:17px;transition:border-color .17s;}
+.fc:hover{border-color:var(--bdr2);}
+.fi{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.ft{font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px;}
+.fx{font-size:11px;color:var(--muted);line-height:1.65;}
 
-/* WALLET */
-.ws{max-width:800px;margin:0 auto 42px;padding:0 24px;}
-.wc{border-radius:var(--rl);padding:24px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px;background:linear-gradient(135deg,#0d3d1a 0%,#1a3a5c 100%);border:1px solid rgba(255,255,255,0.09);position:relative;overflow:hidden;}
-.wc::before{content:'MJC';position:absolute;right:-8px;top:-18px;font-family:var(--font-serif);font-size:110px;color:rgba(255,255,255,0.04);pointer-events:none;}
-.wl h3{font-family:var(--font-serif);font-size:20px;color:#fff;margin-bottom:5px;}
-.wl p{font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;}
-.mjc-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(201,149,42,.2);border:1px solid rgba(201,149,42,.32);border-radius:20px;padding:3px 11px;font-size:11px;color:#e8b84b;margin-top:9px;}
-.wbtns{display:flex;gap:8px;flex-shrink:0;}
-.wb{padding:8px 16px;border-radius:8px;font-family:var(--font-sans);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .18s;border:none;}
-.wb-p{background:#fff;color:#0d3d1a;}.wb-p:hover{background:#e8f5e8;}
-.wb-s{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);}.wb-s:hover{background:rgba(255,255,255,.17);}
+/* ── WALLET STRIP ── */
+.wstrip{max-width:960px;margin:0 auto 40px;padding:0 20px;}
+.wcard{border-radius:var(--rl);padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:18px;background:linear-gradient(135deg,#0d3d1a 0%,#1a3a5c 100%);border:1px solid rgba(255,255,255,0.09);position:relative;overflow:hidden;}
+.wcard::before{content:'MJT';position:absolute;right:-6px;top:-16px;font-family:var(--serif);font-size:100px;color:rgba(255,255,255,0.04);pointer-events:none;}
+.wl h3{font-family:var(--serif);font-size:19px;color:#fff;margin-bottom:5px;}
+.wl p{font-size:11px;color:rgba(255,255,255,.5);line-height:1.6;}
+.wmpill{display:inline-flex;align-items:center;gap:5px;background:rgba(201,149,42,.2);border:1px solid rgba(201,149,42,.3);border-radius:20px;padding:3px 10px;font-size:10px;color:#e8b84b;margin-top:8px;}
+.wbtns{display:flex;gap:7px;flex-shrink:0;}
+.wb{padding:8px 15px;border-radius:8px;font-family:var(--sans);font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .17s;border:none;}
+.wbp{background:#fff;color:#0d3d1a;}.wbp:hover{background:#e8f5e8;}
+.wbs{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);}.wbs:hover{background:rgba(255,255,255,.17);}
 
-/* FOOTER */
-footer{border-top:1px solid var(--border);padding:18px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
-.fl{font-size:12px;color:var(--muted);}.fl strong{color:var(--text);}
-.flinks{display:flex;gap:14px;}
-.flink{font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s;}.flink:hover{color:var(--text);}
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--bdr);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;}
+.fl{font-size:11px;color:var(--muted);}.fl strong{color:var(--text);}
+.flinks{display:flex;gap:12px;}
+.flink{font-size:11px;color:var(--muted);text-decoration:none;transition:color .14s;}.flink:hover{color:var(--text);}
 
 ::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}::-webkit-scrollbar-thumb:hover{background:var(--muted);}
 
-@media(max-width:720px){
-  nav{padding:10px 16px;}.nav-right .nav-link{display:none;}
-  .hero{padding:40px 16px 28px;}.cats-grid{grid-template-columns:repeat(4,1fr);}
-  .fg{grid-template-columns:1fr;}.wc{flex-direction:column;}
-  .panel{width:100vw;}footer{flex-direction:column;text-align:center;}
-  .sub-dd{min-width:160px;}
-  .loc-dropdown{width:calc(100vw - 32px);}
+@media(max-width:900px){
+  .cgrid{grid-template-columns:repeat(5,1fr);}
+  .fgrid{grid-template-columns:1fr 1fr;}
+  .panel{width:100vw;}
+}
+@media(max-width:560px){
+  nav{padding:9px 14px;}.nright .nlink{display:none;}
+  .hero{padding:38px 16px 26px;}
+  .cgrid{grid-template-columns:repeat(4,1fr);}
+  .fgrid{grid-template-columns:1fr;}
+  .wcard{flex-direction:column;}
+  footer{flex-direction:column;text-align:center;}
+  .locdrop{width:calc(100vw - 24px);}
 }
 </style>
 </head>
 <body>
 
+<!-- NAV -->
 <nav>
-  <a href="#" class="nav-logo" onclick="closePanel();return false;">
-    <div class="nav-logo-icon">
-      <svg width="17" height="17" viewBox="0 0 18 18" fill="none">
+  <a href="#" class="nlogo" onclick="closePanel();return false;">
+    <div class="nico">
+      <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
         <rect x="1" y="10" width="4" height="7" rx=".8" fill="white" opacity=".9"/>
         <rect x="7" y="6" width="4" height="11" rx=".8" fill="white"/>
         <rect x="13" y="2" width="4" height="15" rx=".8" fill="white" opacity=".7"/>
       </svg>
     </div>
-    <span class="nav-logo-text">MjengoAI</span>
+    <span class="ntxt">MjengoAI</span>
   </a>
-  <div class="nav-right">
-    <a href="#" class="nav-link">Browse</a>
-    <a href="#" class="nav-link">Prices</a>
-    <a href="#" class="nav-link">For Pros</a>
-    <a href="#" class="nav-cta">Sign in</a>
+  <div class="nright">
+    <a href="#" class="nlink">Browse</a>
+    <a href="#" class="nlink">Prices</a>
+    <a href="#" class="nlink">For Pros</a>
+    <a href="#" class="ncta">Sign in</a>
   </div>
 </nav>
 
+<!-- HERO -->
 <section class="hero">
-  <div class="hero-badge"><b></b>Powered by Buildersee &amp; Mineco House</div>
-  <h1 class="hero-title">Mjengo<em> AI</em></h1>
-  <p class="hero-tagline">Transparency &amp; Honesty</p>
+  <div class="hbadge"><b></b>Powered by Buildersee &amp; Mineco House</div>
+  <h1 class="htitle">Mjengo<em> AI</em></h1>
+  <p class="htag">Transparency &amp; Honesty</p>
 
-  <div class="search-wrap">
-    <div class="search-row" id="searchRow">
-      <button class="loc-btn" id="locBtn" onclick="toggleLocDd(event)">
-        <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M7 1C4.8 1 3 2.8 3 5c0 3 4 8 4 8s4-5 4-8c0-2.2-1.8-4-4-4z" stroke="currentColor" stroke-width="1.4" fill="none"/><circle cx="7" cy="5" r="1.5" fill="currentColor"/></svg>
-        <span class="loc-text" id="locText">All Kenya</span>
+  <div class="swrap">
+    <div class="srow" id="srow">
+      <button class="locbtn" id="locbtn" onclick="toggleLoc(event)">
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 1C4.8 1 3 2.8 3 5c0 3 4 8 4 8s4-5 4-8c0-2.2-1.8-4-4-4z" stroke="currentColor" stroke-width="1.4" fill="none"/><circle cx="7" cy="5" r="1.5" fill="currentColor"/></svg>
+        <span class="loctxt" id="loctxt">All Kenya</span>
         <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       </button>
-      <input class="search-input" id="si" type="text" placeholder='Search artisans, materials, plans, professionals…' onkeydown="if(event.key==='Enter')doSearch()"/>
-      <button class="search-btn" onclick="doSearch()">
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="white" stroke-width="1.8"/><path d="M10.5 10.5L14 14" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <input class="sinput" id="sinput" type="text" placeholder="Search artisans, materials, plans, professionals…" onkeydown="if(event.key==='Enter')doSearch()"/>
+      <button class="sbtn" onclick="doSearch()">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="white" stroke-width="1.8"/><path d="M10.5 10.5L14 14" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
         Search
       </button>
 
       <!-- Location Dropdown -->
-      <div class="loc-dropdown" id="locDd">
-        <div class="loc-search-row">
-          <input class="loc-search-inp" id="locSrch" placeholder="Search county or town…" oninput="filterLoc(this.value)"/>
+      <div class="locdrop" id="locdrop">
+        <div class="locsr">
+          <input class="locsrinp" id="locsrinp" placeholder="Search county or town…" oninput="filterLoc(this.value)"/>
         </div>
-        <div class="loc-body">
-          <div class="loc-counties" id="countyList"></div>
-          <div class="loc-towns-panel">
-            <div class="loc-towns-title" id="townsTitle">Select a county</div>
+        <div class="locbody">
+          <div class="loccol" id="countyList"></div>
+          <div class="loctown">
+            <div class="loctowntitle" id="townsTitle">Select a county</div>
             <div id="townList"></div>
           </div>
         </div>
-        <div class="loc-footer">
-          <span class="loc-clear" onclick="clearLoc()">Clear</span>
-          <button class="loc-apply" onclick="applyLoc()">Apply location</button>
+        <div class="locfooter">
+          <span class="locclear" onclick="clearLoc()">Clear</span>
+          <button class="locapply" onclick="applyLoc()">Apply location</button>
         </div>
       </div>
     </div>
 
-    <div class="suggestions">
-      <span class="pill" onclick="quickSearch('plumber')">Plumbers near me</span>
-      <span class="pill" onclick="quickSearch('3-bedroom plan')">3BR house plans</span>
-      <span class="pill" onclick="quickSearch('cement hardware')">Cement prices</span>
-      <span class="pill" onclick="quickSearch('structural engineer')">Structural engineer</span>
-      <span class="pill" onclick="quickSearch('roofing contractor')">Roofing contractor</span>
+    <div class="spills">
+      <span class="spill" onclick="qs('mason')">Masons</span>
+      <span class="spill" onclick="qs('plumber')">Plumbers</span>
+      <span class="spill" onclick="qs('3-bedroom plan')">3BR house plans</span>
+      <span class="spill" onclick="qs('cement')">Cement prices</span>
+      <span class="spill" onclick="qs('structural engineer')">Structural engineer</span>
+      <span class="spill" onclick="qs('roofing contractor')">Roofing contractor</span>
     </div>
   </div>
 </section>
 
-<section class="categories" id="categories">
-  <div class="cats-grid" id="catsGrid"></div>
+<!-- CATEGORIES -->
+<section class="cats">
+  <div class="cgrid" id="cgrid"></div>
 </section>
 
-<div class="divider"></div>
+<!-- STATS -->
+<div class="divl"></div>
 <div class="stats">
-  <div><span class="stat-num">10,000+</span><span class="stat-label">House Plans</span></div>
-  <div><span class="stat-num">3,200+</span><span class="stat-label">Vetted Artisans</span></div>
-  <div><span class="stat-num">1,800+</span><span class="stat-label">Professionals</span></div>
-  <div><span class="stat-num">850+</span><span class="stat-label">Verified Suppliers</span></div>
-  <div><span class="stat-num">47</span><span class="stat-label">Counties</span></div>
+  <div><span class="snum">10,000+</span><span class="slbl">House Plans</span></div>
+  <div><span class="snum">3,200+</span><span class="slbl">Vetted Artisans</span></div>
+  <div><span class="snum">1,800+</span><span class="slbl">Professionals</span></div>
+  <div><span class="snum">850+</span><span class="slbl">Verified Suppliers</span></div>
+  <div><span class="snum">47</span><span class="slbl">Counties</span></div>
 </div>
 
-<div class="ticker-wrap"><div class="ticker-inner" id="ticker"></div></div>
+<!-- TICKER -->
+<div class="tickwrap"><div class="tickinner" id="ticker"></div></div>
 
-<section class="features" id="features">
-  <div class="sec-lbl">How it works</div>
-  <h2 class="sec-ttl">Search → Connect → Build</h2>
-  <div class="fg">
-    <div class="fc"><div class="fi" style="background:rgba(126,200,126,.14)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="8" cy="8" r="6" stroke="#7ec87e" stroke-width="1.7"/><path d="M13 13L18 18" stroke="#7ec87e" stroke-width="1.7" stroke-linecap="round"/></svg></div><div class="ft">AI-Powered Search</div><p class="fx">Search in English or Swahili. Our AI understands local construction terms, locations, and budgets to match you perfectly.</p></div>
-    <div class="fc"><div class="fi" style="background:rgba(74,126,192,.14)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="6" cy="6" r="3" stroke="#4a7ec0" stroke-width="1.6"/><circle cx="14" cy="6" r="3" stroke="#4a7ec0" stroke-width="1.6"/><circle cx="10" cy="14" r="3" stroke="#4a7ec0" stroke-width="1.6"/><path d="M8.8 8.8L11.2 11.2M11.2 8.8L8.8 11.2" stroke="#4a7ec0" stroke-width="1.2"/></svg></div><div class="ft">Verified Network</div><p class="fx">Every professional is verified against NCA, EBK and BORAQS registries. Every artisan rated by real clients.</p></div>
-    <div class="fc"><div class="fi" style="background:rgba(201,149,42,.14)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="12" rx="2" stroke="#c9952a" stroke-width="1.6"/><path d="M6 5V3M14 5V3" stroke="#c9952a" stroke-width="1.6" stroke-linecap="round"/><path d="M8.5 11L9.5 12L11.5 10" stroke="#c9952a" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="ft">Milestone Payments</div><p class="fx">Pay via MJC Token with NCBA Loop escrow. Funds released only when you verify work completion.</p></div>
-    <div class="fc"><div class="fi" style="background:rgba(136,135,128,.18)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 15L2 8L10 3L18 8L18 15" stroke="#888780" stroke-width="1.6" stroke-linejoin="round" fill="none"/><rect x="7.5" y="10" width="5" height="7" rx=".7" fill="#888780" opacity=".7"/></svg></div><div class="ft">Mineco House Plans</div><p class="fx">Browse 10,000+ pre-approved plans with full BOQ, working budgets and material schedules attached.</p></div>
-    <div class="fc"><div class="fi" style="background:rgba(58,175,184,.14)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="4" width="18" height="13" rx="2" stroke="#3aafb8" stroke-width="1.6"/><path d="M6 8L10 12L14 8" stroke="#3aafb8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div><div class="ft">Compare &amp; Save</div><p class="fx">Compare material prices across suppliers in all 47 counties. Always get the best market deal.</p></div>
-    <div class="fc"><div class="fi" style="background:rgba(126,200,126,.14)"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L18 6L18 12C18 16 14 19 10 20C6 19 2 16 2 12L2 6Z" stroke="#7ec87e" stroke-width="1.6" fill="none"/><path d="M7 10.5L9 12.5L13 8.5" stroke="#7ec87e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div><div class="ft">Data Protection</div><p class="fx">Kenya Data Protection Act (2019) compliant. AES-256 encryption. Your project data is secure.</p></div>
+<!-- FEATURES -->
+<section class="feats">
+  <div class="slbl">How it works</div>
+  <h2 class="sttl">Search → Connect → Build</h2>
+  <div class="fgrid">
+    <div class="fc"><div class="fi" style="background:rgba(126,200,126,.13)"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="8" cy="8" r="6" stroke="#7ec87e" stroke-width="1.7"/><path d="M13 13L18 18" stroke="#7ec87e" stroke-width="1.7" stroke-linecap="round"/></svg></div><div class="ft">AI-Powered Search</div><p class="fx">Search in English or Swahili. Our AI understands local construction terms, locations, and budgets to match you perfectly.</p></div>
+    <div class="fc"><div class="fi" style="background:rgba(74,126,192,.13)"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="6" cy="6" r="3" stroke="#4a7ec0" stroke-width="1.6"/><circle cx="14" cy="6" r="3" stroke="#4a7ec0" stroke-width="1.6"/><circle cx="10" cy="14" r="3" stroke="#4a7ec0" stroke-width="1.6"/><path d="M8.8 8.8L11.2 11.2M11.2 8.8L8.8 11.2" stroke="#4a7ec0" stroke-width="1.2"/></svg></div><div class="ft">Verified Network</div><p class="fx">Every professional verified against NCA, EBK and BORAQS registries. Every artisan rated by real clients.</p></div>
+    <div class="fc"><div class="fi" style="background:rgba(201,149,42,.13)"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="12" rx="2" stroke="#c9952a" stroke-width="1.6"/><path d="M6 5V3M14 5V3" stroke="#c9952a" stroke-width="1.6" stroke-linecap="round"/><path d="M8.5 11L9.5 12L11.5 10" stroke="#c9952a" stroke-width="1.5" stroke-linecap="round"/></svg></div><div class="ft">Milestone Payments</div><p class="fx">Pay via Mjengo Token (MJT) with NCBA Loop escrow. Funds released only when you verify work completion.</p></div>
+    <div class="fc"><div class="fi" style="background:rgba(136,135,128,.17)"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 15L2 8L10 3L18 8L18 15" stroke="#888780" stroke-width="1.6" stroke-linejoin="round" fill="none"/><rect x="7.5" y="10" width="5" height="7" rx=".7" fill="#888780" opacity=".7"/></svg></div><div class="ft">Mineco House Plans</div><p class="fx">Browse 10,000+ pre-approved plans with full BOQ, working budgets and material schedules.</p></div>
+    <div class="fc"><div class="fi" style="background:rgba(58,175,184,.13)"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="1" y="4" width="18" height="13" rx="2" stroke="#3aafb8" stroke-width="1.6"/><path d="M6 8L10 12L14 8" stroke="#3aafb8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div><div class="ft">Compare &amp; Save</div><p class="fx">Compare material prices across suppliers in all 47 counties. Always get the best market deal.</p></div>
+    <div class="fc"><div class="fi" style="background:rgba(126,200,126,.13)"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 2L18 6L18 12C18 16 14 19 10 20C6 19 2 16 2 12L2 6Z" stroke="#7ec87e" stroke-width="1.6" fill="none"/><path d="M7 10.5L9 12.5L13 8.5" stroke="#7ec87e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div><div class="ft">Data Protection</div><p class="fx">Kenya Data Protection Act (2019) compliant. AES-256 encryption. Your project data stays secure.</p></div>
   </div>
 </section>
 
-<div class="ws">
-  <div class="wc">
+<!-- WALLET -->
+<div class="wstrip">
+  <div class="wcard">
     <div class="wl">
-      <h3>Mjengo Coin (MJC)</h3>
-      <p>Kenya's construction digital token.<br/>1 MJC = 100 KES · Backed by NCBA Loop · Instant transfers</p>
-      <div class="mjc-pill"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" fill="#c9952a" opacity=".4"/><text x="6" y="8.5" text-anchor="middle" font-size="6" fill="#e8b84b" font-family="Georgia" font-weight="700">M</text></svg> MJC Token — The Value of Construction</div>
+      <h3>Mjengo Token (MJT)</h3>
+      <p>Kenya's construction digital token — formerly MJC, now unified as MJT.<br/>1 MJT = 100 KES · Backed by NCBA Loop · Instant transfers · CBK sandbox compliant</p>
+      <div class="wmpill">
+        <svg width="10" height="10" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" fill="#c9952a" opacity=".4"/><text x="6" y="8.5" text-anchor="middle" font-size="6" fill="#e8b84b" font-family="Georgia" font-weight="700">M</text></svg>
+        MJT — The Value of Construction · e-Wallet · MJT Coin · MJT Exchange
+      </div>
     </div>
     <div class="wbtns">
-      <a href="#" class="wb wb-p">Create wallet</a>
-      <a href="#" class="wb wb-s">Learn more</a>
+      <a href="#" class="wb wbp">Create e-Wallet</a>
+      <a href="#" class="wb wbs">Learn more</a>
     </div>
   </div>
 </div>
@@ -359,68 +374,63 @@ footer{border-top:1px solid var(--border);padding:18px 32px;display:flex;align-i
   </div>
 </footer>
 
-<!-- PANEL OVERLAY -->
-<div class="panel-overlay" id="panelOverlay" onclick="if(event.target===this)closePanel()">
+<!-- PANEL -->
+<div class="povl" id="povl" onclick="if(event.target===this)closePanel()">
   <div class="panel" id="panel">
-    <!-- List View -->
-    <div class="lv" id="listView">
-      <div class="ph">
-        <div class="p-back" onclick="closePanel()">←</div>
-        <div style="flex:1">
-          <div class="p-title" id="pTitle">Results</div>
-          <div class="p-sub" id="pSub"></div>
-        </div>
-        <div class="p-back" onclick="closePanel()">✕</div>
+    <div class="lview" id="lview">
+      <div class="phead">
+        <div class="pback" onclick="closePanel()">←</div>
+        <div style="flex:1"><div class="ptitle" id="ptitle">Results</div><div class="psub" id="psub"></div></div>
+        <div class="pback" onclick="closePanel()">✕</div>
       </div>
-      <div class="p-filters" id="pFilters"></div>
-      <div class="p-search-row">
-        <svg class="p-search-icon" width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="#888780" stroke-width="1.6"/><path d="M10.5 10.5L14 14" stroke="#888780" stroke-width="1.6" stroke-linecap="round"/></svg>
-        <input class="p-search" id="pSearch" placeholder="Filter results…" oninput="filterPanel(this.value)"/>
+      <div class="pfilts" id="pfilts"></div>
+      <div class="psrow">
+        <svg class="psicon" width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="#888780" stroke-width="1.6"/><path d="M10.5 10.5L14 14" stroke="#888780" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input class="psearch" id="psearch" placeholder="Filter results…" oninput="filterPanel(this.value)"/>
       </div>
-      <div class="p-body" id="pBody"></div>
+      <div class="pbody" id="pbody"></div>
     </div>
-    <!-- Detail View -->
-    <div class="dv" id="detailView">
-      <div class="dh">
-        <div class="p-back" onclick="showList()">←</div>
-        <div class="dav" id="dAv"></div>
-        <div class="di"><div class="dn" id="dName"></div><div class="ds" id="dSub2"></div></div>
-        <div class="p-back" onclick="closePanel()">✕</div>
+    <div class="dview" id="dview">
+      <div class="dhead">
+        <div class="pback" onclick="showList()">←</div>
+        <div class="dav" id="dav"></div>
+        <div class="dinfo"><div class="dname" id="dname"></div><div class="dsub" id="dsub2"></div></div>
+        <div class="pback" onclick="closePanel()">✕</div>
       </div>
-      <div class="db" id="dBody"></div>
-      <div class="d-actions">
-        <button class="btn-hire" id="dHireBtn">Hire / Enquire</button>
-        <button class="btn-q">Get Quote</button>
-        <button class="btn-mjc">Pay MJC</button>
+      <div class="dbody" id="dbody"></div>
+      <div class="dacts">
+        <button class="btnhire" id="dhirebtn">Hire / Enquire</button>
+        <button class="btnq">Get Quote</button>
+        <button class="btnmjc">Pay MJT</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-/* ═══════════ KENYA COUNTIES & TOWNS ═══════════ */
+/* ════════════════════ KENYA COUNTIES ════════════════════ */
 const KENYA={
-  "Nairobi":["CBD","Westlands","Karen","Kilimani","Kasarani","Embakasi","Langata","Dagoretti","Ruaraka","Starehe","South C","Roysambu","Eastleigh","Pangani"],
-  "Mombasa":["Mvita","Nyali","Kisauni","Likoni","Changamwe","Jomvu","Bamburi","Mtwapa"],
-  "Kisumu":["Kisumu Central","Kisumu East","Kisumu West","Muhoroni","Nyando","Seme","Nyakach","Kondele"],
-  "Nakuru":["Nakuru Town","Naivasha","Gilgil","Subukia","Rongai","Molo","Njoro","Kuresoi","Bahati"],
-  "Uasin Gishu":["Eldoret","Turbo","Soy","Kapseret","Moiben","Ainabkoi","Burnt Forest"],
-  "Kiambu":["Thika","Kiambu Town","Ruiru","Githunguri","Gatundu","Limuru","Kikuyu","Kabete","Lari","Juja","Ruaka"],
-  "Machakos":["Machakos Town","Athi River","Mavoko","Kangundo","Mwala","Yatta","Matungulu","Syokimau"],
-  "Kajiado":["Kajiado Town","Ngong","Kitengela","Loitokitok","Ongata Rongai","Kiserian","Olkejuado","Namanga"],
-  "Muranga":["Murang'a Town","Kangema","Mathioya","Kiharu","Kigumo","Maragwa","Kandara","Gatanga"],
-  "Nyeri":["Nyeri Town","Tetu","Kieni","Mathira","Othaya","Mukurwei-ni","Nanyuki","Karatina"],
-  "Meru":["Meru Town","Tigania","Igembe","Buuri","Imenti","Miriga Mieru","Maua"],
+  "Nairobi":["CBD","Westlands","Karen","Kilimani","Kasarani","Embakasi","Langata","Dagoretti","Ruaraka","Starehe","South C","Roysambu","Eastleigh","Pangani","Gigiri","Muthaiga"],
+  "Mombasa":["Mvita","Nyali","Kisauni","Likoni","Changamwe","Jomvu","Bamburi","Mtwapa","Shanzu"],
+  "Kisumu":["Kisumu Central","Kisumu East","Kisumu West","Muhoroni","Nyando","Seme","Nyakach","Kondele","Mamboleo"],
+  "Nakuru":["Nakuru Town","Naivasha","Gilgil","Subukia","Rongai","Molo","Njoro","Kuresoi","Bahati","Mau Narok"],
+  "Uasin Gishu":["Eldoret","Turbo","Soy","Kapseret","Moiben","Ainabkoi","Burnt Forest","Huruma"],
+  "Kiambu":["Thika","Kiambu Town","Ruiru","Githunguri","Gatundu","Limuru","Kikuyu","Kabete","Lari","Juja","Ruaka","Ongata Rongai"],
+  "Machakos":["Machakos Town","Athi River","Mavoko","Kangundo","Mwala","Yatta","Matungulu","Syokimau","Mlolongo"],
+  "Kajiado":["Kajiado Town","Ngong","Kitengela","Loitokitok","Ongata Rongai","Kiserian","Namanga","Duka Moja"],
+  "Muranga":["Murang'a Town","Kangema","Mathioya","Kiharu","Kigumo","Maragwa","Kandara","Gatanga","Sagana"],
+  "Nyeri":["Nyeri Town","Tetu","Kieni","Mathira","Othaya","Mukurweini","Nanyuki","Karatina"],
+  "Meru":["Meru Town","Tigania East","Tigania West","Igembe North","Igembe South","Buuri","Imenti North","Imenti South","Maua"],
   "Embu":["Embu Town","Manyatta","Runyenjes","Mbeere North","Mbeere South"],
-  "Kirinyaga":["Kerugoya","Kutus","Mwea","Gichugu","Kirinyaga Central","Sagana"],
-  "Nyandarua":["Ol Kalou","Engineer","Kinangop","Kipipiri","Ndaragwa"],
-  "Laikipia":["Nanyuki","Rumuruti","Nyahururu","Laikipia West","Laikipia North"],
-  "Samburu":["Maralal","Baragoi","Wamba"],
-  "Turkana":["Lodwar","Kakuma","Lokichogio","Kalokol","Lodwar Town"],
+  "Kirinyaga":["Kerugoya","Kutus","Mwea","Gichugu","Kirinyaga Central","Sagana","Wanguru"],
+  "Nyandarua":["Ol Kalou","Engineer","Kinangop","Kipipiri","Ndaragwa","Mirangine"],
+  "Laikipia":["Nanyuki","Rumuruti","Nyahururu","Laikipia West","Laikipia North","Doldol"],
+  "Samburu":["Maralal","Baragoi","Wamba","Suguta Valley"],
+  "Turkana":["Lodwar","Kakuma","Lokichogio","Kalokol","Lokichar"],
   "West Pokot":["Kapenguria","Sigor","Alale","Kacheliba","Pokot South"],
-  "Trans Nzoia":["Kitale","Endebess","Saboti","Kwanza","Cherangany"],
-  "Bungoma":["Bungoma Town","Webuye","Kimilili","Chwele","Mt Elgon","Sirisia","Kabuchai","Bumula"],
-  "Kakamega":["Kakamega Town","Mumias","Butere","Matungu","Khwisero","Shinyalu","Ikolomani","Lugari","Navakholo","Malava"],
+  "Trans Nzoia":["Kitale","Endebess","Saboti","Kwanza","Cherangany","Kiminini"],
+  "Bungoma":["Bungoma Town","Webuye","Kimilili","Chwele","Mt Elgon","Sirisia","Kabuchai","Bumula","Tongaren"],
+  "Kakamega":["Kakamega Town","Mumias","Butere","Matungu","Khwisero","Shinyalu","Ikolomani","Lugari","Navakholo","Malava","Lurambi"],
   "Vihiga":["Vihiga Town","Hamisi","Luanda","Emuhaya","Sabatia"],
   "Busia":["Busia Town","Butula","Funyula","Nambale","Matayos","Teso North","Teso South"],
   "Siaya":["Siaya Town","Ugenya","Ugunja","Gem","Bondo","Rarieda"],
@@ -435,302 +445,376 @@ const KENYA={
   "Elgeyo Marakwet":["Iten","Keiyo North","Keiyo South","Marakwet East","Marakwet West"],
   "Narok":["Narok Town","Narok North","Narok East","Narok South","Narok West","Emurua Dikirr"],
   "Taita Taveta":["Wundanyi","Taveta","Mwatate","Voi"],
-  "Kwale":["Msambweni","Lungalunga","Kinango","Matuga","Diani"],
-  "Kilifi":["Kilifi Town","Mtwapa","Malindi","Watamu","Kaloleni","Rabai","Ganze","Magarini"],
-  "Tana River":["Hola","Garsen","Galole"],
-  "Lamu":["Lamu Town","Faza","Mpeketoni","Amu"],
-  "Garissa":["Garissa Town","Fafi","Ijara","Balambala","Lagdera","Dadaab"],
+  "Kwale":["Msambweni","Lungalunga","Kinango","Matuga","Diani","Shimba Hills"],
+  "Kilifi":["Kilifi Town","Mtwapa","Malindi","Watamu","Kaloleni","Rabai","Ganze","Magarini","Mavueni"],
+  "Tana River":["Hola","Garsen","Galole","Bura"],
+  "Lamu":["Lamu Town","Faza","Mpeketoni","Amu","Mokowe"],
+  "Garissa":["Garissa Town","Fafi","Ijara","Balambala","Lagdera","Dadaab","Hulugho"],
   "Wajir":["Wajir Town","Buna","Eldas","Tarbaj","Wajir East","Wajir West","Wajir South"],
-  "Mandera":["Mandera Town","Banissa","Lafey","Mandera East","Mandera West","Mandera North"],
-  "Marsabit":["Marsabit Town","Moyale","Saku","Laisamis","North Horr"],
-  "Isiolo":["Isiolo Town","Garbatulla","Merti"],
-  "Tharaka Nithi":["Chuka","Marimanti","Tharaka North","Tharaka South"],
-  "Kitui":["Kitui Town","Mwingi","Mutomo","Migwani","Kyuso"],
-  "Makueni":["Wote","Makindu","Kibwezi","Sultan Hamud","Emali"],
+  "Mandera":["Mandera Town","Banissa","Lafey","Mandera East","Mandera West","Mandera North","Takaba"],
+  "Marsabit":["Marsabit Town","Moyale","Saku","Laisamis","North Horr","Loiyangalani"],
+  "Isiolo":["Isiolo Town","Garbatulla","Merti","Kinna"],
+  "Tharaka Nithi":["Chuka","Marimanti","Tharaka North","Tharaka South","Igambangombe"],
+  "Kitui":["Kitui Town","Mwingi","Mutomo","Migwani","Kyuso","Zombe","Nzambani"],
+  "Makueni":["Wote","Makindu","Kibwezi","Sultan Hamud","Emali","Kambu"],
 };
 const COUNTIES=Object.keys(KENYA).sort();
 
-/* ═══════════ DATA POOLS ═══════════ */
+/* ════════════════════ DATA POOLS ════════════════════ */
 const DB={
-  masons:[
-    {id:1,name:"Joseph Kamau",sub:"Mason · 14 yrs · Nairobi",tags:["Brickwork","Plastering","Tiling"],price:"KES 1,600/day",rat:4.8,rev:134,loc:"Nairobi",avC:"#e8a04a",init:"JK",badge:"Vetted",bc:"bg",type:"Mason",phone:"0712 xxx xxx",exp:"14 years",reg:"NCA Artisan Grade A",avail:"Available now",about:"Specialist in brickwork, plastering and decorative stonework. 200+ residential projects across Nairobi county."},
-    {id:2,name:"Peter Mwangi",sub:"Mason · 10 yrs · Thika",tags:["Stone masonry","Block laying","Retaining walls"],price:"KES 1,400/day",rat:4.6,rev:89,loc:"Thika",avC:"#c9952a",init:"PM",badge:"Vetted",bc:"bg",type:"Mason",phone:"0723 xxx xxx",exp:"10 years",reg:"NCA Artisan Grade B",avail:"Available in 3 days",about:"Expert stone mason specializing in residential foundations and retaining wall systems."},
-    {id:3,name:"Grace Achieng",sub:"Mason · 8 yrs · Kisumu",tags:["Plastering","Screeding","Pointing"],price:"KES 1,200/day",rat:4.7,rev:61,loc:"Kisumu",avC:"#3aafb8",init:"GA",badge:"Vetted",bc:"bg",type:"Mason",phone:"0745 xxx xxx",exp:"8 years",reg:"NCA Artisan Grade B",avail:"Available now",about:"Highly rated plasterer with excellent surface finish quality. Works on residential and commercial projects."},
-    {id:4,name:"Daniel Kiprop",sub:"Mason · 12 yrs · Nakuru",tags:["Block laying","Brickwork","Foundations"],price:"KES 1,500/day",rat:4.5,rev:102,loc:"Nakuru",avC:"#4a7ec0",init:"DK",badge:"Vetted",bc:"bg",type:"Mason",phone:"0756 xxx xxx",exp:"12 years",reg:"NCA Artisan Grade A",avail:"Available now",about:"Foundation and structural masonry specialist with experience in commercial slab work."},
+  residential:[
+    {id:1,name:"3BR Bungalow Type B",sub:"Architect: S. Kamau · Mineco House",tags:["Residential","72m²","Ground floor","2 Bathrooms"],price:"KES 15,000/set",rat:4.8,rev:43,loc:"Standard design",avC:"#3a8c3a",init:"3B",badge:"Mineco Cert.",bc:"bg",type:"Plan",phone:"",exp:"",reg:"Plan No. MH-R-3021",avail:"Instant download",about:"3-bedroom bungalow with living room, dining, kitchen, 2 bathrooms and utility room. Full working drawings, BOQ and material schedule included."},
+    {id:2,name:"2BR Maisonette",sub:"Architect: Mineco House Repo",tags:["Residential","55m²","Starter home","1 Bathroom"],price:"KES 9,500/set",rat:4.9,rev:67,loc:"Standard design",avC:"#c9952a",init:"2M",badge:"Popular",bc:"bgold",type:"Plan",phone:"",exp:"",reg:"Plan No. MH-R-2011",avail:"Instant download",about:"Affordable 2-bedroom maisonette optimized for small plots. Full BOQ with material quantities for self-builder."},
+    {id:3,name:"4BR Executive Villa",sub:"Architect: R. Otieno · Mineco House",tags:["Residential","180m²","2-storey","En-suite"],price:"KES 35,000/set",rat:4.7,rev:28,loc:"Standard design",avC:"#4a7ec0",init:"4V",badge:"Premium",bc:"bb",type:"Plan",phone:"",exp:"",reg:"Plan No. MH-R-4045",avail:"Instant download",about:"Luxury 4-bedroom executive villa with family room, study, 4 bathrooms and double garage. Includes 3D renders and full working drawings."},
+    {id:4,name:"3BR Semi-Detached",sub:"Architect: M. Wanjiku · Mineco House",tags:["Residential","65m²","Semi-detached","2 Units"],price:"KES 18,000/set",rat:4.6,rev:35,loc:"Standard design",avC:"#e8a04a",init:"SD",badge:"Mineco Cert.",bc:"bg",type:"Plan",phone:"",exp:"",reg:"Plan No. MH-R-3038",avail:"Instant download",about:"3-bedroom semi-detached design optimized for rental income. 2-unit layout with shared wall. Full BOQ included."},
   ],
-  carpenters:[
-    {id:10,name:"Samuel Gitau",sub:"Carpenter · 11 yrs · Nairobi",tags:["Roofing","Formwork","Cabinetry"],price:"KES 1,800/day",rat:4.9,rev:210,loc:"Nairobi",avC:"#e8a04a",init:"SG",badge:"Top Rated",bc:"bgold",type:"Carpenter",phone:"0711 xxx xxx",exp:"11 years",reg:"NCA Artisan Grade A",avail:"Available now",about:"Master carpenter specializing in roof trusses, formwork and custom cabinetry. Uses precision laser tools."},
-    {id:11,name:"Alice Wangari",sub:"Carpenter · 7 yrs · Thika",tags:["Doors","Windows","Finishes"],price:"KES 1,400/day",rat:4.7,rev:88,loc:"Thika",avC:"#3a8c3a",init:"AW",badge:"Vetted",bc:"bg",type:"Carpenter",phone:"0722 xxx xxx",exp:"7 years",reg:"NCA Artisan Grade B",avail:"Available now",about:"Interior wood finishes specialist. Custom door/window frames, decking and pergola structures."},
-    {id:12,name:"Moses Odhiambo",sub:"Carpenter · 15 yrs · Kisumu",tags:["Roof trusses","Formwork","Timber frame"],price:"KES 2,000/day",rat:4.8,rev:175,loc:"Kisumu",avC:"#c9952a",init:"MO",badge:"Top Rated",bc:"bgold",type:"Carpenter",phone:"0733 xxx xxx",exp:"15 years",reg:"NCA Artisan Grade A",avail:"Booked — 7 days",about:"Senior carpenter with expertise in large-span roof trusses and commercial formwork."},
+  commercial:[
+    {id:5,name:"4-Storey Commercial Plaza",sub:"Architect: R. Otieno & Partners",tags:["Commercial","450m²","Mixed-use","Retail+Office"],price:"KES 85,000/set",rat:4.7,rev:19,loc:"Standard design",avC:"#4a7ec0",init:"CP",badge:"NCA Approved",bc:"bb",type:"Plan",phone:"",exp:"",reg:"Plan No. MH-C-4001",avail:"3 business days",about:"4-storey mixed-use commercial block with ground-floor retail and upper-floor offices. NCA-approved standard design."},
+    {id:6,name:"Godown / Warehouse 500m²",sub:"Architect: Mineco House Repo",tags:["Industrial","500m²","Steel frame","Loading bay"],price:"KES 45,000/set",rat:4.5,rev:12,loc:"Standard design",avC:"#888780",init:"GW",badge:"Mineco Cert.",bc:"bg",type:"Plan",phone:"",exp:"",reg:"Plan No. MH-I-5001",avail:"Instant download",about:"500m² steel-frame godown with loading bay, office block and security room. BOQ optimized for budget construction."},
+    {id:7,name:"Agricultural Storage Shed",sub:"Architect: Mineco House Repo",tags:["Agricultural","300m²","Steel frame","Ventilated"],price:"KES 28,000/set",rat:4.4,rev:8,loc:"Standard design",avC:"#3a8c3a",init:"AS",badge:"Mineco Cert.",bc:"bg",type:"Plan",phone:"",exp:"",reg:"Plan No. MH-A-3001",avail:"Instant download",about:"300m² steel-frame agricultural storage shed with ventilation, roller doors and grain-safe flooring design."},
+    {id:8,name:"Infrastructure / Road Drainage",sub:"Engineer: Mineco House Repo",tags:["Infrastructure","Drainage","Road","Culverts"],price:"KES 55,000/set",rat:4.6,rev:7,loc:"Standard design",avC:"#3aafb8",init:"IR",badge:"Mineco Cert.",bc:"bg",type:"Plan",phone:"",exp:"",reg:"Plan No. MH-INF-001",avail:"3 business days",about:"Standard road drainage and culvert design package for county road projects. Includes drainage calculations and BOQ."},
   ],
-  plumbers:[
-    {id:20,name:"Peter Ngugi",sub:"Plumber · ERC Licensed · Nairobi",tags:["Plumbing","HVAC","Solar water"],price:"KES 1,800/day",rat:4.8,rev:211,loc:"Nairobi",avC:"#3aafb8",init:"PN",badge:"ERC Licensed",bc:"bb",type:"Plumber",phone:"0700 xxx xxx",exp:"12 years",reg:"ERC Certified Plumber",avail:"Available now",about:"Licensed plumber covering all plumbing, hot water systems and solar water heating installations."},
-    {id:21,name:"Ruth Kamande",sub:"Plumber · 6 yrs · Nairobi",tags:["Water supply","Drainage","Sanitation"],price:"KES 1,500/day",rat:4.6,rev:74,loc:"Nairobi",avC:"#4a7ec0",init:"RK",badge:"Vetted",bc:"bg",type:"Plumber",phone:"0701 xxx xxx",exp:"6 years",reg:"NCA Artisan Grade B",avail:"Available now",about:"Specializes in residential water supply and drainage systems. Fast, clean, reliable work."},
-    {id:22,name:"Brian Otieno",sub:"Plumber · 9 yrs · Kisumu",tags:["Commercial","Industrial","Borehole"],price:"KES 2,200/day",rat:4.9,rev:143,loc:"Kisumu",avC:"#e8a04a",init:"BO",badge:"Top Rated",bc:"bgold",type:"Plumber",phone:"0702 xxx xxx",exp:"9 years",reg:"ERC Certified Plumber",avail:"Available in 2 days",about:"Commercial plumbing specialist including borehole pump installations and industrial pipe systems."},
+  foundation_mat:[
+    {id:20,name:"Tuff Foam Hardware",sub:"Hardware · Nairobi Industrial Area",tags:["Cement","Steel","Murram","Hardcore"],price:"KES 720/50kg bag",rat:4.5,rev:320,loc:"Nairobi",avC:"#c9952a",init:"TF",badge:"Top Vendor",bc:"bgold",type:"Hardware",phone:"0200 xxx xxx",exp:"Est. 2005",reg:"Business No. 12345",avail:"Open Mon–Sat",about:"Large hardware stocking cement, steel, roofing sheets, timber and sanitary ware. Bulk discounts available. Delivery fleet."},
+    {id:21,name:"Quarry Stone Suppliers Ltd",sub:"Aggregates · Athi River",tags:["Quarry stone","Hardcore","Sand","Ballast"],price:"KES 3,200/tonne",rat:4.4,rev:88,loc:"Athi River",avC:"#888780",init:"QS",badge:"Verified",bc:"bg",type:"Aggregates",phone:"0301 xxx xxx",exp:"Est. 2010",reg:"Business No. 23456",avail:"Mon–Sat 6am–5pm",about:"Quarry stone, hardcore, ballast and river sand. Lorry delivery across Nairobi metro. Competitive rates for bulk."},
+    {id:22,name:"BuildMart Nakuru",sub:"Hardware · Nakuru Town",tags:["Cement","Blocks","Iron sheets","Steel"],price:"KES 695/50kg bag",rat:4.4,rev:215,loc:"Nakuru",avC:"#e8a04a",init:"BM",badge:"Verified",bc:"bg",type:"Hardware",phone:"0510 xxx xxx",exp:"Est. 2010",reg:"Business No. 34567",avail:"Open Mon–Sat",about:"Nakuru's competitive hardware for cement and roofing. Own transport fleet for bulk deliveries."},
   ],
-  electricians:[
-    {id:30,name:"Grace Njeri",sub:"Electrician · ERC Class A · Nairobi",tags:["Wiring","Solar PV","DB Boards"],price:"KES 2,200/day",rat:4.9,rev:178,loc:"Nairobi",avC:"#4a7ec0",init:"GN",badge:"ERC Licensed",bc:"bb",type:"Electrician",phone:"0703 xxx xxx",exp:"8 years",reg:"ERC Class A Electrician",avail:"Available now",about:"Licensed Class A electrician. Full house wiring, solar PV systems, DB board installation and compliance certificates."},
-    {id:31,name:"Kevin Kariuki",sub:"Electrician · 10 yrs · Nakuru",tags:["Wiring","Security systems","Solar"],price:"KES 1,900/day",rat:4.7,rev:122,loc:"Nakuru",avC:"#3a8c3a",init:"KK",badge:"ERC Licensed",bc:"bb",type:"Electrician",phone:"0704 xxx xxx",exp:"10 years",reg:"ERC Class A Electrician",avail:"Available now",about:"Domestic and commercial electrician. Installs CCTV, intercom and alarm systems."},
+  walling_mat:[
+    {id:30,name:"BuildRight Precast",sub:"Precast Yard · Athi River",tags:["Hollow blocks","Bricks","Lintels","Kerbs"],price:"KES 48/hollow block",rat:4.6,rev:144,loc:"Athi River",avC:"#888780",init:"BP",badge:"Factory Direct",bc:"bg",type:"Precast",phone:"0302 xxx xxx",exp:"Est. 2012",reg:"Business No. 45678",avail:"Mon–Sat 7am–5pm",about:"Factory-direct precast. Full range of hollow blocks, prestressed slabs, lintels, kerbs and paving. Nationwide delivery."},
+    {id:31,name:"National Precast Ltd",sub:"Precast · Embakasi, Nairobi",tags:["Precast slabs","Blocks","Columns"],price:"KES 1,200/precast slab",rat:4.5,rev:98,loc:"Nairobi",avC:"#4a7ec0",init:"NP",badge:"ISO Certified",bc:"bb",type:"Precast",phone:"0303 xxx xxx",exp:"Est. 2004",reg:"Business No. 56789",avail:"Mon–Fri 7am–5pm",about:"ISO-certified precast manufacturer for residential and commercial. Custom precast to specification."},
+  ],
+  roofing_mat:[
+    {id:40,name:"Mabati Rolling Mills",sub:"Roofing · Nairobi & branches",tags:["Iron sheets","Tile profile","Gauge 30","Gauge 28"],price:"KES 1,250/sheet",rat:4.7,rev:480,loc:"Nairobi",avC:"#3aafb8",init:"MR",badge:"Top Vendor",bc:"bgold",type:"Roofing Supplier",phone:"0400 xxx xxx",exp:"Est. 1961",reg:"Business No. 78901",avail:"Open Mon–Sat",about:"Kenya's leading roofing manufacturer. Wide range of iron sheets, tile profile and colored roofing in all gauges."},
+    {id:41,name:"Karura Timber Works",sub:"Timber · Nairobi",tags:["Roof timber","Cypress","Treated timber","Trusses"],price:"KES 320/m treated",rat:4.6,rev:88,loc:"Nairobi",avC:"#3a8c3a",init:"KW",badge:"Verified",bc:"bg",type:"Timber Yard",phone:"0305 xxx xxx",exp:"Est. 2009",reg:"Business No. 90123",avail:"Open Mon–Sat",about:"Specialist in treated timber for roofing and flooring. Fire-retardant and termite-treated options."},
+    {id:42,name:"Eldoret Timber Yard",sub:"Timber · Eldoret Town",tags:["Hardwood","Cypress","Eucalyptus","Cutting service"],price:"KES 280/m cypress",rat:4.4,rev:132,loc:"Eldoret",avC:"#e8a04a",init:"ET",badge:"Verified",bc:"bg",type:"Timber Yard",phone:"0306 xxx xxx",exp:"Est. 2003",reg:"Business No. 89012",avail:"Open Mon–Sat",about:"Largest timber yard in the Rift Valley. Kiln-dried hardwood and softwood. Custom cutting service. Delivery available."},
+  ],
+  finishes_mat:[
+    {id:50,name:"Kitengela Tiles Hub",sub:"Tiles · Kitengela",tags:["Floor tiles","Wall tiles","Granite","Marble"],price:"KES 850/m² installed",rat:4.7,rev:89,loc:"Kitengela",avC:"#4a7ec0",init:"KT",badge:"Verified",bc:"bg",type:"Tiles",phone:"0303 xxx xxx",exp:"Est. 2015",reg:"Business No. 67890",avail:"Open Mon–Sat",about:"Wide selection of ceramic, porcelain, marble and granite tiles. Expert installation team. Delivery across Nairobi metro."},
+    {id:51,name:"Westlands Tiles & Stone",sub:"Premium Tiles · Westlands",tags:["Imported tiles","Marble","Mosaic","Porcelain"],price:"KES 1,200/m² installed",rat:4.8,rev:74,loc:"Nairobi",avC:"#3a8c3a",init:"WT",badge:"Premium",bc:"bgold",type:"Tiles",phone:"0304 xxx xxx",exp:"Est. 2011",reg:"Business No. 78901",avail:"Open Mon–Sat",about:"Premium imported tiles showroom. Italian porcelain, Spanish ceramic and natural stone specialists."},
+    {id:52,name:"Crown Paints Kenya",sub:"Paint · Nationwide branches",tags:["Interior paint","Exterior paint","Textures","Primers"],price:"KES 5,500/20L",rat:4.6,rev:520,loc:"Nationwide",avC:"#e8a04a",init:"CP",badge:"Top Vendor",bc:"bgold",type:"Paint Supplier",phone:"0200 xxx xxx",exp:"Est. 1976",reg:"Business No. 11111",avail:"Open Mon–Sat",about:"Kenya's leading paint brand. Full range of interior, exterior, texture and waterproofing paints with colour mixing service."},
   ],
   architects:[
-    {id:40,name:"Sarah Kamau",sub:"Architect · BORAQS · Nairobi",tags:["Residential","Commercial","Planning"],price:"KES 12,000/consult",rat:4.8,rev:87,loc:"Nairobi",avC:"#4a7ec0",init:"SK",badge:"BORAQS",bc:"bb",type:"Architect",phone:"0710 xxx xxx",exp:"12 years",reg:"BORAQS No. AR-4421",avail:"Available",about:"Award-winning architect specializing in sustainable residential and commercial design. 150+ projects across East Africa."},
-    {id:41,name:"David Mutua",sub:"Architect · AAK · Mombasa",tags:["Coastal design","Hotels","Residential"],price:"KES 10,000/consult",rat:4.7,rev:65,loc:"Mombasa",avC:"#e8a04a",init:"DM",badge:"AAK Member",bc:"bgold",type:"Architect",phone:"0720 xxx xxx",exp:"9 years",reg:"BORAQS No. AR-5810",avail:"Available",about:"Coastal architecture specialist blending Swahili heritage with modern sustainability."},
-    {id:42,name:"Miriam Wanjiku",sub:"Architect · 15 yrs · Nakuru",tags:["Affordable housing","Estates","Schools"],price:"KES 8,000/consult",rat:4.6,rev:43,loc:"Nakuru",avC:"#3a8c3a",init:"MW",badge:"BORAQS",bc:"bb",type:"Architect",phone:"0730 xxx xxx",exp:"15 years",reg:"BORAQS No. AR-3012",avail:"Available",about:"Affordable housing and estate design expert. Master-planned 12 residential estates across the Rift Valley."},
+    {id:60,name:"Sarah Kamau",sub:"Architect · BORAQS · Nairobi",tags:["Residential","Commercial","Sustainable"],price:"KES 12,000/consult",rat:4.8,rev:87,loc:"Nairobi",avC:"#4a7ec0",init:"SK",badge:"BORAQS",bc:"bb",type:"Architect",phone:"0710 xxx xxx",exp:"12 years",reg:"BORAQS No. AR-4421",avail:"Available",about:"Award-winning architect specializing in sustainable residential and commercial design. 150+ projects across East Africa."},
+    {id:61,name:"David Mutua",sub:"Architect · AAK · Mombasa",tags:["Coastal design","Hotels","Residential"],price:"KES 10,000/consult",rat:4.7,rev:65,loc:"Mombasa",avC:"#e8a04a",init:"DM",badge:"AAK Member",bc:"bgold",type:"Architect",phone:"0720 xxx xxx",exp:"9 years",reg:"BORAQS No. AR-5810",avail:"Available",about:"Coastal architecture specialist. Designs blend Swahili heritage with modern sustainability."},
+    {id:62,name:"Miriam Wanjiku",sub:"Architect · 15 yrs · Nakuru",tags:["Affordable housing","Estates","Schools"],price:"KES 8,000/consult",rat:4.6,rev:43,loc:"Nakuru",avC:"#3a8c3a",init:"MW",badge:"BORAQS",bc:"bb",type:"Architect",phone:"0730 xxx xxx",exp:"15 years",reg:"BORAQS No. AR-3012",avail:"Available",about:"Affordable housing and estate design expert. Master-planned 12 residential estates across the Rift Valley."},
   ],
-  engineers:[
-    {id:50,name:"Mate Njiru",sub:"Structural Engineer · 15 yrs · Nairobi",tags:["Structural","CAD/CAM","Concrete"],price:"KES 15,000/consult",rat:4.9,rev:143,loc:"Nairobi",avC:"#3a8c3a",init:"MN",badge:"EBK Reg.",bc:"bg",type:"Structural Engineer",phone:"0740 xxx xxx",exp:"15 years",reg:"EBK No. SE-1102",avail:"Available",about:"Lead structural engineer with 15 years in commercial high-rise, residential and industrial structural design."},
-    {id:51,name:"John Kibet",sub:"Civil Engineer · 10 yrs · Eldoret",tags:["Roads","Water","Drainage"],price:"KES 10,000/consult",rat:4.7,rev:92,loc:"Eldoret",avC:"#4a7ec0",init:"JK",badge:"EBK Reg.",bc:"bb",type:"Civil Engineer",phone:"0741 xxx xxx",exp:"10 years",reg:"EBK No. CE-2241",avail:"Available",about:"Civil engineering specialist in roads, drainage and water supply infrastructure."},
-    {id:52,name:"Faith Omondi",sub:"MEP Engineer · 8 yrs · Kisumu",tags:["Mechanical","Electrical","Plumbing"],price:"KES 9,000/consult",rat:4.8,rev:58,loc:"Kisumu",avC:"#3aafb8",init:"FO",badge:"EBK Reg.",bc:"bb",type:"MEP Engineer",phone:"0742 xxx xxx",exp:"8 years",reg:"EBK No. ME-3301",avail:"Available",about:"MEP engineering covering mechanical systems, electrical design and plumbing coordination for commercial projects."},
+  structural_eng:[
+    {id:70,name:"Mate Njiru",sub:"Structural Engineer · EBK · Nairobi",tags:["Structural","CAD/CAM","Concrete","Steel"],price:"KES 15,000/consult",rat:4.9,rev:143,loc:"Nairobi",avC:"#3a8c3a",init:"MN",badge:"EBK Reg.",bc:"bg",type:"Structural Engineer",phone:"0740 xxx xxx",exp:"15 years",reg:"EBK No. SE-1102",avail:"Available",about:"Lead structural engineer. 15 years in commercial high-rise, residential and industrial structural design."},
+    {id:71,name:"Faith Omondi",sub:"Civil/Structural Engineer · Kisumu",tags:["Structural","Foundations","Drainage"],price:"KES 9,000/consult",rat:4.8,rev:58,loc:"Kisumu",avC:"#3aafb8",init:"FO",badge:"EBK Reg.",bc:"bb",type:"Structural Engineer",phone:"0742 xxx xxx",exp:"8 years",reg:"EBK No. CE-3301",avail:"Available",about:"Civil and structural specialist covering foundations, retaining walls and drainage infrastructure."},
   ],
-  surveyors:[
-    {id:60,name:"James Odhiambo",sub:"Qty Surveyor · IQSK · Nairobi",tags:["BOQ","Cost Estimating","Tenders"],price:"KES 8,000/BOQ",rat:4.7,rev:62,loc:"Nairobi",avC:"#c9952a",init:"JO",badge:"IQSK",bc:"bgold",type:"Quantity Surveyor",phone:"0750 xxx xxx",exp:"11 years",reg:"BORAQS No. QS-2210",avail:"Available",about:"Quantity surveying specialist. 11 years in tender documentation, BOQ preparation and cost control."},
-    {id:61,name:"Esther Wambui",sub:"Land Surveyor · ISK · Nairobi",tags:["Land survey","Subdivision","Title deeds"],price:"KES 7,000/survey",rat:4.6,rev:49,loc:"Nairobi",avC:"#4a7ec0",init:"EW",badge:"ISK Member",bc:"bb",type:"Land Surveyor",phone:"0751 xxx xxx",exp:"9 years",reg:"ISK No. LS-5521",avail:"Available",about:"Licensed land surveyor covering boundary surveys, subdivision and title deed processing."},
+  mep_eng:[
+    {id:80,name:"Kevin Kariuki",sub:"MEP Engineer · Nakuru",tags:["Mechanical","Electrical","Plumbing","HVAC"],price:"KES 10,000/consult",rat:4.7,rev:122,loc:"Nakuru",avC:"#3aafb8",init:"KK",badge:"EBK Reg.",bc:"bb",type:"MEP Engineer",phone:"0741 xxx xxx",exp:"10 years",reg:"EBK No. ME-2241",avail:"Available",about:"MEP engineering covering mechanical systems, electrical design and full plumbing coordination for commercial projects."},
   ],
-  planners:[
-    {id:70,name:"Robert Otieno",sub:"Urban Planner · KIPS · Nairobi",tags:["Urban planning","Zoning","EIA"],price:"KES 12,000/consult",rat:4.7,rev:38,loc:"Nairobi",avC:"#4a7ec0",init:"RO",badge:"KIPS",bc:"bb",type:"Urban Planner",phone:"0760 xxx xxx",exp:"12 years",reg:"KIPS No. UP-1120",avail:"Available",about:"Urban and regional planning expert. Change of user, subdivision, zoning approvals and EIA reports."},
+  electrical_eng:[
+    {id:85,name:"Grace Njeri",sub:"Electrical Engineer · ERC · Nairobi",tags:["Electrical design","Solar PV","LV systems","DB Boards"],price:"KES 8,000/consult",rat:4.9,rev:178,loc:"Nairobi",avC:"#4a7ec0",init:"GN",badge:"ERC Licensed",bc:"bb",type:"Electrical Engineer",phone:"0703 xxx xxx",exp:"8 years",reg:"ERC Class A No. 4421",avail:"Available",about:"Licensed electrical engineer. Full house wiring design, solar PV systems, LV distribution and compliance certificates."},
   ],
-  hardware:[
-    {id:80,name:"Tuff Foam Hardware",sub:"Hardware Store · Nairobi Industrial Area",tags:["Cement","Steel","Roofing","Timber"],price:"KES 720/50kg cement",rat:4.5,rev:320,loc:"Nairobi",avC:"#c9952a",init:"TF",badge:"Top Vendor",bc:"bgold",type:"Hardware Store",phone:"0200 xxx xxx",exp:"Est. 2005",reg:"Business No. 12345",avail:"Open Mon–Sat",about:"Large hardware stocking cement, steel, roofing sheets, timber and sanitary ware. Bulk discounts. Delivery available."},
-    {id:81,name:"BuildMart Nakuru",sub:"Hardware Store · Nakuru Town",tags:["Cement","Blocks","Iron sheets"],price:"KES 695/50kg cement",rat:4.4,rev:215,loc:"Nakuru",avC:"#e8a04a",init:"BM",badge:"Verified",bc:"bg",type:"Hardware Store",phone:"0510 xxx xxx",exp:"Est. 2010",reg:"Business No. 23456",avail:"Open Mon–Sat",about:"Nakuru's competitive hardware for cement and roofing. Own transport fleet for bulk deliveries."},
-    {id:82,name:"Coast Hardware",sub:"Hardware Store · Mombasa",tags:["Cement","Tiles","Sanitary"],price:"KES 755/50kg cement",rat:4.3,rev:188,loc:"Mombasa",avC:"#3aafb8",init:"CH",badge:"Verified",bc:"bg",type:"Hardware Store",phone:"0412 xxx xxx",exp:"Est. 2008",reg:"Business No. 34567",avail:"Open Mon–Sat",about:"Coast region supplier for cement, tiles, sanitary ware and electrical fittings."},
+  construction_mgr:[
+    {id:90,name:"Terry Murerwa",sub:"Construction Manager · PMP · Nairobi",tags:["Project Management","Site supervision","Scheduling","Cost control"],price:"KES 18,000/month",rat:4.8,rev:54,loc:"Nairobi",avC:"#c9952a",init:"TM",badge:"PMP Certified",bc:"bgold",type:"Construction Manager",phone:"0750 xxx xxx",exp:"7 years",reg:"PMP Cert. No. CM-7821",avail:"Available",about:"PMP-certified construction manager specializing in residential and commercial project delivery. Expertise in cost control and scheduling."},
   ],
-  precast:[
-    {id:90,name:"BuildRight Precast",sub:"Precast Yard · Athi River",tags:["Hollow blocks","Slabs","Lintels","Kerbs"],price:"KES 48/hollow block",rat:4.6,rev:144,loc:"Athi River",avC:"#888780",init:"BP",badge:"Factory Direct",bc:"bg",type:"Precast Yard",phone:"0301 xxx xxx",exp:"Est. 2012",reg:"Business No. 45678",avail:"Mon–Sat 7am–5pm",about:"Factory-direct precast. Full range of hollow blocks, prestressed slabs, lintels, kerbs and paving. Nationwide delivery."},
-    {id:91,name:"National Precast Ltd",sub:"Precast · Embakasi, Nairobi",tags:["Slabs","Columns","Paving"],price:"KES 1,200/precast slab",rat:4.5,rev:98,loc:"Nairobi",avC:"#4a7ec0",init:"NP",badge:"ISO Certified",bc:"bb",type:"Precast Yard",phone:"0302 xxx xxx",exp:"Est. 2004",reg:"Business No. 56789",avail:"Mon–Fri 7am–5pm",about:"ISO-certified precast manufacturer for residential and commercial. Custom precast to specification."},
+  quantity_surveyor:[
+    {id:95,name:"James Odhiambo",sub:"Quantity Surveyor · IQSK · Nairobi",tags:["BOQ","Cost Estimating","Tenders","Valuations"],price:"KES 8,000/BOQ",rat:4.7,rev:62,loc:"Nairobi",avC:"#c9952a",init:"JO",badge:"IQSK Member",bc:"bgold",type:"Quantity Surveyor",phone:"0751 xxx xxx",exp:"11 years",reg:"BORAQS No. QS-2210",avail:"Available",about:"QS specialist. 11 years in tender documentation, BOQ preparation, valuations and cost control."},
+    {id:96,name:"Esther Wambui",sub:"Land Surveyor · ISK · Nairobi",tags:["Land survey","Subdivision","Title deeds","Topographic"],price:"KES 7,000/survey",rat:4.6,rev:49,loc:"Nairobi",avC:"#4a7ec0",init:"EW",badge:"ISK Member",bc:"bb",type:"Land Surveyor",phone:"0752 xxx xxx",exp:"9 years",reg:"ISK No. LS-5521",avail:"Available",about:"Licensed land surveyor covering boundary surveys, subdivision and title deed processing."},
   ],
-  tiles:[
-    {id:100,name:"Kitengela Tiles Hub",sub:"Tiles Supplier · Kitengela",tags:["Floor tiles","Wall tiles","Granite","Marble"],price:"KES 850/m² installed",rat:4.7,rev:89,loc:"Kitengela",avC:"#4a7ec0",init:"KT",badge:"Verified",bc:"bg",type:"Tiles Supplier",phone:"0303 xxx xxx",exp:"Est. 2015",reg:"Business No. 67890",avail:"Open Mon–Sat",about:"Wide selection of ceramic, porcelain, marble and granite tiles. Expert installation team. Delivery across Nairobi metro."},
-    {id:101,name:"Westlands Tiles & Stone",sub:"Premium Tiles · Westlands, Nairobi",tags:["Imported tiles","Marble","Mosaic"],price:"KES 1,200/m² installed",rat:4.8,rev:74,loc:"Nairobi",avC:"#3a8c3a",init:"WT",badge:"Premium",bc:"bgold",type:"Tiles Supplier",phone:"0304 xxx xxx",exp:"Est. 2011",reg:"Business No. 78901",avail:"Open Mon–Sat",about:"Premium imported tiles showroom. Italian porcelain, Spanish ceramic and natural stone specialists."},
+  land_economist:[
+    {id:98,name:"Robert Otieno",sub:"Land Economist & Planner · KIPS · Nairobi",tags:["Valuation","Urban planning","Zoning","EIA"],price:"KES 12,000/consult",rat:4.7,rev:38,loc:"Nairobi",avC:"#4a7ec0",init:"RO",badge:"KIPS Member",bc:"bb",type:"Land Economist",phone:"0760 xxx xxx",exp:"12 years",reg:"KIPS No. UP-1120",avail:"Available",about:"Land economist and urban planner. Handles property valuations, change of user, zoning approvals and EIA reports."},
   ],
-  timber:[
-    {id:110,name:"Eldoret Timber Yard",sub:"Timber · Eldoret Town",tags:["Hardwood","Softwood","Cypress","Eucalyptus"],price:"KES 280/m cypress",rat:4.4,rev:132,loc:"Eldoret",avC:"#e8a04a",init:"ET",badge:"Verified",bc:"bg",type:"Timber Yard",phone:"0305 xxx xxx",exp:"Est. 2003",reg:"Business No. 89012",avail:"Open Mon–Sat",about:"Largest timber yard in the Rift Valley. Kiln-dried hardwood and softwood. Custom cutting. Delivery available."},
-    {id:111,name:"Karura Timber Works",sub:"Timber · Nairobi",tags:["Roof timber","Flooring","Treated timber"],price:"KES 320/m treated",rat:4.6,rev:88,loc:"Nairobi",avC:"#3a8c3a",init:"KW",badge:"Verified",bc:"bg",type:"Timber Yard",phone:"0306 xxx xxx",exp:"Est. 2009",reg:"Business No. 90123",avail:"Open Mon–Sat",about:"Specialist in treated timber for roofing and flooring. Fire-retardant and termite-treated options."},
+  interior_designer:[
+    {id:100,name:"Lilian Mwende",sub:"Interior Designer · Nairobi",tags:["Interior design","3D visualization","Furniture","Lighting"],price:"KES 8,000/consult",rat:4.8,rev:92,loc:"Nairobi",avC:"#e8a04a",init:"LM",badge:"KIDAA Member",bc:"bgold",type:"Interior Designer",phone:"0770 xxx xxx",exp:"8 years",reg:"KIDAA No. ID-3301",avail:"Available",about:"Full interior design service covering space planning, 3D visualization, material selection, furniture sourcing and project management."},
   ],
-  residential_plans:[
-    {id:120,name:"3BR Bungalow Type B",sub:"Architect: S. Kamau · Mineco House",tags:["Residential","72m²","Ground floor","2 bathrooms"],price:"KES 15,000/plan set",rat:4.8,rev:43,loc:"Standard",avC:"#3a8c3a",init:"3B",badge:"Mineco Certified",bc:"bg",type:"Bungalow",phone:"",exp:"",reg:"Plan No. MH-R-3021",avail:"Instant download",about:"3-bedroom bungalow with living room, dining, kitchen, 2 bathrooms and utility room. Full working drawings, BOQ and material schedule included."},
-    {id:121,name:"2BR Maisonette",sub:"Architect: Mineco House Repo",tags:["Residential","55m²","Starter home","1 bathroom"],price:"KES 9,500/plan set",rat:4.9,rev:67,loc:"Standard",avC:"#c9952a",init:"2M",badge:"Popular",bc:"bgold",type:"Maisonette",phone:"",exp:"",reg:"Plan No. MH-R-2011",avail:"Instant download",about:"Affordable 2-bedroom maisonette design optimized for small plots. Full BOQ with material quantities for self-builder."},
-    {id:122,name:"4BR Executive Villa",sub:"Architect: R. Otieno · Mineco House",tags:["Residential","180m²","2-storey","En-suite"],price:"KES 35,000/plan set",rat:4.7,rev:28,loc:"Standard",avC:"#4a7ec0",init:"4V",badge:"Premium",bc:"bb",type:"Villa",phone:"",exp:"",reg:"Plan No. MH-R-4045",avail:"Instant download",about:"Luxury 4-bedroom executive villa with family room, study, 4 bathrooms and double garage. Includes 3D renders."},
-    {id:123,name:"3BR Semi-Detached",sub:"Architect: M. Wanjiku · Mineco House",tags:["Residential","65m²","Semi-detached","2 units"],price:"KES 18,000/plan set",rat:4.6,rev:35,loc:"Standard",avC:"#e8a04a",init:"SD",badge:"Mineco Certified",bc:"bg",type:"Semi-detached",phone:"",exp:"",reg:"Plan No. MH-R-3038",avail:"Instant download",about:"3-bedroom semi-detached design optimized for rental income. 2-unit layout with shared wall. Full BOQ included."},
+  physical_planner:[
+    {id:105,name:"Charles Kimani",sub:"Physical Planner · KIPS · Nairobi",tags:["Physical planning","Subdivision","Master plan","EIA"],price:"KES 10,000/consult",rat:4.6,rev:29,loc:"Nairobi",avC:"#3aafb8",init:"CK",badge:"KIPS Member",bc:"bb",type:"Physical Planner",phone:"0761 xxx xxx",exp:"10 years",reg:"KIPS No. PP-2201",avail:"Available",about:"Physical planner specializing in residential subdivisions, master plans, rezoning applications and EIA facilitation."},
   ],
-  commercial_plans:[
-    {id:130,name:"4-Storey Commercial Plaza",sub:"Architect: R. Otieno & Partners",tags:["Commercial","450m²","Mixed-use","Retail+Office"],price:"KES 85,000/plan set",rat:4.7,rev:19,loc:"Standard",avC:"#4a7ec0",init:"CP",badge:"NCA Approved",bc:"bb",type:"Commercial",phone:"",exp:"",reg:"Plan No. MH-C-4001",avail:"3 business days",about:"4-storey mixed-use commercial block with ground-floor retail and upper-floor office space. NCA-approved standard design."},
-    {id:131,name:"Godown / Warehouse 500m²",sub:"Architect: Mineco House Repo",tags:["Industrial","500m²","Steel frame","Loading bay"],price:"KES 45,000/plan set",rat:4.5,rev:12,loc:"Standard",avC:"#888780",init:"GW",badge:"Mineco Certified",bc:"bg",type:"Industrial",phone:"",exp:"",reg:"Plan No. MH-I-5001",avail:"Instant download",about:"500m² steel-frame godown with loading bay, office block and security room. BOQ optimized for budget construction."},
+  landscaper_prof:[
+    {id:108,name:"Wanjiku Ngige",sub:"Landscape Architect · Nairobi",tags:["Landscape design","Irrigation","Hardscaping","Plants"],price:"KES 7,000/consult",rat:4.7,rev:45,loc:"Nairobi",avC:"#3a8c3a",init:"WN",badge:"KALDA Member",bc:"bg",type:"Landscape Architect",phone:"0780 xxx xxx",exp:"6 years",reg:"KALDA No. LA-1102",avail:"Available",about:"Landscape architect specializing in residential and commercial outdoor spaces, irrigation design and urban greening."},
   ],
-  apps_list:[
-    {id:140,name:"Concrete Mix Calculator",sub:"Free · Web &amp; Mobile",tags:["Calculator","Foundation","Slab","Columns"],price:"Free",rat:4.6,rev:1240,loc:"All platforms",avC:"#3aafb8",init:"CM",badge:"Free",bc:"bg",type:"Calculator",phone:"",exp:"",reg:"",avail:"Available now",about:"Calculate concrete mix ratios, quantities and costs for foundations, slabs and columns. Supports M15, M20, M25, M30 grades."},
-    {id:141,name:"Roofing Area Calculator",sub:"Free · Web &amp; Mobile",tags:["Calculator","Roofing","Timber","Iron sheets"],price:"Free",rat:4.5,rev:980,loc:"All platforms",avC:"#e8a04a",init:"RA",badge:"Free",bc:"bg",type:"Calculator",phone:"",exp:"",reg:"",avail:"Available now",about:"Calculate roofing area, timber quantities and iron sheet count for hipped and gable roofs."},
-    {id:142,name:"Project BOQ Generator",sub:"Pro · Annual subscription",tags:["BOQ","Estimating","Professional","Excel export"],price:"KES 5,000/year",rat:4.8,rev:620,loc:"Web & Mobile",avC:"#4a7ec0",init:"BQ",badge:"Pro",bc:"bb",type:"Pro App",phone:"",exp:"",reg:"",avail:"Subscription required",about:"Full Bill of Quantities generator. Exports to Excel and PDF. Includes Kenyan rate library with 5,000+ items."},
-    {id:143,name:"Paint Calculator",sub:"Free · Web &amp; Mobile",tags:["Calculator","Paint","Area","Finishes"],price:"Free",rat:4.4,rev:750,loc:"All platforms",avC:"#3a8c3a",init:"PC",badge:"Free",bc:"bg",type:"Calculator",phone:"",exp:"",reg:"",avail:"Available now",about:"Calculate paint quantities for walls, ceilings and trim. Adjusts for doors, windows and number of coats."},
-    {id:144,name:"Tile Calculator",sub:"Free · Web &amp; Mobile",tags:["Calculator","Tiles","Flooring","Finishes"],price:"Free",rat:4.5,rev:890,loc:"All platforms",avC:"#c9952a",init:"TC",badge:"Free",bc:"bg",type:"Calculator",phone:"",exp:"",reg:"",avail:"Available now",about:"Calculate tile quantities, waste factor and adhesive for any room size and tile format. Supports diagonal laying."},
+  masons:[
+    {id:110,name:"Joseph Kamau",sub:"Mason · 14 yrs · Nairobi",tags:["Brickwork","Plastering","Tiling"],price:"KES 1,600/day",rat:4.8,rev:134,loc:"Nairobi",avC:"#e8a04a",init:"JK",badge:"Vetted",bc:"bg",type:"Mason",phone:"0712 xxx xxx",exp:"14 years",reg:"NCA Grade A",avail:"Available now",about:"Specialist in brickwork, plastering and decorative stonework. 200+ residential projects across Nairobi."},
+    {id:111,name:"Grace Achieng",sub:"Mason · 8 yrs · Kisumu",tags:["Plastering","Screeding","Stone masonry"],price:"KES 1,200/day",rat:4.7,rev:61,loc:"Kisumu",avC:"#3aafb8",init:"GA",badge:"Vetted",bc:"bg",type:"Mason",phone:"0745 xxx xxx",exp:"8 years",reg:"NCA Grade B",avail:"Available now",about:"Highly rated plasterer with excellent surface finish quality. Works on residential and commercial projects."},
+    {id:112,name:"Daniel Kiprop",sub:"Mason · 12 yrs · Nakuru",tags:["Block laying","Brickwork","Foundations"],price:"KES 1,500/day",rat:4.5,rev:102,loc:"Nakuru",avC:"#4a7ec0",init:"DK",badge:"Vetted",bc:"bg",type:"Mason",phone:"0756 xxx xxx",exp:"12 years",reg:"NCA Grade A",avail:"Available now",about:"Foundation and structural masonry specialist with experience in commercial slab work."},
   ],
-  token_info:[
-    {id:150,name:"Mjengo Coin (MJC)",sub:"Digital Payment Token · 1 MJC = 100 KES",tags:["Token","Payments","Escrow","NCBA Loop"],price:"1 MJC = KES 100",rat:0,rev:0,loc:"Kenya-wide",avC:"#c9952a",init:"M",badge:"NCBA Backed",bc:"bgold",type:"Digital Token",phone:"",exp:"",reg:"CBK Sandbox compliant",avail:"Phase 4 launch",about:"MJC Token is MjengoAI's in-platform digital currency backed 1:1 by KES held in NCBA Loop escrow accounts. Enables instant zero-delay payments between clients, artisans and suppliers."},
+  steel_fixers:[
+    {id:115,name:"Moses Omondi",sub:"Steel Fixer · 10 yrs · Nairobi",tags:["Reinforcement","BRC","Foundations","Slabs"],price:"KES 1,700/day",rat:4.7,rev:88,loc:"Nairobi",avC:"#888780",init:"MO",badge:"Vetted",bc:"bg",type:"Steel Fixer",phone:"0713 xxx xxx",exp:"10 years",reg:"NCA Grade A",avail:"Available now",about:"Expert steel fixer for reinforced concrete foundations, columns, beams and slabs. Works with major contractors."},
   ],
-  mybse_items:[
-    {id:160,name:"My Dashboard",sub:"Manage your MjengoAI account",tags:["Dashboard","Projects","Payments","Settings"],price:"Free",rat:0,rev:0,loc:"",avC:"#4a7ec0",init:"ME",badge:"Account",bc:"bb",type:"Account",phone:"",exp:"",reg:"",avail:"Sign in required",about:"Your personal MjengoAI dashboard. View ongoing projects, manage payments, track bookings and store documents in Pro Cloud."},
-    {id:161,name:"Pro Cloud Storage",sub:"100 GB secure project storage",tags:["Cloud","Documents","Drawings","Backups"],price:"KES 1,200/month",rat:4.8,rev:340,loc:"Cloud",avC:"#3a8c3a",init:"PC",badge:"Pro",bc:"bb",type:"Pro Feature",phone:"",exp:"",reg:"",avail:"Subscription",about:"Secure 100 GB per user cloud storage for project documents, architectural drawings, BOQs and communication logs. AES-256 encrypted."},
-    {id:162,name:"NCA Registration Portal",sub:"Register as NCA contractor or artisan",tags:["NCA","Registration","Compliance","Certificate"],price:"As per NCA fees",rat:4.5,rev:180,loc:"Kenya-wide",avC:"#e8a04a",init:"NC",badge:"Official",bc:"bgold",type:"Statutory",phone:"",exp:"",reg:"",avail:"Available",about:"Integrated NCA registration portal. Submit applications, upload documents and track registration status directly linked to NCA Kenya."},
+  tiles_fixers:[
+    {id:118,name:"Ali Hassan",sub:"Tiles Fixer · 9 yrs · Mombasa",tags:["Floor tiles","Wall tiles","Waterproofing","Grouting"],price:"KES 1,400/day",rat:4.8,rev:112,loc:"Mombasa",avC:"#3aafb8",init:"AH",badge:"Vetted",bc:"bg",type:"Tiles Fixer",phone:"0714 xxx xxx",exp:"9 years",reg:"NCA Grade B",avail:"Available now",about:"Precision tiles fixer specializing in large-format porcelain, natural stone and complex pattern layouts."},
   ],
-  vendors:[
-    {id:200,name:"Simba Hardwares",sub:"Hardware · Nairobi Industrial Area",tags:["Cement","Steel","Roofing","Fixtures"],price:"KES 700/50kg cement",rat:4.6,rev:410,loc:"Nairobi",avC:"#c9952a",init:"SH",badge:"Top Vendor",bc:"bgold",type:"Hardware Store",phone:"0200 xxx xxx",exp:"Est. 2001",reg:"Business No. 11223",avail:"Mon–Sat 8am–6pm",about:"One of Nairobi's largest hardware outlets. Stocks cement, steel, roofing, doors, windows, tiles and sanitary ware. Delivery countrywide."},
-    {id:201,name:"Mombasa Road Factory Outlet",sub:"Factory Outlet · Mlolongo",tags:["Iron sheets","Timber","Precast","Aggregates"],price:"Factory prices",rat:4.5,rev:265,loc:"Machakos",avC:"#4a7ec0",init:"MR",badge:"Verified",bc:"bg",type:"Factory Outlet",phone:"0201 xxx xxx",exp:"Est. 2007",reg:"Business No. 22334",avail:"Mon–Fri 7am–5pm",about:"Factory-direct outlet for roofing sheets, timber and precast. Bulk pricing with minimum order quantities."},
-    {id:202,name:"Kisumu Workshop Hub",sub:"Workshops & Fabrication · Kisumu",tags:["Steel fab","Welding","Aluminum","Metalwork"],price:"Quote on request",rat:4.4,rev:88,loc:"Kisumu",avC:"#3aafb8",init:"KW",badge:"Verified",bc:"bg",type:"Workshop",phone:"0202 xxx xxx",exp:"Est. 2014",reg:"Business No. 33445",avail:"Mon–Sat 8am–5pm",about:"Steel fabrication, welding, aluminum doors/windows and general metalwork for construction projects."},
-    {id:203,name:"Timber Yard Kenya",sub:"Timber Merchant · Eldoret",tags:["Timber","Hardwood","Treated","Decking"],price:"KES 310/m",rat:4.7,rev:155,loc:"Eldoret",avC:"#e8a04a",init:"TY",badge:"Verified",bc:"bg",type:"Timber Yard",phone:"0203 xxx xxx",exp:"Est. 2006",reg:"Business No. 44556",avail:"Open Mon–Sat",about:"Premium hardwood and treated timber supplier for roofing, flooring and decking across the Rift Valley."},
-    {id:204,name:"Precast Centre Athi River",sub:"Precast Yard · Athi River",tags:["Blocks","Slabs","Kerbs","Paving"],price:"KES 45/hollow block",rat:4.5,rev:198,loc:"Athi River",avC:"#888780",init:"PA",badge:"Factory Direct",bc:"bg",type:"Precast Yard",phone:"0204 xxx xxx",exp:"Est. 2010",reg:"Business No. 55667",avail:"Mon–Sat 7am–5pm",about:"Large precast yard producing hollow blocks, lintels, prestressed slabs and kerbs. Express delivery to Nairobi and surrounds."},
+  carpenters:[
+    {id:120,name:"Samuel Gitau",sub:"Carpenter · 11 yrs · Nairobi",tags:["Roofing","Formwork","Cabinetry"],price:"KES 1,800/day",rat:4.9,rev:210,loc:"Nairobi",avC:"#e8a04a",init:"SG",badge:"Top Rated",bc:"bgold",type:"Carpenter",phone:"0711 xxx xxx",exp:"11 years",reg:"NCA Grade A",avail:"Available now",about:"Master carpenter specializing in roof trusses, formwork and custom cabinetry. Uses precision laser tools."},
+    {id:121,name:"Alice Wangari",sub:"Carpenter · 7 yrs · Thika",tags:["Doors","Windows","Timber finishes"],price:"KES 1,400/day",rat:4.7,rev:88,loc:"Thika",avC:"#3a8c3a",init:"AW",badge:"Vetted",bc:"bg",type:"Carpenter",phone:"0722 xxx xxx",exp:"7 years",reg:"NCA Grade B",avail:"Available now",about:"Interior wood finishes specialist. Custom door/window frames, decking and pergola structures."},
   ],
-  contractors:[
-    {id:210,name:"BuildPro Contractors Ltd",sub:"General Contractor · Nairobi",tags:["Residential","Commercial","Renovations"],price:"Quote on request",rat:4.8,rev:124,loc:"Nairobi",avC:"#3a8c3a",init:"BP",badge:"NCA Registered",bc:"bg",type:"General Contractor",phone:"0210 xxx xxx",exp:"15 years",reg:"NCA No. GC-1120",avail:"Available",about:"Full-service general contractor handling residential, commercial and renovation projects across Nairobi and Central Kenya."},
-    {id:211,name:"Interior Works Kenya",sub:"Interior Contractor · Nairobi",tags:["Interior fit-out","Ceilings","Partitions","Painting"],price:"KES 2,500/m²",rat:4.7,rev:89,loc:"Nairobi",avC:"#4a7ec0",init:"IW",badge:"NCA Registered",bc:"bb",type:"Interior Contractor",phone:"0211 xxx xxx",exp:"10 years",reg:"NCA No. SC-2240",avail:"Available",about:"Interior fit-out specialists covering suspended ceilings, drywalls, partitions, painting and floor finishes."},
-    {id:212,name:"MEP Works Ltd",sub:"MEP Contractor · Nairobi",tags:["Mechanical","Electrical","Plumbing","HVAC"],price:"Quote on request",rat:4.9,rev:67,loc:"Nairobi",avC:"#3aafb8",init:"MW",badge:"EBK Registered",bc:"bb",type:"MEP Contractor",phone:"0212 xxx xxx",exp:"12 years",reg:"EBK No. ME-1155",avail:"Available",about:"MEP contractor for commercial and residential projects. Covers HVAC, electrical, plumbing and fire suppression systems."},
-    {id:213,name:"Repairs & Renovations Co.",sub:"Renovation Contractor · Nationwide",tags:["Repairs","Renovation","Extensions","Remodelling"],price:"From KES 50,000",rat:4.6,rev:210,loc:"Nationwide",avC:"#c9952a",init:"RR",badge:"Verified",bc:"bgold",type:"Renovation Contractor",phone:"0213 xxx xxx",exp:"8 years",reg:"NCA No. RN-3310",avail:"Available",about:"Specialists in property repairs, home extensions and full renovations. Transparent pricing with no hidden costs."},
+  welders:[
+    {id:125,name:"Brian Odhiambo",sub:"Welder · 8 yrs · Nairobi",tags:["Structural steel","Gates","Roofing frames","Fabrication"],price:"KES 1,600/day",rat:4.6,rev:76,loc:"Nairobi",avC:"#888780",init:"BO",badge:"Vetted",bc:"bg",type:"Welder",phone:"0715 xxx xxx",exp:"8 years",reg:"NCA Grade B",avail:"Available now",about:"Structural steel and fabrication specialist. Custom gates, doors, roof frames and general metal fabrication."},
   ],
-  tenders:[
-    {id:220,name:"Government Tender Alert",sub:"Tender Notifications · Kenya-wide",tags:["Government","PPRA","Infrastructure","Supply"],price:"KES 2,000/month",rat:4.7,rev:320,loc:"Kenya-wide",avC:"#4a7ec0",init:"GT",badge:"Official",bc:"bb",type:"Tender Service",phone:"",exp:"",reg:"PPRA Compliant",avail:"Active alerts",about:"Real-time tender notifications from county and national government. PPRA-compliant listings with bid document downloads."},
-    {id:221,name:"Tender App Pro",sub:"Tender Management · Digital Platform",tags:["Tenders","Bid","Document","Tracking"],price:"KES 3,500/month",rat:4.8,rev:145,loc:"All platforms",avC:"#3a8c3a",init:"TA",badge:"Pro",bc:"bg",type:"Pro App",phone:"",exp:"",reg:"",avail:"Available now",about:"Full tender management platform. Track bids, manage BOQs, collaborate with team and get alerts for new tenders matching your profile."},
-    {id:222,name:"Private Sector Tenders",sub:"Private Tenders · Corporate Kenya",tags:["Private","Corporate","Sub-contract","Supply"],price:"KES 1,500/month",rat:4.5,rev:88,loc:"Kenya-wide",avC:"#e8a04a",init:"PS",badge:"Verified",bc:"bgold",type:"Tender Service",phone:"",exp:"",reg:"",avail:"Active listings",about:"Curated list of private sector tenders from banks, telcos and large corporates across Kenya. Sub-contracting opportunities included."},
+  plumbers:[
+    {id:130,name:"Peter Ngugi",sub:"Plumber · ERC · Nairobi",tags:["Plumbing","Solar water","HVAC"],price:"KES 1,800/day",rat:4.8,rev:211,loc:"Nairobi",avC:"#3aafb8",init:"PN",badge:"ERC Licensed",bc:"bb",type:"Plumber",phone:"0700 xxx xxx",exp:"12 years",reg:"ERC Certified",avail:"Available now",about:"Licensed plumber covering all plumbing, hot water systems and solar water heating installations."},
+    {id:131,name:"Ruth Kamande",sub:"Plumber · 6 yrs · Nairobi",tags:["Water supply","Drainage","Sanitation"],price:"KES 1,500/day",rat:4.6,rev:74,loc:"Nairobi",avC:"#4a7ec0",init:"RK",badge:"Vetted",bc:"bg",type:"Plumber",phone:"0701 xxx xxx",exp:"6 years",reg:"NCA Grade B",avail:"Available now",about:"Residential water supply and drainage systems specialist. Fast, clean, reliable work."},
   ],
-  statutory:[
-    {id:230,name:"NCA – National Construction Authority",sub:"Contractor & Artisan Registration",tags:["NCA","Registration","Compliance","Grading"],price:"As per NCA schedule",rat:4.6,rev:890,loc:"Kenya-wide",avC:"#c9952a",init:"NC",badge:"Government",bc:"bgold",type:"Statutory Body",phone:"020 xxx xxxx",exp:"",reg:"NCA Kenya",avail:"Available",about:"Register as a contractor or artisan with NCA. Verify NCA numbers, check compliance status and access the NCA contractor grading system."},
-    {id:231,name:"Local Authority Approval Portal",sub:"Building Approval · County Governments",tags:["Planning permission","Building approval","County","Change of use"],price:"Varies by county",rat:4.4,rev:412,loc:"47 Counties",avC:"#4a7ec0",init:"LA",badge:"Official",bc:"bb",type:"Statutory Service",phone:"",exp:"",reg:"County Govts",avail:"Available",about:"Navigate building approvals, planning permissions, change of use and building compliance certificates across all 47 Kenyan counties."},
-    {id:232,name:"Boma Yangu – Affordable Housing",sub:"Government Affordable Housing Portal",tags:["Affordable housing","Government","Savings","Allocation"],price:"Free to register",rat:4.5,rev:2100,loc:"Kenya-wide",avC:"#3a8c3a",init:"BY",badge:"Government",bc:"bg",type:"Housing Programme",phone:"",exp:"",reg:"State Department of Housing",avail:"Open",about:"Register for government affordable housing units under the Boma Yangu programme. Check eligibility, track application and pay monthly contributions."},
-    {id:233,name:"EBK – Engineers Board of Kenya",sub:"Professional Engineer Registration",tags:["EBK","Engineer","Registration","Compliance"],price:"As per EBK schedule",rat:4.7,rev:320,loc:"Kenya-wide",avC:"#3aafb8",init:"EB",badge:"Government",bc:"bb",type:"Statutory Body",phone:"020 xxx xxxx",exp:"",reg:"EBK Kenya",avail:"Available",about:"Verify engineer registration, apply for practice licences and check compliance with Engineers Board of Kenya requirements."},
+  electricians:[
+    {id:135,name:"Grace Njeri",sub:"Electrician · ERC Class A · Nairobi",tags:["Wiring","Solar PV","DB Boards","Compliance"],price:"KES 2,200/day",rat:4.9,rev:178,loc:"Nairobi",avC:"#4a7ec0",init:"GN",badge:"ERC Licensed",bc:"bb",type:"Electrician",phone:"0703 xxx xxx",exp:"8 years",reg:"ERC Class A",avail:"Available now",about:"Licensed Class A electrician. Full house wiring, solar PV, DB board installation and compliance certificates."},
+    {id:136,name:"Kevin Kariuki",sub:"Electrician · 10 yrs · Nakuru",tags:["Wiring","Security systems","Solar","CCTV"],price:"KES 1,900/day",rat:4.7,rev:122,loc:"Nakuru",avC:"#3a8c3a",init:"KK",badge:"ERC Licensed",bc:"bb",type:"Electrician",phone:"0704 xxx xxx",exp:"10 years",reg:"ERC Class A",avail:"Available now",about:"Domestic and commercial electrician. Installs CCTV, intercom and alarm systems."},
   ],
-  wallet:[
-    {id:240,name:"MJC e-Wallet",sub:"Digital Wallet · MjengoAI Platform",tags:["e-Wallet","Payments","Top-up","Withdraw"],price:"Free to open",rat:4.8,rev:1240,loc:"Kenya-wide",avC:"#c9952a",init:"EW",badge:"NCBA Backed",bc:"bgold",type:"e-Wallet",phone:"",exp:"",reg:"CBK Sandbox compliant",avail:"Phase 4 launch",about:"Your MjengoAI e-Wallet for fast, secure construction payments. Top up via M-Pesa or bank. Pay contractors, artisans and suppliers instantly."},
-    {id:241,name:"MJT Coin",sub:"MjengoAI Digital Token · 1 MJT = KES 100",tags:["Token","Coin","Digital currency","Blockchain"],price:"1 MJT = KES 100",rat:4.7,rev:540,loc:"Kenya-wide",avC:"#e8b84b",init:"MC",badge:"NCBA Backed",bc:"bgold",type:"Digital Token",phone:"",exp:"",reg:"CBK Sandbox compliant",avail:"Phase 4 launch",about:"MJT Coin is the native digital token of the MjengoAI platform. Backed 1:1 by KES held in NCBA Loop escrow. Use for milestone payments and platform rewards."},
-    {id:242,name:"MJT Exchange",sub:"Token Exchange · Convert MJT ↔ KES",tags:["Exchange","Convert","MJT","KES"],price:"0.5% exchange fee",rat:4.6,rev:280,loc:"Kenya-wide",avC:"#3a8c3a",init:"MX",badge:"Beta",bc:"bg",type:"Exchange",phone:"",exp:"",reg:"CBK Sandbox compliant",avail:"Beta access",about:"Convert between MJT Coin and Kenyan Shillings instantly. Transfer to M-Pesa, bank or keep in your e-Wallet. Full transaction history and receipts."},
+  painters:[
+    {id:140,name:"John Mwangi",sub:"Painter · 7 yrs · Nairobi",tags:["Interior paint","Exterior paint","Textures","Waterproofing"],price:"KES 1,200/day",rat:4.5,rev:94,loc:"Nairobi",avC:"#e8a04a",init:"JM",badge:"Vetted",bc:"bg",type:"Painter",phone:"0716 xxx xxx",exp:"7 years",reg:"NCA Grade B",avail:"Available now",about:"Interior and exterior painting specialist. Expert in textures, epoxy flooring and waterproofing coatings."},
+  ],
+  landscapers_art:[
+    {id:145,name:"James Njoroge",sub:"Landscaper · 6 yrs · Nairobi",tags:["Landscaping","Irrigation","Lawn","Hardscaping"],price:"KES 1,300/day",rat:4.6,rev:67,loc:"Nairobi",avC:"#3a8c3a",init:"JN",badge:"Vetted",bc:"bg",type:"Landscaper",phone:"0717 xxx xxx",exp:"6 years",reg:"NCA Grade B",avail:"Available now",about:"Full landscaping services including lawn establishment, irrigation systems, planting, decking and outdoor paving."},
+  ],
+  hardware_vendors:[
+    {id:150,name:"Tuff Foam Hardware",sub:"Hardware Store · Nairobi Industrial Area",tags:["Cement","Steel","Roofing","Timber","Sanitary"],price:"KES 720/50kg cement",rat:4.5,rev:320,loc:"Nairobi",avC:"#c9952a",init:"TF",badge:"Top Vendor",bc:"bgold",type:"Hardware",phone:"0200 xxx xxx",exp:"Est. 2005",reg:"Business No. 12345",avail:"Mon–Sat",about:"Large hardware stocking cement, steel, roofing, timber and sanitary ware. Bulk discounts. Delivery fleet available."},
+    {id:151,name:"Coast Hardware Mombasa",sub:"Hardware · Mvita, Mombasa",tags:["Cement","Tiles","Sanitary","Steel"],price:"KES 755/50kg cement",rat:4.3,rev:188,loc:"Mombasa",avC:"#3aafb8",init:"CH",badge:"Verified",bc:"bg",type:"Hardware",phone:"0412 xxx xxx",exp:"Est. 2008",reg:"Business No. 34567",avail:"Mon–Sat",about:"Coast region supplier for cement, tiles, sanitary ware and electrical fittings."},
+  ],
+  factory_vendors:[
+    {id:155,name:"Devki Steel Mills",sub:"Factory · Athi River",tags:["Steel bars","Wire mesh","Nails","BRC"],price:"KES 110/kg steel",rat:4.6,rev:210,loc:"Athi River",avC:"#888780",init:"DS",badge:"Factory Direct",bc:"bg",type:"Steel Factory",phone:"0303 xxx xxx",exp:"Est. 1998",reg:"Business No. 56789",avail:"Mon–Fri",about:"Kenya's leading steel factory. Reinforcement bars, BRC mesh, roofing nails and wire products. Factory-direct pricing."},
+    {id:156,name:"Mabati Rolling Mills",sub:"Factory · Roofing · Nationwide",tags:["Iron sheets","Tile profile","Coloured roofing"],price:"KES 1,250/sheet",rat:4.7,rev:480,loc:"Nationwide",avC:"#3aafb8",init:"MR",badge:"Top Vendor",bc:"bgold",type:"Roofing Factory",phone:"0400 xxx xxx",exp:"Est. 1961",reg:"Business No. 67890",avail:"Mon–Sat",about:"Kenya's leading roofing manufacturer. Wide range of iron sheets, tile profile and colored roofing in all gauges."},
+  ],
+  precast_vendors:[
+    {id:160,name:"BuildRight Precast",sub:"Precast Yard · Athi River",tags:["Hollow blocks","Slabs","Lintels","Paving"],price:"KES 48/hollow block",rat:4.6,rev:144,loc:"Athi River",avC:"#888780",init:"BP",badge:"Factory Direct",bc:"bg",type:"Precast",phone:"0302 xxx xxx",exp:"Est. 2012",reg:"Business No. 45678",avail:"Mon–Sat 7am–5pm",about:"Factory-direct precast. Full range of hollow blocks, prestressed slabs, lintels and kerbs. Nationwide delivery."},
+  ],
+  workshop_vendors:[
+    {id:165,name:"Nairobi Joinery Works",sub:"Joinery Workshop · Industrial Area",tags:["Custom joinery","Doors","Windows","Cabinets"],price:"KES 12,000/door set",rat:4.5,rev:67,loc:"Nairobi",avC:"#e8a04a",init:"NJ",badge:"Verified",bc:"bg",type:"Workshop",phone:"0307 xxx xxx",exp:"Est. 2007",reg:"Business No. 78901",avail:"Mon–Sat",about:"Custom joinery workshop for doors, windows, kitchen cabinets and furniture. Hardwood and MDF options."},
+  ],
+  timber_vendors:[
+    {id:170,name:"Karura Timber Works",sub:"Timber · Nairobi",tags:["Roof timber","Flooring","Treated","Hardwood"],price:"KES 320/m treated",rat:4.6,rev:88,loc:"Nairobi",avC:"#3a8c3a",init:"KW",badge:"Verified",bc:"bg",type:"Timber Yard",phone:"0305 xxx xxx",exp:"Est. 2009",reg:"Business No. 90123",avail:"Mon–Sat",about:"Specialist in treated timber for roofing and flooring. Fire-retardant and termite-treated options."},
+    {id:171,name:"Eldoret Timber Yard",sub:"Timber · Eldoret",tags:["Hardwood","Cypress","Softwood","Cutting"],price:"KES 280/m cypress",rat:4.4,rev:132,loc:"Eldoret",avC:"#e8a04a",init:"ET",badge:"Verified",bc:"bg",type:"Timber Yard",phone:"0306 xxx xxx",exp:"Est. 2003",reg:"Business No. 89012",avail:"Mon–Sat",about:"Largest timber yard in the Rift Valley. Kiln-dried hardwood and softwood. Custom cutting service."},
+  ],
+  pm_app:[
+    {id:180,name:"MjengoAI Project Manager",sub:"Pro App · Web & Mobile",tags:["Project scheduling","Gantt chart","Team management","Reports"],price:"KES 3,000/month",rat:4.8,rev:420,loc:"Web & Mobile",avC:"#4a7ec0",init:"PM",badge:"Pro",bc:"bb",type:"App",phone:"",exp:"",reg:"",avail:"Available",about:"Full construction project management. Gantt charts, task assignment, progress tracking, document storage and team collaboration."},
+  ],
+  calculators:[
+    {id:185,name:"Concrete Mix Calculator",sub:"Free · Web & Mobile",tags:["Concrete","Foundation","Slab","Columns"],price:"Free",rat:4.6,rev:1240,loc:"All platforms",avC:"#3aafb8",init:"CC",badge:"Free",bc:"bg",type:"Calculator",phone:"",exp:"",reg:"",avail:"Available now",about:"Calculate concrete mix ratios, quantities and costs for foundations, slabs and columns. Supports M15–M30 grades."},
+    {id:186,name:"Roofing Calculator",sub:"Free · Web & Mobile",tags:["Roofing","Timber","Iron sheets","Trusses"],price:"Free",rat:4.5,rev:980,loc:"All platforms",avC:"#e8a04a",init:"RC",badge:"Free",bc:"bg",type:"Calculator",phone:"",exp:"",reg:"",avail:"Available now",about:"Calculate roofing area, timber quantities and iron sheet count for hipped and gable roofs."},
+    {id:187,name:"BOQ Generator",sub:"Pro · Annual subscription",tags:["BOQ","Cost estimating","Excel export","Rate library"],price:"KES 5,000/year",rat:4.8,rev:620,loc:"Web",avC:"#c9952a",init:"BQ",badge:"Pro",bc:"bgold",type:"Calculator",phone:"",exp:"",reg:"",avail:"Available",about:"Full BOQ generator. Exports to Excel and PDF. Kenyan rate library with 5,000+ items."},
+    {id:188,name:"Paint & Tiles Calculator",sub:"Free · Web & Mobile",tags:["Paint","Tiles","Area","Quantities"],price:"Free",rat:4.4,rev:890,loc:"All platforms",avC:"#3a8c3a",init:"PT",badge:"Free",bc:"bg",type:"Calculator",phone:"",exp:"",reg:"",avail:"Available now",about:"Calculate paint and tile quantities for any room. Adjusts for openings, diagonal laying and waste factor."},
+  ],
+  builders:[
+    {id:190,name:"Mineco House Ltd",sub:"General Contractor · Nairobi",tags:["Full construction","Turnkey","Residential","Commercial"],price:"KES 35,000/m²",rat:4.8,rev:112,loc:"Nairobi",avC:"#3a8c3a",init:"MH",badge:"NCA Class A",bc:"bg",type:"Builder",phone:"0800 xxx xxx",exp:"Est. 2005",reg:"NCA No. NCA-A-1102",avail:"Available",about:"Full-service general contractor specializing in residential and commercial construction. Turnkey projects from design to handover."},
+    {id:191,name:"Landmark Builders",sub:"General Contractor · Nairobi",tags:["Residential","Commercial","Extensions","Renovations"],price:"KES 28,000/m²",rat:4.7,rev:87,loc:"Nairobi",avC:"#4a7ec0",init:"LB",badge:"NCA Class B",bc:"bb",type:"Builder",phone:"0801 xxx xxx",exp:"Est. 2012",reg:"NCA No. NCA-B-3301",avail:"Available",about:"Mid-size contractor for residential and commercial projects. Competitive rates and clean project delivery."},
+  ],
+  interior_works:[
+    {id:195,name:"Elite Interiors Kenya",sub:"Interior Contractor · Nairobi",tags:["Gypsum","False ceiling","Partitions","Finishes"],price:"KES 2,200/m²",rat:4.7,rev:94,loc:"Nairobi",avC:"#e8a04a",init:"EI",badge:"Verified",bc:"bg",type:"Interior Contractor",phone:"0802 xxx xxx",exp:"Est. 2014",reg:"NCA No. NCA-B-5501",avail:"Available",about:"Full interior fit-out contractor. Gypsum ceilings, partitions, tiling, painting and joinery. Residential and commercial."},
+  ],
+  mep_works:[
+    {id:200,name:"TechBuild MEP",sub:"MEP Contractor · Nairobi",tags:["Mechanical","Electrical","Plumbing","Fire suppression"],price:"KES 5,000/m²",rat:4.6,rev:68,loc:"Nairobi",avC:"#3aafb8",init:"TB",badge:"Verified",bc:"bb",type:"MEP Contractor",phone:"0803 xxx xxx",exp:"Est. 2010",reg:"NCA No. NCA-B-4401",avail:"Available",about:"Full MEP contractor for commercial and industrial projects. Mechanical ventilation, electrical distribution, plumbing and fire systems."},
+  ],
+  repairs:[
+    {id:205,name:"QuickFix Repairs",sub:"Repairs & Renovations · Nairobi",tags:["Repairs","Renovations","Waterproofing","Cracks"],price:"KES 1,500/day",rat:4.5,rev:143,loc:"Nairobi",avC:"#c9952a",init:"QF",badge:"Vetted",bc:"bg",type:"Repairs Contractor",phone:"0804 xxx xxx",exp:"Est. 2016",reg:"NCA No. NCA-C-7701",avail:"Available now",about:"Specialist repairs and renovation contractor. Roof leaks, crack repairs, waterproofing and full house renovations."},
+  ],
+  tender_alert:[
+    {id:210,name:"Government Tender Alerts",sub:"Tenders · All Kenya",tags:["Government tenders","PPRA","Counties","Infrastructure"],price:"Free / KES 1,000/month Pro",rat:4.5,rev:320,loc:"Kenya-wide",avC:"#3aafb8",init:"TA",badge:"PPRA Linked",bc:"bb",type:"Tender Service",phone:"",exp:"",reg:"PPRA Integration",avail:"Available",about:"Real-time government tender alerts linked to PPRA and county procurement portals. Filter by category, county and value."},
+  ],
+  tender_app:[
+    {id:215,name:"Auto Tender Document Generator",sub:"Pro App · MjengoAI",tags:["Tender docs","BOQ","Rate library","Auto-fill"],price:"KES 2,000/tender",rat:4.7,rev:88,loc:"Web",avC:"#c9952a",init:"AT",badge:"Pro",bc:"bgold",type:"Tender App",phone:"",exp:"",reg:"",avail:"Available",about:"Automatically generates complete tender documents from your project data. Includes standard BOQ, rate schedule, and regional pricing."},
+  ],
+  nca:[
+    {id:220,name:"NCA Registration Portal",sub:"Statutory · All Kenya",tags:["NCA","Contractor registration","Artisan cert.","Grade renewal"],price:"As per NCA fees",rat:4.5,rev:180,loc:"Kenya-wide",avC:"#3aafb8",init:"NC",badge:"Official",bc:"bb",type:"Statutory",phone:"",exp:"",reg:"NCA Kenya",avail:"Available",about:"Integrated NCA registration portal. Submit contractor and artisan applications, upload documents and track registration status."},
+  ],
+  local_authority:[
+    {id:225,name:"County Approval Portal",sub:"Statutory · All Counties",tags:["Building permits","Change of user","Demolition","Hoarding"],price:"As per county fees",rat:4.4,rev:140,loc:"47 Counties",avC:"#4a7ec0",init:"CA",badge:"Official",bc:"bb",type:"Statutory",phone:"",exp:"",reg:"County Govts.",avail:"Available",about:"One-stop county building approval portal. Apply for building permits, change of user and site hoarding permits across all 47 counties."},
+  ],
+  boma_yangu:[
+    {id:230,name:"Boma Yangu Integration",sub:"Statutory · Kenya Mortgage Refinance",tags:["Boma Yangu","Affordable housing","Mortgage","KMRC"],price:"Free to apply",rat:4.6,rev:92,loc:"Kenya-wide",avC:"#3a8c3a",init:"BY",badge:"Govt. Programme",bc:"bg",type:"Statutory",phone:"",exp:"",reg:"State Dept. Housing",avail:"Available",about:"Integration with the Boma Yangu affordable housing portal. Register for government housing schemes, check eligibility and track applications."},
+  ],
+  ewallet:[
+    {id:240,name:"Mjengo Token e-Wallet",sub:"Digital Wallet · NCBA Loop backed",tags:["e-Wallet","Deposits","Transfers","Escrow"],price:"Free to create",rat:4.8,rev:540,loc:"Kenya-wide",avC:"#c9952a",init:"eW",badge:"NCBA Backed",bc:"bgold",type:"e-Wallet",phone:"",exp:"",reg:"NCBA Loop",avail:"Phase 4 launch",about:"Create your MJT e-Wallet backed by NCBA Loop. Deposit KES, convert to MJT tokens and make instant escrow payments to contractors and suppliers."},
+  ],
+  mjt_coin:[
+    {id:245,name:"Mjengo Token (MJT)",sub:"Digital Token · 1 MJT = 100 KES",tags:["MJT Token","Digital currency","Fixed parity","CBK Sandbox"],price:"1 MJT = KES 100",rat:0,rev:0,loc:"Kenya-wide",avC:"#c9952a",init:"MT",badge:"CBK Sandbox",bc:"bgold",type:"Token",phone:"",exp:"",reg:"CBK Sandbox compliant",avail:"Phase 5 launch",about:"Mjengo Token (MJT) is the unified digital currency for the MjengoAI ecosystem. Formerly known as MJC. 1 MJT = 100 KES, fully backed by KES in NCBA Loop collateral accounts."},
+  ],
+  mjt_exchange:[
+    {id:250,name:"MJT Exchange",sub:"Token Exchange · Phase 5",tags:["Token exchange","MJT trading","Liquidity","Rewards"],price:"0.5% per trade",rat:0,rev:0,loc:"Kenya-wide",avC:"#e8a04a",init:"MX",badge:"Phase 5",bc:"bgold",type:"Exchange",phone:"",exp:"",reg:"CMA Innovation Env.",avail:"Phase 5 launch",about:"The MJT Exchange allows users to trade, earn and redeem Mjengo Tokens. Green MJT incentives for eco-friendly construction practices. CMA innovation environment."},
   ],
 };
 
-/* ═══════════ CATEGORY CONFIG ═══════════ */
+/* ════════════════════ 10 CATEGORIES ════════════════════ */
 const CATS=[
-  {id:"artisans",label:"Artisans",ci:0,bg:"rgba(232,160,74,.16)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><ellipse cx="18" cy="12" rx="9" ry="5.5" fill="#e8a04a"/><rect x="9" y="12" width="18" height="2.5" rx="1.2" fill="#c8803a"/><rect x="11" y="14.5" width="14" height="1.5" rx=".7" fill="#b06820"/><circle cx="18" cy="21" r="5" fill="#f5c580"/><path d="M10 34 Q10 27 18 27 Q26 27 26 34" fill="#e8a04a"/><rect x="16.5" y="27" width="3" height="7" fill="#f5c040" opacity=".7"/><rect x="25" y="26" width="2" height="8" rx="1" fill="#888" transform="rotate(-20 25 26)"/><rect x="24.5" y="24" width="3" height="3" rx=".5" fill="#aaa" transform="rotate(-20 24.5 24)"/></svg>`,
-   subs:[{label:"Masons",icon:"🧱",key:"masons",n:320},{label:"Carpenters",icon:"🪵",key:"carpenters",n:210},{label:"Plumbers",icon:"🔧",key:"plumbers",n:185},{label:"Electricians",icon:"⚡",key:"electricians",n:260},{label:"Painters",icon:"🖌️",key:"masons",n:140},{label:"Steel Fixers",icon:"⚙️",key:"masons",n:90},{label:"Landscapers",icon:"🌿",key:"masons",n:75}]},
-  {id:"professionals",label:"Professionals",ci:1,bg:"rgba(74,126,192,.16)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><rect x="7" y="5" width="22" height="26" rx="2.5" fill="#1a3a6c"/><rect x="7" y="5" width="22" height="26" rx="2.5" stroke="#4a7ec0" stroke-width="1"/><line x1="13" y1="5" x2="13" y2="31" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="19" y1="5" x2="19" y2="31" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="11" x2="29" y2="11" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="17" x2="29" y2="17" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="23" x2="29" y2="23" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><path d="M11 22 L11 14 L18 9 L25 14 L25 22 Z" stroke="#7ab4f0" stroke-width="1.2" fill="none"/><rect x="16" y="17" width="4" height="5" stroke="#7ab4f0" stroke-width="1" fill="none"/><path d="M22 6 L29 6 L29 13 Z" fill="#4a7ec0" opacity=".8"/></svg>`,
-   subs:[{label:"Architects",icon:"📐",key:"architects",n:180},{label:"Engineers",icon:"🔩",key:"engineers",n:220},{label:"Qty Surveyors",icon:"📋",key:"surveyors",n:110},{label:"Planners",icon:"🗺️",key:"planners",n:65},{label:"Contractors",icon:"🏗️",key:"engineers",n:300},{label:"Consultants",icon:"💼",key:"architects",n:95}]},
-  {id:"material",label:"Material",ci:2,bg:"rgba(136,135,128,.2)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><rect x="4" y="29" width="28" height="3.5" rx="1" fill="#7a6040"/><rect x="6" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="14" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="22" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="5" y="22" width="11" height="8" rx="1.5" fill="#d4c8a8"/><rect x="6" y="23" width="9" height="6" rx="1" fill="#c8bca0"/><text x="10.5" y="28" text-anchor="middle" font-size="4" fill="#8a7a60" font-family="sans-serif" font-weight="bold">50KG</text><rect x="18" y="22" width="11" height="8" rx="1.5" fill="#d4c8a8"/><text x="23.5" y="28" text-anchor="middle" font-size="4" fill="#8a7a60" font-family="sans-serif" font-weight="bold">50KG</text><rect x="8" y="19" width="20" height="3" rx="1" fill="#8a9ab0"/><line x1="10" y1="19" x2="10" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="14" y1="19" x2="14" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="18" y1="19" x2="18" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="22" y1="19" x2="22" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="26" y1="19" x2="26" y2="22" stroke="#6a7a90" stroke-width="1"/><rect x="8" y="12" width="8" height="7" rx="1" fill="#b8b0a0"/><rect x="9.5" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="13" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="18" y="12" width="8" height="7" rx="1" fill="#b8b0a0"/><rect x="19.5" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="23" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/></svg>`,
-   subs:[{label:"Hardware Stores",icon:"🏪",key:"hardware",n:850},{label:"Precast Yards",icon:"🧱",key:"precast",n:42},{label:"Tiles & Stone",icon:"🪨",key:"tiles",n:130},{label:"Timber Yards",icon:"🪵",key:"timber",n:95},{label:"Factories",icon:"🏭",key:"hardware",n:60},{label:"Aggregates",icon:"⛏️",key:"hardware",n:80}]},
-  {id:"houseplans",label:"House Plans",ci:3,bg:"rgba(126,200,126,.14)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><path d="M18 4 L33 16 L29 16 L29 31 L7 31 L7 16 L3 16 Z" fill="#3a8c3a"/><path d="M18 4 L33 16 L18 16 Z" fill="#2d7a2d"/><rect x="7" y="16" width="22" height="15" fill="#d4e8c8"/><rect x="15" y="21" width="6" height="10" rx=".8" fill="#8a6a3a"/><circle cx="20" cy="26" r=".7" fill="#c8a060"/><rect x="8.5" y="18.5" width="5" height="4.5" rx=".5" fill="#a8d4f0"/><line x1="11" y1="18.5" x2="11" y2="23" stroke="#7ab0d0" stroke-width=".8"/><line x1="8.5" y1="20.7" x2="13.5" y2="20.7" stroke="#7ab0d0" stroke-width=".8"/><rect x="22.5" y="18.5" width="5" height="4.5" rx=".5" fill="#a8d4f0"/><line x1="25" y1="18.5" x2="25" y2="23" stroke="#7ab0d0" stroke-width=".8"/><line x1="22.5" y1="20.7" x2="27.5" y2="20.7" stroke="#7ab0d0" stroke-width=".8"/><rect x="4" y="31" width="28" height="2" rx="1" fill="#5a8a3a" opacity=".5"/><rect x="24" y="8" width="3.5" height="7" rx=".5" fill="#c8a080"/></svg>`,
-   subs:[{label:"Residential",icon:"🏠",key:"residential_plans",n:8200},{label:"Commercial",icon:"🏢",key:"commercial_plans",n:1400},{label:"Industrial",icon:"🏭",key:"commercial_plans",n:280},{label:"Social / Church",icon:"⛪",key:"residential_plans",n:320},{label:"Extensions",icon:"🔨",key:"residential_plans",n:950}]},
-  {id:"apps",label:"BSE Apps",ci:4,bg:"rgba(58,175,184,.14)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><rect x="9" y="4" width="18" height="28" rx="3" fill="#2a3a4a"/><rect x="10" y="5" width="16" height="26" rx="2" fill="#1a2530"/><rect x="11" y="6" width="14" height="20" rx="1.5" fill="#0d1a22"/><rect x="12" y="7" width="12" height="5" rx="1" fill="#1a3a2a"/><text x="22.5" y="10.5" text-anchor="end" font-size="4" fill="#7ec87e" font-family="monospace">3,450</text><rect x="12.5" y="13.5" width="3.5" height="3.5" rx=".8" fill="#3aafb8" opacity=".9"/><rect x="17.5" y="13.5" width="3.5" height="3.5" rx=".8" fill="#4a7ec0" opacity=".9"/><rect x="12.5" y="18.5" width="3.5" height="3.5" rx=".8" fill="#c9952a" opacity=".9"/><rect x="17.5" y="18.5" width="3.5" height="3.5" rx=".8" fill="#7ec87e" opacity=".9"/><circle cx="18" cy="29.5" r="1.5" fill="#3a4a5a"/><circle cx="28" cy="8" r="5" fill="#3aafb8"/><path d="M28 5 L28 10" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M25.5 8 L28 10.5 L30.5 8" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
-   subs:[{label:"Calculators",icon:"🧮",key:"apps_list",n:12},{label:"Pro Tools",icon:"🛠️",key:"apps_list",n:6},{label:"BOQ Generator",icon:"📊",key:"apps_list",n:1},{label:"Cost Estimator",icon:"💰",key:"apps_list",n:3}]},
-  {id:"token",label:"MJC Token",ci:5,bg:"rgba(201,149,42,.16)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="13" fill="url(#gc)"/><circle cx="18" cy="18" r="10.5" fill="none" stroke="#f0c040" stroke-width=".8" opacity=".6"/><text x="18" y="23" text-anchor="middle" font-size="13" font-weight="700" fill="#8a5a00" font-family="Georgia,serif">M</text><ellipse cx="13" cy="12" rx="3" ry="1.8" fill="white" opacity=".25" transform="rotate(-35 13 12)"/><circle cx="18" cy="18" r="13" fill="none" stroke="#c07010" stroke-width="1.5"/><defs><radialGradient id="gc" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#f8d860"/><stop offset="50%" stop-color="#e8a820"/><stop offset="100%" stop-color="#c07010"/></radialGradient></defs></svg>`,
-   subs:[{label:"About MJC",icon:"ℹ️",key:"token_info",n:0},{label:"Create Wallet",icon:"👛",key:"token_info",n:0},{label:"Send Payment",icon:"💸",key:"token_info",n:0},{label:"Transaction Log",icon:"📜",key:"token_info",n:0}]},
-  {id:"mybse",label:"My BSE",ci:6,bg:"rgba(74,126,192,.16)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><path d="M18 4 L31 9 L31 20 C31 27 24 32 18 34 C12 32 5 27 5 20 L5 9 Z" fill="#1a3a6c"/><path d="M18 4 L31 9 L31 20 C31 27 24 32 18 34 C12 32 5 27 5 20 L5 9 Z" stroke="#4a7ec0" stroke-width="1" fill="none"/><circle cx="18" cy="16" r="4.5" fill="#7ab4f0"/><path d="M10 30 C10 24 13 22 18 22 C23 22 26 24 26 30" fill="#4a7ec0"/><circle cx="27" cy="9" r="5" fill="#3a8c3a"/><path d="M24.5 9 L26.5 11 L29.5 7" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
-   subs:[{label:"My Dashboard",icon:"📊",key:"mybse_items",n:0},{label:"My Projects",icon:"🏗️",key:"mybse_items",n:0},{label:"Pro Cloud",icon:"☁️",key:"mybse_items",n:0},{label:"NCA Registration",icon:"📜",key:"mybse_items",n:0},{label:"Settings",icon:"⚙️",key:"mybse_items",n:0}]},
-  {id:"vendors",label:"Vendors",ci:7,bg:"rgba(58,175,184,.14)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><rect x="4" y="22" width="28" height="10" rx="2" fill="#1a3a3a"/><rect x="4" y="22" width="28" height="10" rx="2" stroke="#3aafb8" stroke-width="1"/><rect x="7" y="25" width="7" height="4" rx="1" fill="#3aafb8" opacity=".8"/><rect x="16" y="25" width="7" height="4" rx="1" fill="#3aafb8" opacity=".5"/><rect x="25" y="25" width="4" height="4" rx="1" fill="#3aafb8" opacity=".3"/><path d="M8 22 L8 10 L28 10 L28 22" stroke="#3aafb8" stroke-width="1" fill="none"/><rect x="14" y="13" width="8" height="9" rx="1" fill="#2a5a5a"/><rect x="15" y="14" width="6" height="7" rx=".5" fill="#3aafb8" opacity=".3"/><path d="M18 13 L18 10" stroke="#3aafb8" stroke-width="1"/><circle cx="10" cy="22" r="2.5" fill="#2a4a4a" stroke="#3aafb8" stroke-width="1"/><circle cx="26" cy="22" r="2.5" fill="#2a4a4a" stroke="#3aafb8" stroke-width="1"/><rect x="9" y="6" width="18" height="4" rx="1" fill="#3aafb8" opacity=".4"/></svg>`,
-   subs:[{label:"Hardwares",icon:"🏪",key:"vendors",n:850},{label:"Factory Outlets",icon:"🏭",key:"vendors",n:60},{label:"Precast Yards",icon:"🧱",key:"vendors",n:42},{label:"Workshops",icon:"🔧",key:"vendors",n:120},{label:"Timber Yards",icon:"🪵",key:"timber",n:95}]},
-  {id:"contractors",label:"Contractors",ci:8,bg:"rgba(126,200,126,.14)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><rect x="5" y="28" width="26" height="4" rx="1" fill="#2a4a2a"/><rect x="5" y="28" width="26" height="4" rx="1" stroke="#7ec87e" stroke-width=".8"/><rect x="12" y="14" width="12" height="14" rx="1" fill="#1a3a1a" stroke="#7ec87e" stroke-width=".8"/><rect x="15" y="21" width="6" height="7" rx=".5" fill="#4a7a4a"/><rect x="15" y="22" width="2.5" height="5" fill="#3aafb8" opacity=".5"/><rect x="13" y="17" width="4" height="3" rx=".5" fill="#5a9a5a" opacity=".8"/><rect x="19" y="17" width="4" height="3" rx=".5" fill="#5a9a5a" opacity=".8"/><path d="M18 4 L30 14 L26 14 L26 15 L10 15 L10 14 L6 14 Z" fill="#3a8c3a"/><path d="M18 4 L30 14 L18 14 Z" fill="#2d7a2d"/><rect x="14" y="9" width="2" height="5" fill="#7ec87e" opacity=".6"/><rect x="20" y="9" width="2" height="5" fill="#7ec87e" opacity=".4"/><circle cx="28" cy="9" r="4.5" fill="#c9952a"/><text x="28" y="11.5" text-anchor="middle" font-size="5.5" fill="white" font-family="sans-serif" font-weight="bold">B</text></svg>`,
-   subs:[{label:"Builders Works",icon:"🏗️",key:"contractors",n:300},{label:"Interior Works",icon:"🪟",key:"contractors",n:180},{label:"MEP Works",icon:"⚡",key:"contractors",n:95},{label:"Repairs & Reno",icon:"🔨",key:"contractors",n:420}]},
-  {id:"tenders",label:"Tenders",ci:9,bg:"rgba(201,149,42,.16)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><rect x="7" y="4" width="22" height="28" rx="2" fill="#2a2010"/><rect x="7" y="4" width="22" height="28" rx="2" stroke="#c9952a" stroke-width="1"/><rect x="11" y="9" width="14" height="1.5" rx=".7" fill="#c9952a" opacity=".9"/><rect x="11" y="13" width="14" height="1.5" rx=".7" fill="#c9952a" opacity=".6"/><rect x="11" y="17" width="10" height="1.5" rx=".7" fill="#c9952a" opacity=".4"/><rect x="11" y="21" width="12" height="1.5" rx=".7" fill="#c9952a" opacity=".3"/><circle cx="26" cy="26" r="6" fill="#c9952a"/><path d="M23.5 26 L25.5 28 L28.5 24" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
-   subs:[{label:"Tender Alert",icon:"🔔",key:"tenders",n:0},{label:"Tender App",icon:"📱",key:"tenders",n:0},{label:"Government Tenders",icon:"🏛️",key:"tenders",n:0},{label:"Private Tenders",icon:"🏢",key:"tenders",n:0}]},
-  {id:"statutory",label:"Statutory",ci:10,bg:"rgba(136,135,128,.2)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><path d="M18 3 L33 10 L33 12 L3 12 L3 10 Z" fill="#4a4a40"/><path d="M18 3 L33 10 L18 10 Z" fill="#333328"/><rect x="5" y="12" width="4" height="18" rx=".8" fill="#6a6a60"/><rect x="11" y="12" width="4" height="18" rx=".8" fill="#6a6a60"/><rect x="17" y="12" width="4" height="18" rx=".8" fill="#6a6a60"/><rect x="23" y="12" width="4" height="18" rx=".8" fill="#6a6a60"/><rect x="29" y="12" width="2" height="18" rx=".8" fill="#6a6a60"/><rect x="3" y="30" width="30" height="3" rx="1" fill="#4a4a40"/><rect x="6" y="7" width="3" height="3" rx=".5" fill="#c9952a"/><rect x="12" y="7" width="3" height="3" rx=".5" fill="#e8a04a"/><rect x="21" y="7" width="3" height="3" rx=".5" fill="#c9952a"/><rect x="27" y="7" width="3" height="3" rx=".5" fill="#e8a04a"/></svg>`,
-   subs:[{label:"NCA",icon:"📋",key:"statutory",n:0},{label:"Local Authority Portal",icon:"🏛️",key:"statutory",n:0},{label:"Boma Yangu",icon:"🏠",key:"statutory",n:0},{label:"EBK",icon:"⚙️",key:"statutory",n:0}]},
-  {id:"wallet",label:"Mjengo Token",ci:11,bg:"rgba(201,149,42,.2)",
-   icon:`<svg width="34" height="34" viewBox="0 0 36 36" fill="none"><rect x="3" y="10" width="30" height="20" rx="3" fill="#1a1505"/><rect x="3" y="10" width="30" height="20" rx="3" stroke="#c9952a" stroke-width="1.2"/><rect x="22" y="16" width="9" height="8" rx="2" fill="#2a1e05" stroke="#c9952a" stroke-width="1"/><circle cx="26.5" cy="20" r="2.5" fill="url(#wgc)"/><rect x="5" y="16" width="12" height="1.5" rx=".7" fill="#c9952a" opacity=".6"/><rect x="5" y="20" width="8" height="1.5" rx=".7" fill="#c9952a" opacity=".4"/><rect x="8" y="5" width="20" height="5" rx="1" fill="#2a1e05" stroke="#c9952a" stroke-width=".8"/><text x="18" y="9.5" text-anchor="middle" font-size="4" fill="#e8b84b" font-family="Georgia,serif" font-weight="700">MJT</text><defs><radialGradient id="wgc" cx="35%" cy="30%" r="70%"><stop offset="0%" stop-color="#f8d860"/><stop offset="100%" stop-color="#c07010"/></radialGradient></defs></svg>`,
-   subs:[{label:"e-Wallet",icon:"👛",key:"wallet",n:0},{label:"MJT Coin",icon:"🪙",key:"wallet",n:0},{label:"MJT Exchange",icon:"💱",key:"wallet",n:0},{label:"Transaction Log",icon:"📜",key:"wallet",n:0}]},
+  {
+    id:"houseplans",label:"House Plans",gi:0,bg:"rgba(126,200,126,.15)",
+    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><path d="M18 4L33 16H29V31H7V16H3Z" fill="#3a8c3a"/><path d="M18 4L33 16H18Z" fill="#2d7a2d"/><rect x="7" y="16" width="22" height="15" fill="#d4e8c8"/><rect x="15" y="21" width="6" height="10" rx=".8" fill="#8a6a3a"/><circle cx="20" cy="26" r=".7" fill="#c8a060"/><rect x="8.5" y="18.5" width="5" height="4.5" rx=".5" fill="#a8d4f0"/><line x1="11" y1="18.5" x2="11" y2="23" stroke="#7ab0d0" stroke-width=".8"/><line x1="8.5" y1="20.7" x2="13.5" y2="20.7" stroke="#7ab0d0" stroke-width=".8"/><rect x="22.5" y="18.5" width="5" height="4.5" rx=".5" fill="#a8d4f0"/><line x1="25" y1="18.5" x2="25" y2="23" stroke="#7ab0d0" stroke-width=".8"/><line x1="22.5" y1="20.7" x2="27.5" y2="20.7" stroke="#7ab0d0" stroke-width=".8"/><rect x="24" y="8" width="3.5" height="7" rx=".5" fill="#c8a080"/></svg>`,
+    subs:[{l:"Residential",ic:"🏠",k:"residential",n:8200},{l:"Commercial",ic:"🏢",k:"commercial",n:1400},{l:"Industrial",ic:"🏭",k:"commercial",n:280},{l:"Infrastructure",ic:"🛣️",k:"commercial",n:90},{l:"Agricultural",ic:"🌾",k:"commercial",n:180},{l:"Speciality",ic:"⭐",k:"residential",n:320}]
+  },
+  {
+    id:"materials",label:"Materials",gi:1,bg:"rgba(136,135,128,.2)",
+    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="4" y="29" width="28" height="3.5" rx="1" fill="#7a6040"/><rect x="6" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="14" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="22" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="5" y="22" width="11" height="8" rx="1.5" fill="#d4c8a8"/><text x="10.5" y="28" text-anchor="middle" font-size="4" fill="#8a7a60" font-family="sans-serif" font-weight="bold">50KG</text><rect x="18" y="22" width="11" height="8" rx="1.5" fill="#d4c8a8"/><text x="23.5" y="28" text-anchor="middle" font-size="4" fill="#8a7a60" font-family="sans-serif" font-weight="bold">50KG</text><rect x="8" y="19" width="20" height="3" rx="1" fill="#8a9ab0"/><line x1="10" y1="19" x2="10" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="14" y1="19" x2="14" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="18" y1="19" x2="18" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="22" y1="19" x2="22" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="26" y1="19" x2="26" y2="22" stroke="#6a7a90" stroke-width="1"/><rect x="8" y="12" width="8" height="7" rx="1" fill="#b8b0a0"/><rect x="9.5" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="13" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="18" y="12" width="8" height="7" rx="1" fill="#b8b0a0"/><rect x="19.5" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="23" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/></svg>`,
+    subs:[{l:"Foundation",ic:"⛏️",k:"foundation_mat",n:0},{l:"Walling",ic:"🧱",k:"walling_mat",n:0},{l:"Roofing",ic:"🏠",k:"roofing_mat",n:0},{l:"Doors & Windows",ic:"🚪",k:"finishes_mat",n:0},{l:"Finishes",ic:"🪣",k:"finishes_mat",n:0},{l:"Fixtures",ic:"🔩",k:"finishes_mat",n:0},{l:"MEP",ic:"⚡",k:"finishes_mat",n:0},{l:"Interior & Deco",ic:"🛋️",k:"finishes_mat",n:0},{l:"Landscaping",ic:"🌿",k:"finishes_mat",n:0}]
+  },
+  {
+    id:"professionals",label:"Professionals",gi:2,bg:"rgba(74,126,192,.16)",
+    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="7" y="5" width="22" height="26" rx="2.5" fill="#1a3a6c"/><rect x="7" y="5" width="22" height="26" rx="2.5" stroke="#4a7ec0" stroke-width="1"/><line x1="13" y1="5" x2="13" y2="31" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="19" y1="5" x2="19" y2="31" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="11" x2="29" y2="11" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="17" x2="29" y2="17" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="23" x2="29" y2="23" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><path d="M11 22L11 14L18 9L25 14V22Z" stroke="#7ab4f0" stroke-width="1.2" fill="none"/><rect x="16" y="17" width="4" height="5" stroke="#7ab4f0" stroke-width="1" fill="none"/><path d="M22 6L29 6L29 13Z" fill="#4a7ec0" opacity=".8"/></svg>`,
+    subs:[{l:"Architect",ic:"📐",k:"architects",n:180},{l:"Civil Structural Eng.",ic:"🔩",k:"structural_eng",n:220},{l:"Mechanical Engineer",ic:"⚙️",k:"mep_eng",n:85},{l:"Electrical Engineer",ic:"⚡",k:"electrical_eng",n:95},{l:"Construction Manager",ic:"🏗️",k:"construction_mgr",n:150},{l:"Quantity Surveyor",ic:"📋",k:"quantity_surveyor",n:110},{l:"Land Economist",ic:"📊",k:"land_economist",n:65},{l:"Landscaper",ic:"🌿",k:"landscaper_prof",n:55},{l:"Interior Designer",ic:"🛋️",k:"interior_designer",n:80},{l:"Physical Planners",ic:"🗺️",k:"physical_planner",n:60}]
+  },
+  {
+    id:"artisans",label:"Artisans",gi:3,bg:"rgba(232,160,74,.16)",
+    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><ellipse cx="18" cy="12" rx="9" ry="5.5" fill="#e8a04a"/><rect x="9" y="12" width="18" height="2.5" rx="1.2" fill="#c8803a"/><rect x="11" y="14.5" width="14" height="1.5" rx=".7" fill="#b06820"/><circle cx="18" cy="21" r="5" fill="#f5c580"/><path d="M10 34Q10 27 18 27Q26 27 26 34" fill="#e8a04a"/><rect x="16.5" y="27" width="3" height="7" fill="#f5c040" opacity=".7"/><rect x="25" y="25" width="2" height="9" rx="1" fill="#888" transform="rotate(-18 25 25)"/></svg>`,
+    subs:[{l:"Mason",ic:"🧱",k:"masons",n:320},{l:"Steel Fixers",ic:"⚙️",k:"steel_fixers",n:90},{l:"Tiles Fixers",ic:"🪨",k:"tiles_fixers",n:140},{l:"Carpenters",ic:"🪵",k:"carpenters",n:210},{l:"Welders",ic:"🔥",k:"welders",n:95},{l:"Plumbers",ic:"🔧",k:"plumbers",n:185},{l:"Electricians",ic:"⚡",k:"electricians",n:260},{l:"Painters",ic:"🖌️",k:"painters",n:175},{l:"Landscapers",ic:"🌿",k:"landscapers_art",n:75}]
+  },
+  {
+    id:"vendors",label:"Vendors",gi:4,bg:"rgba(58,175,184,.15)",
+    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="3" y="16" width="30" height="17" rx="2" fill="#2a5a6c"/><rect x="3" y="16" width="30" height="17" rx="2" stroke="#3aafb8" stroke-width="1"/><path d="M3 16L6 8H30L33 16" fill="#1a4a5c"/><path d="M3 16L6 8H30L33 16" stroke="#3aafb8" stroke-width="1" fill="none"/><rect x="8" y="22" width="7" height="11" rx="1" fill="#3aafb8" opacity=".7"/><rect x="21" y="24" width="8" height="5" rx=".8" fill="#a8d4f0" opacity=".8"/><line x1="25" y1="24" x2="25" y2="29" stroke="#3aafb8" stroke-width=".7"/><rect x="14" y="12" width="8" height="4" rx=".5" fill="#3aafb8" opacity=".5"/><circle cx="10" cy="34" r="2.5" fill="#2a5a6c" stroke="#3aafb8" stroke-width="1"/><circle cx="26" cy="34" r="2.5" fill="#2a5a6c" stroke="#3aafb8" stroke-width="1"/></svg>`,
+    subs:[{l:"Hardwares",ic:"🏪",k:"hardware_vendors",n:850},{l:"Factory",ic:"🏭",k:"factory_vendors",n:60},{l:"Precast Yard",ic:"🧱",k:"precast_vendors",n:42},{l:"Workshops",ic:"🔨",k:"workshop_vendors",n:80},{l:"Timber Yard",ic:"🪵",k:"timber_vendors",n:95}]
+  },
+  {
+    id:"apps",label:"Apps",gi:5,bg:"rgba(58,175,184,.13)",
+    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="9" y="4" width="18" height="28" rx="3" fill="#2a3a4a"/><rect x="10" y="5" width="16" height="26" rx="2" fill="#1a2530"/><rect x="11" y="6" width="14" height="20" rx="1.5" fill="#0d1a22"/><rect x="12" y="7" width="12" height="5" rx="1" fill="#1a3a2a"/><text x="22.5" y="10.5" text-anchor="end" font-size="4" fill="#7ec87e" font-family="monospace">3,450</text><rect x="12.5" y="13.5" width="3.5" height="3.5" rx=".8" fill="#3aafb8" opacity=".9"/><rect x="17.5" y="13.5" width="3.5" height="3.5" rx=".8" fill="#4a7ec0" opacity=".9"/><rect x="22.5" y="13.5" width="1.5" height="3.5" rx=".5" fill="#e8a04a" opacity=".9"/><rect x="12.5" y="18.5" width="3.5" height="3.5" rx=".8" fill="#c9952a" opacity=".9"/><rect x="17.5" y="18.5" width="3.5" height="3.5" rx=".8" fill="#7ec87e" opacity=".9"/><circle cx="18" cy="29.5" r="1.5" fill="#3a4a5a"/><circle cx="27" cy="9" r="5" fill="#3aafb8"/><path d="M27 6V11" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M24.5 9L27 11.5L29.5 9" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
+    subs:[{l:"Pm App",ic:"📊",k:"pm_app",n:1},{l:"Calculators",ic:"🧮",k:"calculators",n:12}]
+  },
+  {
+    id:"contractors",label:"Contractors",gi:6,bg:"rgba(74,126,192,.15)",
+    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="3" y="28" width="30" height="5" rx="1" fill="#2a3a6c" opacity=".8"/><rect x="6" y="10" width="10" height="18" rx="1" fill="#3a4a7c"/><rect x="7" y="11" width="8" height="16" rx=".5" fill="#4a5a8c"/><rect x="9" y="13" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="13" y="13" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="9" y="17" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="13" y="17" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="9" y="21" width="5" height="7" rx=".5" fill="#2a3a6c"/><rect x="18" y="15" width="14" height="13" rx="1" fill="#3a4a7c"/><rect x="19" y="16" width="12" height="11" rx=".5" fill="#4a5a8c"/><rect x="21" y="18" width="3" height="3" rx=".3" fill="#a8d4f0"/><rect x="26" y="18" width="3" height="3" rx=".3" fill="#a8d4f0"/><rect x="21" y="23" width="7" height="5" rx=".5" fill="#2a3a6c"/><path d="M12 10V7L18 4L24 7V15" stroke="#7ab4f0" stroke-width="1.3" fill="none" stroke-linejoin="round"/><rect x="15" y="4" width="6" height="1.5" rx=".7" fill="#7ab4f0"/></svg>`,
+    subs:[{l:"Builders Works",ic:"🏗️",k:"builders",n:300},{l:"Interior Works",ic:"🛋️",k:"interior_works",n:120},{l:"MEP Works",ic:"⚡",k:"mep_works",n:85},{l:"Repairs & Renovations",ic:"🔧",k:"repairs",n:210}]
+  },
+  {
+    id:"tenders",label:"Tenders",gi:7,bg:"rgba(201,149,42,.14)",
+    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="7" y="4" width="22" height="28" rx="2" fill="#2a2010"/><rect x="7" y="4" width="22" height="28" rx="2" stroke="#c9952a" stroke-width="1"/><rect x="10" y="9" width="16" height="2" rx="1" fill="#c9952a" opacity=".8"/><rect x="10" y="14" width="12" height="1.5" rx=".7" fill="#888" opacity=".7"/><rect x="10" y="17.5" width="14" height="1.5" rx=".7" fill="#888" opacity=".7"/><rect x="10" y="21" width="10" height="1.5" rx=".7" fill="#888" opacity=".7"/><circle cx="26" cy="25" r="6" fill="#1a2010"/><circle cx="26" cy="25" r="6" stroke="#c9952a" stroke-width="1.2"/><path d="M23.5 25L25.5 27L28.5 23" stroke="#c9952a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
+    subs:[{l:"Tender Alert",ic:"🔔",k:"tender_alert",n:0},{l:"Tender App",ic:"📝",k:"tender_app",n:0}]
+  },
+  {
+    id:"statutory",label:"Statutory",gi:8,bg:"rgba(126,200,126,.14)",
+    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><path d="M18 3L32 9V19C32 27 26 32 18 34C10 32 4 27 4 19V9Z" fill="#0d2a1a"/><path d="M18 3L32 9V19C32 27 26 32 18 34C10 32 4 27 4 19V9Z" stroke="#3a8c3a" stroke-width="1.2" fill="none"/><rect x="12" y="13" width="12" height="14" rx="1.5" fill="#1a4a2a"/><rect x="12" y="13" width="12" height="14" rx="1.5" stroke="#3a8c3a" stroke-width=".8"/><rect x="14" y="16" width="8" height="1.2" rx=".5" fill="#7ec87e" opacity=".8"/><rect x="14" y="19" width="6" height="1.2" rx=".5" fill="#7ec87e" opacity=".6"/><rect x="14" y="22" width="7" height="1.2" rx=".5" fill="#7ec87e" opacity=".6"/><circle cx="27" cy="10" r="5" fill="#3a8c3a"/><path d="M24.5 10L26.5 12L29.5 8" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
+    subs:[{l:"NCA",ic:"🏛️",k:"nca",n:0},{l:"Local Authority Approval",ic:"🏢",k:"local_authority",n:0},{l:"Boma Yangu",ic:"🏠",k:"boma_yangu",n:0}]
+  },
+  {
+    id:"token",label:"Mjengo Token",gi:9,bg:"rgba(201,149,42,.17)",
+    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><ellipse cx="18" cy="31" rx="10" ry="2" fill="#8a6010" opacity=".35"/><circle cx="18" cy="17" r="13" fill="url(#gtok)"/><circle cx="18" cy="17" r="10.5" fill="none" stroke="#f0c040" stroke-width=".8" opacity=".6"/><text x="18" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#6a4200" font-family="Georgia,serif">MJT</text><ellipse cx="13" cy="11" rx="3" ry="1.6" fill="white" opacity=".22" transform="rotate(-35 13 11)"/><circle cx="18" cy="17" r="13" fill="none" stroke="#c07010" stroke-width="1.5"/><defs><radialGradient id="gtok" cx="35%" cy="28%" r="70%"><stop offset="0%" stop-color="#f8d860"/><stop offset="50%" stop-color="#e8a820"/><stop offset="100%" stop-color="#b86800"/></radialGradient></defs></svg>`,
+    subs:[{l:"e-Wallet",ic:"👛",k:"ewallet",n:0},{l:"MJT Coin",ic:"🪙",k:"mjt_coin",n:0},{l:"MJT Exchange",ic:"📈",k:"mjt_exchange",n:0}]
+  },
 ];
 
-/* ═══════════ BUILD GRID ═══════════ */
+/* ════════════════════ BUILD GRID ════════════════════ */
 function buildCats(){
-  document.getElementById('catsGrid').innerHTML=CATS.map(cat=>`
-    <div class="cat-wrap" onmouseenter="showSub('${cat.id}')" onmouseleave="hideSub('${cat.id}')">
-      <div class="cat-item c${cat.ci}" id="ci-${cat.id}">
-        <div class="cat-icon-box" style="background:${cat.bg}">${cat.icon}</div>
-        <span class="cat-label">${cat.label}</span>
+  document.getElementById('cgrid').innerHTML=CATS.map(c=>`
+    <div class="cwrap" onmouseenter="showSub('${c.id}')" onmouseleave="hideSub('${c.id}')">
+      <div class="citem g${c.gi}" id="ci-${c.id}">
+        <div class="cicon" style="background:${c.bg}">${c.icon}</div>
+        <span class="clabel">${c.label}</span>
       </div>
-      <div class="sub-dd" id="sd-${cat.id}">
-        <div class="sub-dd-title">${cat.label}</div>
-        ${cat.subs.map(s=>`<div class="sub-item" onclick="openPanel('${s.key}','${s.label}','${cat.label}')">
-          <span>${s.icon}</span><span>${s.label}</span>
-          ${s.n?`<span class="sub-count">${s.n.toLocaleString()}</span>`:''}
+      <div class="subdd" id="sd-${c.id}">
+        <div class="subddtitle">${c.label}</div>
+        ${c.subs.map(s=>`<div class="subi" onclick="openPanel('${s.k}','${s.l}','${c.label}')">
+          <span>${s.ic}</span><span>${s.l}</span>
+          ${s.n?`<span class="subcnt">${s.n.toLocaleString()}</span>`:''}
         </div>`).join('')}
       </div>
     </div>`).join('');
 }
 
-const subT={};
-function showSub(id){clearTimeout(subT[id]);document.getElementById('sd-'+id).classList.add('open');document.getElementById('ci-'+id).classList.add('active');}
-function hideSub(id){subT[id]=setTimeout(()=>{document.getElementById('sd-'+id).classList.remove('open');document.getElementById('ci-'+id).classList.remove('active');},180);}
+const ST={};
+function showSub(id){clearTimeout(ST[id]);document.getElementById('sd-'+id).classList.add('open');document.getElementById('ci-'+id).classList.add('active');}
+function hideSub(id){ST[id]=setTimeout(()=>{document.getElementById('sd-'+id).classList.remove('open');document.getElementById('ci-'+id).classList.remove('active');},160);}
 
-/* ═══════════ PANEL ═══════════ */
-let curData=[],filtData=[],curKey='';
-const FILTERS={
-  masons:['All','Available now','4★+','Nairobi','Kiambu','Nakuru'],
-  carpenters:['All','Available now','Top Rated','Nairobi'],
-  plumbers:['All','Available now','ERC Licensed','4★+'],
-  electricians:['All','ERC Licensed','4★+','Available now'],
+/* ════════════════════ PANEL ════════════════════ */
+let cData=[],fData=[],cKey='';
+
+function openPanel(key,sub,cat){
+  cKey=key;
+  document.getElementById('ptitle').textContent=sub;
+  document.getElementById('psub').textContent=cat+' · '+(selLoc||'All Kenya');
+  document.getElementById('psearch').value='';
+  document.getElementById('povl').classList.add('open');
+  document.getElementById('lview').style.display='flex';
+  document.getElementById('dview').classList.remove('open');
+  showSkel();
+  setTimeout(()=>{cData=DB[key]||[];fData=[...cData];buildFilt(key);renderList(fData);},520);
+}
+
+function showSkel(){
+  document.getElementById('pbody').innerHTML=`<div class="skelwrap">${[1,2,3,4].map(()=>'<div class="skel"></div>').join('')}</div>`;
+  document.getElementById('pfilts').innerHTML='';
+}
+
+const FMAP={
+  residential:['All','Bungalow','Maisonette','Villa','Semi-detached'],
+  commercial:['All','Commercial','Industrial','Agricultural'],
+  foundation_mat:['All','Nairobi','Nakuru'],
+  walling_mat:['All','Factory Direct','ISO Certified'],
+  roofing_mat:['All','Timber','Roofing sheets'],
+  finishes_mat:['All','Premium','Imported','Tiles','Paint'],
   architects:['All','BORAQS','AAK Member','Nairobi','Mombasa'],
-  engineers:['All','EBK Reg.','Structural','Civil','MEP'],
-  surveyors:['All','IQSK','ISK Member'],
-  planners:['All','KIPS'],
-  hardware:['All','Nairobi','Mombasa','Nakuru','Bulk deals'],
-  precast:['All','ISO Certified','Factory Direct'],
-  tiles:['All','Premium','Imported'],
-  timber:['All','Treated','Hardwood','Softwood'],
-  residential_plans:['All','Bungalow','Maisonette','Villa','Semi-detached'],
-  commercial_plans:['All','Commercial','Industrial'],
-  apps_list:['All','Free','Pro'],
-  token_info:['All'],
-  mybse_items:['All','Free','Pro'],
-  vendors:['All','Nairobi','Mombasa','Eldoret','Kisumu','Factory Direct'],
-  contractors:['All','NCA Registered','Available','Nairobi','Renovation'],
-  tenders:['All','Government','Private','Pro'],
-  statutory:['All','Government','Official'],
-  wallet:['All','Free','Beta'],
+  structural_eng:['All','EBK Reg.'],
+  mep_eng:['All','EBK Reg.'],
+  electrical_eng:['All','ERC Licensed'],
+  construction_mgr:['All','PMP Certified'],
+  quantity_surveyor:['All','IQSK','ISK Member'],
+  land_economist:['All','KIPS Member'],
+  interior_designer:['All'],
+  physical_planner:['All','KIPS Member'],
+  landscaper_prof:['All'],
+  masons:['All','Available now','4★+','Nairobi','Nakuru','Kisumu'],
+  steel_fixers:['All','Available now'],
+  tiles_fixers:['All','Available now'],
+  carpenters:['All','Available now','Top Rated'],
+  welders:['All','Available now'],
+  plumbers:['All','ERC Licensed','Available now'],
+  electricians:['All','ERC Licensed','Available now'],
+  painters:['All','Available now'],
+  landscapers_art:['All','Available now'],
+  hardware_vendors:['All','Nairobi','Mombasa','Top Vendor'],
+  factory_vendors:['All','Factory Direct'],
+  precast_vendors:['All','Factory Direct','ISO Certified'],
+  workshop_vendors:['All'],
+  timber_vendors:['All','Nairobi','Eldoret'],
+  pm_app:['All'],calculators:['All','Free','Pro'],
+  builders:['All','NCA Class A','NCA Class B'],
+  interior_works:['All'],mep_works:['All'],repairs:['All'],
+  tender_alert:['All'],tender_app:['All'],
+  nca:['All'],local_authority:['All'],boma_yangu:['All'],
+  ewallet:['All'],mjt_coin:['All'],mjt_exchange:['All'],
 };
 
-function openPanel(key,subLabel,catLabel){
-  curKey=key;
-  document.getElementById('pTitle').textContent=subLabel;
-  document.getElementById('pSub').textContent=catLabel+' · '+(selLoc||'All Kenya');
-  document.getElementById('pSearch').value='';
-  document.getElementById('panelOverlay').classList.add('open');
-  document.getElementById('listView').style.display='flex';
-  document.getElementById('detailView').classList.remove('open');
-  showSkeleton();
-  setTimeout(()=>{
-    curData=DB[key]||[];filtData=[...curData];
-    buildFilters(key);renderList(filtData);
-  },550);
-}
-
-function showSkeleton(){
-  document.getElementById('pBody').innerHTML=`<div class="skel-wrap">${[1,2,3,4].map(()=>'<div class="skel"></div>').join('')}</div>`;
-  document.getElementById('pFilters').innerHTML='';
-}
-
-function buildFilters(k){
-  const f=FILTERS[k]||['All'];
-  document.getElementById('pFilters').innerHTML=f.map((x,i)=>`<span class="fp ${i===0?'on':''}" onclick="applyFilt(this,'${x}')">${x}</span>`).join('');
+function buildFilt(k){
+  const f=FMAP[k]||['All'];
+  document.getElementById('pfilts').innerHTML=f.map((x,i)=>`<span class="fp ${i===0?'on':''}" onclick="applyFilt(this,'${x}')">${x}</span>`).join('');
 }
 
 function applyFilt(el,f){
   document.querySelectorAll('.fp').forEach(p=>p.classList.remove('on'));el.classList.add('on');
-  const q=document.getElementById('pSearch').value.toLowerCase();
-  filtData=curData.filter(d=>{
+  const q=document.getElementById('psearch').value.toLowerCase();
+  fData=cData.filter(d=>{
     if(f==='All')return true;
     if(f==='Available now')return d.avail&&d.avail.toLowerCase().includes('available now');
     if(f==='4★+')return d.rat>=4;
     if(f==='Top Rated')return d.badge==='Top Rated';
+    if(f==='Top Vendor')return d.badge==='Top Vendor';
     if(f==='Free')return d.price==='Free';
     if(f==='Pro')return d.badge==='Pro';
-    if(f==='ERC Licensed'||f==='EBK Reg.'||f==='BORAQS'||f==='IQSK'||f==='ISK Member'||f==='KIPS')return d.badge.includes(f.replace('.',' ').trim())||d.reg.includes(f.replace('.',' ').trim());
-    if(f==='Structural')return d.type.includes('Structural');
-    if(f==='Civil')return d.type.includes('Civil');
-    if(f==='MEP')return d.type.includes('MEP');
-    if(f==='Bungalow')return d.type==='Bungalow';
-    if(f==='Maisonette')return d.type==='Maisonette';
-    if(f==='Villa')return d.type==='Villa';
-    if(f==='Semi-detached')return d.type==='Semi-detached';
-    if(f==='Commercial')return d.type==='Commercial';
-    if(f==='Industrial')return d.type==='Industrial';
-    if(f==='ISO Certified')return d.badge==='ISO Certified';
-    if(f==='Factory Direct')return d.badge==='Factory Direct';
-    if(f==='Premium')return d.badge==='Premium';
+    if(['ERC Licensed','EBK Reg.','BORAQS','IQSK','ISK Member','KIPS Member','PMP Certified','AAK Member','NCA Class A','NCA Class B','Factory Direct','ISO Certified'].includes(f))return d.badge.includes(f)||d.reg.includes(f);
+    if(f==='Bungalow')return d.type==='Plan'&&d.name.toLowerCase().includes('bungalow');
+    if(f==='Maisonette')return d.type==='Plan'&&d.name.toLowerCase().includes('maisonette');
+    if(f==='Villa')return d.type==='Plan'&&d.name.toLowerCase().includes('villa');
+    if(f==='Semi-detached')return d.type==='Plan'&&d.name.toLowerCase().includes('semi');
+    if(f==='Commercial')return d.tags.some(t=>t==='Commercial');
+    if(f==='Industrial')return d.tags.some(t=>t==='Industrial');
+    if(f==='Agricultural')return d.tags.some(t=>t==='Agricultural');
     if(f==='Imported')return d.tags.some(t=>t.includes('Imported'));
-    if(f==='Treated')return d.tags.some(t=>t.includes('Treated'));
-    if(f==='Hardwood')return d.tags.some(t=>t.includes('Hardwood'));
-    if(f==='Softwood')return d.tags.some(t=>t.includes('Softwood'));
-    if(f==='Bulk deals')return d.about&&d.about.toLowerCase().includes('bulk');
+    if(f==='Premium')return d.badge==='Premium';
+    if(f==='Timber')return d.type&&d.type.includes('Timber');
+    if(f==='Tiles')return d.type&&d.type.includes('Tile');
+    if(f==='Paint')return d.type&&d.type.includes('Paint');
     return d.loc&&d.loc.toLowerCase().includes(f.toLowerCase());
-  }).filter(d=>matchQ(d,q));
-  renderList(filtData);
+  }).filter(d=>mQ(d,q));
+  renderList(fData);
 }
 
-function matchQ(d,q){if(!q)return true;return d.name.toLowerCase().includes(q)||d.sub.toLowerCase().includes(q)||d.tags.some(t=>t.toLowerCase().includes(q))||d.loc.toLowerCase().includes(q);}
+function mQ(d,q){if(!q)return true;return d.name.toLowerCase().includes(q)||d.sub.toLowerCase().includes(q)||d.tags.some(t=>t.toLowerCase().includes(q))||d.loc.toLowerCase().includes(q);}
+function filterPanel(q){fData=cData.filter(d=>mQ(d,q.toLowerCase()));renderList(fData);}
 
-function filterPanel(q){filtData=curData.filter(d=>matchQ(d,q.toLowerCase()));renderList(filtData);}
-
-function stars(r){if(!r)return '';const f=Math.floor(r);return '★'.repeat(f)+(r%1>=0.5?'½':'')+'☆'.repeat(5-f-(r%1>=0.5?1:0));}
+function stars(r){if(!r)return '';const f=Math.floor(r);return '★'.repeat(f)+(r%1>=0.5?'½':'')+`<span style="color:var(--bg4)">`+'★'.repeat(5-f-(r%1>=0.5?1:0))+'</span>';}
 
 function renderList(items){
-  if(!items.length){document.getElementById('pBody').innerHTML='<div class="p-empty">No results. Try adjusting filters or search.</div>';return;}
-  document.getElementById('pBody').innerHTML=items.map(d=>`
-    <div class="lc" onclick="openDetail(${d.id})">
+  if(!items.length){document.getElementById('pbody').innerHTML='<div class="pempty">No results. Try adjusting filters or search term.</div>';return;}
+  document.getElementById('pbody').innerHTML=items.map(d=>`
+    <div class="lcard" onclick="openDetail(${d.id})">
       <div class="lav" style="background:${d.avC}22;color:${d.avC}">${d.init}</div>
-      <div class="lb">
-        <div class="ln">${d.name}</div>
-        <div class="ls">${d.sub}</div>
+      <div class="lbody">
+        <div class="lname">${d.name}</div>
+        <div class="lsub">${d.sub}</div>
         <div class="ltags">${d.tags.map(t=>`<span class="ltag">${t}</span>`).join('')}</div>
         <div class="lmeta">
           ${d.rat?`<span class="lrat">${stars(d.rat)}</span><span class="lrev">${d.rat} (${d.rev})</span>`:''}
-          ${d.loc?`<span class="lloc"><svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.3 1 3 2.3 3 4c0 2.5 3 6 3 6s3-3.5 3-6c0-1.7-1.3-3-3-3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>${d.loc}</span>`:''}
+          ${d.loc?`<span class="lloc"><svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.3 1 3 2.3 3 4c0 2.5 3 6 3 6s3-3.5 3-6c0-1.7-1.3-3-3-3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>${d.loc}</span>`:''}
         </div>
       </div>
-      <div class="lr">
-        <div class="lp">${d.price}</div>
+      <div class="lright">
+        <div class="lprice">${d.price}</div>
         <span class="lbadge ${d.bc}">${d.badge}</span>
       </div>
     </div>`).join('');
@@ -739,41 +823,41 @@ function renderList(items){
 function openDetail(id){
   const all=Object.values(DB).flat();
   const d=all.find(x=>x.id===id);if(!d)return;
-  document.getElementById('listView').style.display='none';
-  const dv=document.getElementById('detailView');dv.classList.add('open');
-  const av=document.getElementById('dAv');av.style.background=d.avC+'22';av.style.color=d.avC;av.textContent=d.init;
-  document.getElementById('dName').textContent=d.name;
-  document.getElementById('dSub2').textContent=d.sub;
-  document.getElementById('dHireBtn').textContent=d.type==='Calculator'||d.type==='Pro App'?'Open / Download':'Hire / Enquire';
-  document.getElementById('dBody').innerHTML=`
-    <div class="dsec"><div class="dsec-t">Overview</div><p class="d-about">${d.about}</p></div>
-    <div class="dsec"><div class="dsec-t">Specializations</div><div class="dtags">${d.tags.map(t=>`<span class="dtag">${t}</span>`).join('')}</div></div>
-    <div class="dsec"><div class="dsec-t">Details</div><div class="dgrid">
-      <div class="dkv"><div class="dk">Price</div><div class="dval" style="color:var(--green)">${d.price}</div></div>
-      ${d.rat?`<div class="dkv"><div class="dk">Rating</div><div class="dval" style="color:var(--gold)">${stars(d.rat)} ${d.rat} <span style="font-weight:400;color:var(--muted)">(${d.rev})</span></div></div>`:''}
-      ${d.loc?`<div class="dkv"><div class="dk">Location</div><div class="dval">${d.loc}</div></div>`:''}
-      ${d.avail?`<div class="dkv"><div class="dk">Availability</div><div class="dval">${d.avail}</div></div>`:''}
-      ${d.exp?`<div class="dkv"><div class="dk">Experience</div><div class="dval">${d.exp}</div></div>`:''}
-      ${d.reg?`<div class="dkv"><div class="dk">Registration</div><div class="dval" style="font-size:12px">${d.reg}</div></div>`:''}
-      ${d.phone?`<div class="dkv"><div class="dk">Contact</div><div class="dval">${d.phone}</div></div>`:''}
-      <div class="dkv"><div class="dk">Payment</div><div class="dval">Cash · M-Pesa · MJC</div></div>
+  document.getElementById('lview').style.display='none';
+  const dv=document.getElementById('dview');dv.classList.add('open');
+  const av=document.getElementById('dav');av.style.background=d.avC+'22';av.style.color=d.avC;av.textContent=d.init;
+  document.getElementById('dname').textContent=d.name;
+  document.getElementById('dsub2').textContent=d.sub;
+  document.getElementById('dhirebtn').textContent=(['Plan','Calculator','App','Statutory','Token','Exchange','e-Wallet','Tender Service'].includes(d.type))?'View / Download':'Hire / Enquire';
+  document.getElementById('dbody').innerHTML=`
+    <div class="dsec"><div class="dsect">Overview</div><p class="dabout">${d.about}</p></div>
+    <div class="dsec"><div class="dsect">Specializations</div><div class="dtags">${d.tags.map(t=>`<span class="dtag">${t}</span>`).join('')}</div></div>
+    <div class="dsec"><div class="dsect">Details</div><div class="dgrid">
+      <div class="dkv"><div class="dk">Price</div><div class="dv" style="color:var(--green)">${d.price}</div></div>
+      ${d.rat?`<div class="dkv"><div class="dk">Rating</div><div class="dv" style="color:var(--gold)">${stars(d.rat)} ${d.rat} <span style="font-weight:400;color:var(--muted);font-size:11px">(${d.rev})</span></div></div>`:''}
+      ${d.loc?`<div class="dkv"><div class="dk">Location</div><div class="dv">${d.loc}</div></div>`:''}
+      ${d.avail?`<div class="dkv"><div class="dk">Availability</div><div class="dv">${d.avail}</div></div>`:''}
+      ${d.exp?`<div class="dkv"><div class="dk">Experience</div><div class="dv">${d.exp}</div></div>`:''}
+      ${d.reg?`<div class="dkv"><div class="dk">Registration</div><div class="dv" style="font-size:11px">${d.reg}</div></div>`:''}
+      ${d.phone?`<div class="dkv"><div class="dk">Contact</div><div class="dv">${d.phone}</div></div>`:''}
+      <div class="dkv"><div class="dk">Payment</div><div class="dv">Cash · M-Pesa · MJT</div></div>
     </div></div>`;
 }
 
-function showList(){document.getElementById('listView').style.display='flex';document.getElementById('detailView').classList.remove('open');}
-function closePanel(){document.getElementById('panelOverlay').classList.remove('open');}
+function showList(){document.getElementById('lview').style.display='flex';document.getElementById('dview').classList.remove('open');}
+function closePanel(){document.getElementById('povl').classList.remove('open');}
 
-/* ═══════════ LOCATION ═══════════ */
+/* ════════════════════ LOCATION ════════════════════ */
 let selCounty='',selTown='',selLoc='';
 
 function buildCounties(f){
   const c=f?COUNTIES.filter(x=>x.toLowerCase().includes(f)):COUNTIES;
-  document.getElementById('countyList').innerHTML=c.map(x=>`<div class="loc-county-item ${x===selCounty?'active':''}" onclick="selC('${x}')">${x}</div>`).join('');
+  document.getElementById('countyList').innerHTML=c.map(x=>`<div class="loccitem ${x===selCounty?'active':''}" onclick="selC('${x}')">${x}</div>`).join('');
 }
 
 function selC(c){
   selCounty=c;
-  document.querySelectorAll('.loc-county-item').forEach(el=>el.classList.toggle('active',el.textContent===c));
+  document.querySelectorAll('.loccitem').forEach(el=>el.classList.toggle('active',el.textContent===c));
   buildTowns(c,'');
 }
 
@@ -781,12 +865,12 @@ function buildTowns(county,f){
   const towns=KENYA[county]||[];
   const filtered=f?towns.filter(t=>t.toLowerCase().includes(f)):towns;
   document.getElementById('townsTitle').textContent=county||'Select a county';
-  document.getElementById('townList').innerHTML=filtered.map(t=>`<div class="loc-town-item ${t===selTown?'selected':''}" onclick="selT('${t}')">
-    <svg width="9" height="9" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.3 1 3 2.3 3 4c0 2.5 3 6 3 6s3-3.5 3-6c0-1.7-1.3-3-3-3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>${t}
+  document.getElementById('townList').innerHTML=filtered.map(t=>`<div class="loctitem ${t===selTown?'sel':''}" onclick="selT('${t}')">
+    <svg width="8" height="8" viewBox="0 0 12 12" fill="none"><path d="M6 1C4.3 1 3 2.3 3 4c0 2.5 3 6 3 6s3-3.5 3-6c0-1.7-1.3-3-3-3z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>${t}
   </div>`).join('');
 }
 
-function selT(t){selTown=t;document.querySelectorAll('.loc-town-item').forEach(el=>el.classList.toggle('selected',el.textContent.trim()===t));}
+function selT(t){selTown=t;document.querySelectorAll('.loctitem').forEach(el=>el.classList.toggle('sel',el.textContent.trim()===t));}
 
 function filterLoc(q){
   q=q.toLowerCase();
@@ -794,66 +878,77 @@ function filterLoc(q){
     const mc=COUNTIES.filter(c=>c.toLowerCase().includes(q));
     const tc={};COUNTIES.forEach(c=>{const ts=KENYA[c].filter(t=>t.toLowerCase().includes(q));if(ts.length)tc[c]=ts;});
     const all=[...mc,...Object.keys(tc).filter(c=>!mc.includes(c))];
-    document.getElementById('countyList').innerHTML=all.map(c=>`<div class="loc-county-item ${c===selCounty?'active':''}" onclick="selC('${c}')">${c}</div>`).join('');
+    document.getElementById('countyList').innerHTML=all.map(c=>`<div class="loccitem ${c===selCounty?'active':''}" onclick="selC('${c}')">${c}</div>`).join('');
     if(selCounty)buildTowns(selCounty,q);
-  } else {buildCounties(q);if(selCounty)buildTowns(selCounty,q);}
+  }else{buildCounties(q);if(selCounty)buildTowns(selCounty,q);}
 }
 
-function toggleLocDd(e){
+function toggleLoc(e){
   e.stopPropagation();
-  const dd=document.getElementById('locDd');
+  const dd=document.getElementById('locdrop');
   if(dd.classList.contains('open')){dd.classList.remove('open');}
-  else{buildCounties('');if(selCounty)buildTowns(selCounty,'');dd.classList.add('open');document.getElementById('locSrch').value='';setTimeout(()=>document.getElementById('locSrch').focus(),50);}
+  else{buildCounties('');if(selCounty)buildTowns(selCounty,'');dd.classList.add('open');document.getElementById('locsrinp').value='';setTimeout(()=>document.getElementById('locsrinp').focus(),50);}
 }
 
-function clearLoc(){selCounty='';selTown='';selLoc='';document.getElementById('locText').textContent='All Kenya';buildCounties('');document.getElementById('townsTitle').textContent='Select a county';document.getElementById('townList').innerHTML='';}
+function clearLoc(){selCounty='';selTown='';selLoc='';document.getElementById('loctxt').textContent='All Kenya';buildCounties('');document.getElementById('townsTitle').textContent='Select a county';document.getElementById('townList').innerHTML='';}
 
 function applyLoc(){
   selLoc=selTown?(selTown+', '+selCounty):selCounty||'';
-  document.getElementById('locText').textContent=selLoc||'All Kenya';
-  document.getElementById('locDd').classList.remove('open');
+  document.getElementById('loctxt').textContent=selLoc||'All Kenya';
+  document.getElementById('locdrop').classList.remove('open');
 }
 
-document.addEventListener('click',e=>{if(!document.getElementById('searchRow').contains(e.target))document.getElementById('locDd').classList.remove('open');});
+document.addEventListener('click',e=>{if(!document.getElementById('srow').contains(e.target))document.getElementById('locdrop').classList.remove('open');});
 
-/* ═══════════ SEARCH ═══════════ */
+/* ════════════════════ SEARCH ════════════════════ */
 function doSearch(){
-  const q=document.getElementById('si').value.trim().toLowerCase();if(!q)return;
-  let key='masons';
-  if(q.includes('plan')||q.includes('bedroom')||q.includes('bungalow')||q.includes('maisonette'))key='residential_plans';
-  else if(q.includes('commercial')||q.includes('plaza')||q.includes('warehouse'))key='commercial_plans';
-  else if(q.includes('architect'))key='architects';
-  else if(q.includes('engineer')||q.includes('structural'))key='engineers';
-  else if(q.includes('survey')||q.includes('quantity'))key='surveyors';
-  else if(q.includes('plumb'))key='plumbers';
-  else if(q.includes('electr'))key='electricians';
-  else if(q.includes('carpenter')||q.includes('timber')||q.includes('roof timber'))key='carpenters';
-  else if(q.includes('hardware')||q.includes('cement')||q.includes('steel'))key='hardware';
-  else if(q.includes('tile')||q.includes('ceramic'))key='tiles';
-  else if(q.includes('wood')||q.includes('timber'))key='timber';
-  else if(q.includes('precast')||q.includes('block'))key='precast';
-  else if(q.includes('app')||q.includes('calculator')||q.includes('boq'))key='apps_list';
-  else if(q.includes('vendor')||q.includes('shop')||q.includes('store')||q.includes('hardware'))key='vendors';
-  else if(q.includes('contractor')||q.includes('builder')||q.includes('renovation'))key='contractors';
-  else if(q.includes('tender')||q.includes('bid')||q.includes('ppra'))key='tenders';
-  else if(q.includes('nca')||q.includes('statutory')||q.includes('permit')||q.includes('boma yangu'))key='statutory';
-  else if(q.includes('wallet')||q.includes('mjt')||q.includes('coin')||q.includes('token')||q.includes('exchange'))key='wallet';
-  openPanel(key,'Search: "'+document.getElementById('si').value+'"','All Categories');
+  const q=document.getElementById('sinput').value.trim().toLowerCase();if(!q)return;
+  let k='masons';
+  if(q.includes('plan')||q.includes('bedroom')||q.includes('bungalow')||q.includes('maisonette'))k='residential';
+  else if(q.includes('commercial')||q.includes('plaza')||q.includes('warehouse'))k='commercial';
+  else if(q.includes('architect'))k='architects';
+  else if(q.includes('structural')||q.includes('civil eng'))k='structural_eng';
+  else if(q.includes('quantity')||q.includes('qs')||q.includes('boq'))k='quantity_surveyor';
+  else if(q.includes('planner')||q.includes('planning'))k='physical_planner';
+  else if(q.includes('interior design'))k='interior_designer';
+  else if(q.includes('land economist'))k='land_economist';
+  else if(q.includes('mep'))k='mep_eng';
+  else if(q.includes('electr'))k='electricians';
+  else if(q.includes('plumb'))k='plumbers';
+  else if(q.includes('carpenter'))k='carpenters';
+  else if(q.includes('weld'))k='welders';
+  else if(q.includes('steel fix'))k='steel_fixers';
+  else if(q.includes('tile fix'))k='tiles_fixers';
+  else if(q.includes('paint'))k='painters';
+  else if(q.includes('mason'))k='masons';
+  else if(q.includes('contractor')||q.includes('builder'))k='builders';
+  else if(q.includes('hardware')||q.includes('cement'))k='hardware_vendors';
+  else if(q.includes('timber'))k='timber_vendors';
+  else if(q.includes('precast')||q.includes('block'))k='precast_vendors';
+  else if(q.includes('roofing material'))k='roofing_mat';
+  else if(q.includes('tile')||q.includes('ceramic'))k='finishes_mat';
+  else if(q.includes('calculator'))k='calculators';
+  else if(q.includes('tender'))k='tender_alert';
+  else if(q.includes('nca'))k='nca';
+  else if(q.includes('mjengo token')||q.includes('mjt')||q.includes('wallet'))k='ewallet';
+  openPanel(k,'Search: "'+document.getElementById('sinput').value+'"','All Categories');
 }
 
-function quickSearch(q){document.getElementById('si').value=q;doSearch();}
+function qs(q){document.getElementById('sinput').value=q;doSearch();}
 
-/* ═══════════ TICKER ═══════════ */
+/* ════════════════════ TICKER ════════════════════ */
 const TICK=[
-  {n:'Cement 50kg',p:'KES 720',c:'+2.1%',u:true},{n:'Steel 12mm',p:'KES 680/m',c:'-1.5%',u:false},
+  {n:'Cement 50kg',p:'KES 720',c:'+2.1%',u:true},{n:'Steel rod 12mm',p:'KES 680/m',c:'-1.5%',u:false},
   {n:'Roofing sheet',p:'KES 1,250',c:'+5.0%',u:true},{n:'Hollow block',p:'KES 48',c:'Stable',u:null},
-  {n:'River sand',p:'KES 2,100',c:'+1.8%',u:true},{n:'Murram lorry',p:'KES 4,200',c:'-3.0%',u:false},
-  {n:'Timber 2x4"',p:'KES 320/m',c:'+0.8%',u:true},{n:'PVC pipe 110mm',p:'KES 1,840',c:'Stable',u:null},
+  {n:'River sand/t',p:'KES 2,100',c:'+1.8%',u:true},{n:'Murram lorry',p:'KES 4,200',c:'-3.0%',u:false},
+  {n:'Timber 2×4"',p:'KES 320/m',c:'+0.8%',u:true},{n:'Quarry stone/t',p:'KES 3,200',c:'Stable',u:null},
+  {n:'BRC mesh',p:'KES 8,500/roll',c:'+1.2%',u:true},{n:'Crown Paint 20L',p:'KES 5,500',c:'-0.5%',u:false},
 ];
 document.getElementById('ticker').innerHTML=[...TICK,...TICK].map(p=>`<span class="ti"><span class="tn">${p.n}</span><span class="tp">${p.p}</span>${p.u===null?'':`<span class="${p.u?'tup':'tdn'}">${p.c}</span>`}<span class="tdot"></span></span>`).join('');
 
-/* ═══════════ INIT ═══════════ */
-buildCats();buildCounties('');
+/* ════════════════════ INIT ════════════════════ */
+buildCats();
+buildCounties('');
 </script>
 </body>
 </html>
