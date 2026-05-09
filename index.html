@@ -950,5 +950,272 @@ document.getElementById('ticker').innerHTML=[...TICK,...TICK].map(p=>`<span clas
 buildCats();
 buildCounties('');
 </script>
+
+<!-- ══════════════════ FLOATING BUTTONS ══════════════════ -->
+<style>
+/* ── FLOATING BUTTON CLUSTER ── */
+.fab-cluster{position:fixed;bottom:28px;right:24px;display:flex;flex-direction:column;align-items:flex-end;gap:12px;z-index:700;}
+
+/* ── WHATSAPP BOT ── */
+.fab-wa{width:52px;height:52px;border-radius:50%;background:#25D366;box-shadow:0 4px 18px rgba(37,211,102,0.45);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s,box-shadow .2s;position:relative;}
+.fab-wa:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(37,211,102,0.6);}
+.fab-wa svg{width:26px;height:26px;}
+.fab-wa .fab-tooltip{position:absolute;right:62px;top:50%;transform:translateY(-50%);background:rgba(22,22,20,0.95);border:1px solid rgba(37,211,102,0.3);color:#f0ede6;font-size:11px;font-family:'Nunito Sans',sans-serif;white-space:nowrap;padding:5px 11px;border-radius:7px;pointer-events:none;opacity:0;transition:opacity .18s;}
+.fab-wa:hover .fab-tooltip{opacity:1;}
+
+/* ── AI BUTTON ── */
+.fab-ai{height:52px;border-radius:26px;background:linear-gradient(135deg,#3a8c3a 0%,#4a7ec0 100%);box-shadow:0 4px 20px rgba(74,126,192,0.45);border:none;cursor:pointer;display:flex;align-items:center;gap:9px;padding:0 18px 0 14px;transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;}
+.fab-ai::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(126,200,126,0.2),transparent);opacity:0;transition:opacity .2s;}
+.fab-ai:hover{transform:scale(1.05);box-shadow:0 6px 28px rgba(74,126,192,0.6);}
+.fab-ai:hover::before{opacity:1;}
+.fab-ai-ico{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fab-ai-txt{display:flex;flex-direction:column;align-items:flex-start;}
+.fab-ai-lbl{font-size:11px;font-weight:700;color:#fff;font-family:'Nunito Sans',sans-serif;line-height:1.1;letter-spacing:.02em;}
+.fab-ai-sub{font-size:9px;color:rgba(255,255,255,0.65);font-family:'Nunito Sans',sans-serif;line-height:1;}
+/* pulse ring */
+.fab-ai-pulse{position:absolute;inset:-3px;border-radius:30px;border:2px solid rgba(126,200,126,0.4);animation:aipulse 2.4s ease-in-out infinite;}
+@keyframes aipulse{0%,100%{opacity:.5;transform:scale(1);}50%{opacity:0;transform:scale(1.08);}}
+
+/* ── AI CHAT PANEL ── */
+.ai-ovl{position:fixed;inset:0;z-index:800;pointer-events:none;}
+.ai-ovl.open{pointer-events:auto;}
+.ai-panel{
+  position:fixed;bottom:96px;right:24px;width:360px;
+  background:var(--bg2);border:1px solid var(--bdr2);
+  border-radius:18px;box-shadow:0 16px 56px rgba(0,0,0,0.7);
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:scale(0.85) translateY(24px);opacity:0;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .2s;
+  transform-origin:bottom right;max-height:520px;
+}
+.ai-ovl.open .ai-panel{transform:scale(1) translateY(0);opacity:1;}
+.ai-ph{padding:14px 16px 12px;background:linear-gradient(135deg,#1a3a2a,#1a2a3a);border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.ai-ph-ico{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--gd),var(--blue));display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ai-ph-info{flex:1;}
+.ai-ph-name{font-size:13px;font-weight:700;color:#fff;font-family:'Nunito Sans',sans-serif;line-height:1.1;}
+.ai-ph-status{font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px;}
+.ai-ph-dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:blink 1.8s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.ai-ph-close{width:26px;height:26px;background:rgba(255,255,255,0.08);border:none;border-radius:7px;color:var(--muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.ai-ph-close:hover{background:rgba(255,255,255,0.14);color:var(--text);}
+.ai-msgs{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;gap:10px;min-height:180px;max-height:290px;}
+.ai-msg{max-width:82%;display:flex;flex-direction:column;gap:3px;}
+.ai-msg.bot{align-self:flex-start;}
+.ai-msg.usr{align-self:flex-end;}
+.ai-bubble{padding:9px 13px;border-radius:14px;font-size:12px;font-family:'Nunito Sans',sans-serif;line-height:1.6;color:var(--text);}
+.ai-msg.bot .ai-bubble{background:var(--bg3);border:1px solid var(--bdr);border-bottom-left-radius:4px;}
+.ai-msg.usr .ai-bubble{background:linear-gradient(135deg,var(--gd),#2d6a4a);border-bottom-right-radius:4px;color:#fff;}
+.ai-time{font-size:9px;color:var(--muted);padding:0 3px;}
+.ai-msg.usr .ai-time{text-align:right;}
+.ai-typing{display:flex;align-items:center;gap:4px;padding:9px 13px;background:var(--bg3);border:1px solid var(--bdr);border-radius:14px;border-bottom-left-radius:4px;align-self:flex-start;display:none;}
+.ai-typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);}
+.ai-typing span:nth-child(1){animation:dot 1.2s .0s infinite;}
+.ai-typing span:nth-child(2){animation:dot 1.2s .2s infinite;}
+.ai-typing span:nth-child(3){animation:dot 1.2s .4s infinite;}
+@keyframes dot{0%,80%,100%{transform:scale(.7);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+.ai-chips{padding:6px 14px 8px;display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0;border-top:1px solid var(--bdr);}
+.ai-chip{font-size:10px;padding:4px 10px;border-radius:18px;border:1px solid var(--bdr2);color:var(--muted);cursor:pointer;font-family:'Nunito Sans',sans-serif;background:var(--bg3);transition:all .15s;white-space:nowrap;}
+.ai-chip:hover{color:var(--green);border-color:rgba(126,200,126,0.35);background:var(--gdim);}
+.ai-inp-row{padding:10px 12px;border-top:1px solid var(--bdr);display:flex;gap:7px;align-items:center;flex-shrink:0;background:var(--bg2);}
+.ai-inp{flex:1;height:36px;background:var(--bg3);border:1px solid var(--bdr);border-radius:10px;padding:0 12px;font-family:'Nunito Sans',sans-serif;font-size:12px;color:var(--text);outline:none;transition:border-color .18s;}
+.ai-inp:focus{border-color:rgba(126,200,126,0.38);}
+.ai-inp::placeholder{color:var(--muted);}
+.ai-send{width:36px;height:36px;border-radius:10px;background:var(--gd);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .18s;flex-shrink:0;}
+.ai-send:hover{background:#2d7a2d;}
+
+/* ── WHATSAPP PANEL ── */
+.wa-panel{
+  position:fixed;bottom:96px;right:24px;width:320px;
+  background:#111b21;border:1px solid rgba(37,211,102,0.2);
+  border-radius:18px;box-shadow:0 16px 56px rgba(0,0,0,0.7);
+  display:flex;flex-direction:column;overflow:hidden;
+  transform:scale(0.85) translateY(24px);opacity:0;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .2s;
+  transform-origin:bottom right;
+}
+.wa-ovl{position:fixed;inset:0;z-index:800;pointer-events:none;}
+.wa-ovl.open{pointer-events:auto;}
+.wa-ovl.open .wa-panel{transform:scale(1) translateY(0);opacity:1;}
+.wa-ph{padding:13px 15px;background:#202c33;display:flex;align-items:center;gap:10px;}
+.wa-av{width:38px;height:38px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wa-info{flex:1;}
+.wa-name{font-size:13px;font-weight:700;color:#e9edef;font-family:'Nunito Sans',sans-serif;}
+.wa-stat{font-size:10px;color:#8696a0;}
+.wa-close{width:26px;height:26px;background:rgba(255,255,255,0.06);border:none;border-radius:7px;color:#8696a0;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.wa-close:hover{background:rgba(255,255,255,0.12);color:#e9edef;}
+.wa-body{padding:16px;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0L40 20L20 40L0 20Z' fill='rgba(255,255,255,0.01)'/%3E%3C/svg%3E") #0b1418;}
+.wa-bubble{background:#1f2c34;border-radius:0 10px 10px 10px;padding:10px 13px 6px;font-size:12px;color:#e9edef;font-family:'Nunito Sans',sans-serif;line-height:1.6;position:relative;margin-bottom:14px;}
+.wa-bubble::before{content:'';position:absolute;top:0;left:-8px;border-width:0 8px 8px 0;border-style:solid;border-color:transparent #1f2c34 transparent transparent;}
+.wa-bubble-time{font-size:9px;color:#8696a0;text-align:right;margin-top:3px;}
+.wa-ctas{display:flex;flex-direction:column;gap:6px;}
+.wa-cta{display:flex;align-items:center;gap:9px;padding:10px 13px;background:#1f2c34;border-radius:10px;border:none;cursor:pointer;text-decoration:none;transition:background .15s;width:100%;}
+.wa-cta:hover{background:#2a3942;}
+.wa-cta-ico{width:30px;height:30px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.wa-cta-txt{text-align:left;}
+.wa-cta-lbl{font-size:12px;font-weight:600;color:#e9edef;font-family:'Nunito Sans',sans-serif;display:block;line-height:1.1;}
+.wa-cta-sub{font-size:10px;color:#8696a0;display:block;}
+.wa-footer{padding:10px 16px;background:#202c33;text-align:center;font-size:10px;color:#8696a0;display:flex;align-items:center;justify-content:center;gap:5px;}
+</style>
+
+<!-- AI Chat Overlay -->
+<div class="ai-ovl" id="aiOvl" onclick="if(event.target===this)toggleAI()">
+  <div class="ai-panel" id="aiPanel">
+    <div class="ai-ph">
+      <div class="ai-ph-ico">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="rgba(255,255,255,0.15)"/><path d="M8 12h8M8 9h5M8 15h6" stroke="white" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </div>
+      <div class="ai-ph-info">
+        <div class="ai-ph-name">MjengoAI Assistant</div>
+        <div class="ai-ph-status"><span class="ai-ph-dot"></span>Online · Powered by Buildersee</div>
+      </div>
+      <button class="ai-ph-close" onclick="toggleAI()">✕</button>
+    </div>
+    <div class="ai-msgs" id="aiMsgs">
+      <div class="ai-msg bot">
+        <div class="ai-bubble">👋 Habari! I'm your MjengoAI assistant.<br/>I can help you find artisans, compare material prices, browse house plans, or get construction quotes across all 47 counties.</div>
+        <div class="ai-time">Just now</div>
+      </div>
+    </div>
+    <div class="ai-typing" id="aiTyping"><span></span><span></span><span></span></div>
+    <div class="ai-chips">
+      <span class="ai-chip" onclick="aiQuick('Find a mason near me')">🧱 Find mason</span>
+      <span class="ai-chip" onclick="aiQuick('Cement prices Nairobi')">💰 Cement prices</span>
+      <span class="ai-chip" onclick="aiQuick('Show 3BR house plans under 3M')">🏠 3BR plans</span>
+      <span class="ai-chip" onclick="aiQuick('Structural engineer Nairobi')">🔩 Engineer</span>
+    </div>
+    <div class="ai-inp-row">
+      <input class="ai-inp" id="aiInp" placeholder="Ask anything about construction…" onkeydown="if(event.key==='Enter')aiSend()"/>
+      <button class="ai-send" onclick="aiSend()">
+        <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><path d="M2 9L16 2L9 16L8 10Z" fill="white"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- WhatsApp Overlay -->
+<div class="wa-ovl" id="waOvl" onclick="if(event.target===this)toggleWA()">
+  <div class="wa-panel">
+    <div class="wa-ph">
+      <div class="wa-av">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.532 5.86L.072 23.338a.75.75 0 00.92.92l5.478-1.46A11.942 11.942 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.528-5.197-1.443l-.372-.22-3.856 1.029 1.029-3.856-.22-.372A9.944 9.944 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" fill-rule="evenodd"/></svg>
+      </div>
+      <div class="wa-info">
+        <div class="wa-name">MjengoAI WhatsApp Bot</div>
+        <div class="wa-stat">Typically replies instantly</div>
+      </div>
+      <button class="wa-close" onclick="toggleWA()">✕</button>
+    </div>
+    <div class="wa-body">
+      <div class="wa-bubble">
+        Hello! 👋 Chat with MjengoAI on WhatsApp.<br/><br/>
+        Get instant help with:<br/>
+        • Material prices across Kenya 🏗️<br/>
+        • Finding vetted artisans & professionals<br/>
+        • House plans & BOQ estimates<br/>
+        • Contractor connections<br/><br/>
+        Choose an option below to start:
+        <div class="wa-bubble-time">MjengoAI · Now</div>
+      </div>
+      <div class="wa-ctas">
+        <a class="wa-cta" href="https://wa.me/254700000000?text=Hello%20MjengoAI!%20I%20need%20help%20finding%20an%20artisan." target="_blank" rel="noopener">
+          <div class="wa-cta-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="white"><path d="M10 2C5.6 2 2 5.6 2 10s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm1 11H9V9h2v4zm0-6H9V5h2v2z"/></svg></div>
+          <div class="wa-cta-txt"><span class="wa-cta-lbl">Find Artisans & Professionals</span><span class="wa-cta-sub">Masons, plumbers, engineers & more</span></div>
+        </a>
+        <a class="wa-cta" href="https://wa.me/254700000000?text=Hello%20MjengoAI!%20Please%20share%20material%20prices." target="_blank" rel="noopener">
+          <div class="wa-cta-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="white"><path d="M3 10a7 7 0 1014 0A7 7 0 003 10zm8-3H9v4l3.5 2.1.8-1.2L10 10.5V7z"/></svg></div>
+          <div class="wa-cta-txt"><span class="wa-cta-lbl">Material Price Checker</span><span class="wa-cta-sub">Cement, steel, tiles — live prices</span></div>
+        </a>
+        <a class="wa-cta" href="https://wa.me/254700000000?text=Hello%20MjengoAI!%20I%20need%20house%20plan%20recommendations." target="_blank" rel="noopener">
+          <div class="wa-cta-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="white"><path d="M10 2L2 8v10h5v-6h6v6h5V8L10 2z"/></svg></div>
+          <div class="wa-cta-txt"><span class="wa-cta-lbl">House Plans & BOQ</span><span class="wa-cta-sub">Browse Mineco House repository</span></div>
+        </a>
+      </div>
+    </div>
+    <div class="wa-footer">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="#25D366"><path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8z"/></svg>
+      Powered by WhatsApp · MjengoAI Bot
+    </div>
+  </div>
+</div>
+
+<!-- Floating Button Cluster -->
+<div class="fab-cluster">
+  <button class="fab-wa" onclick="toggleWA()" title="WhatsApp Bot">
+    <svg viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.127.558 4.126 1.532 5.86L.072 23.338a.75.75 0 00.92.92l5.478-1.46A11.942 11.942 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.9 0-3.68-.528-5.197-1.443l-.372-.22-3.856 1.029 1.029-3.856-.22-.372A9.944 9.944 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" fill-rule="evenodd"/></svg>
+    <span class="fab-tooltip">WhatsApp Bot</span>
+  </button>
+  <button class="fab-ai" onclick="toggleAI()">
+    <div class="fab-ai-pulse"></div>
+    <div class="fab-ai-ico">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="white" stroke-width="1.5" fill="none"/><path d="M7 10h6M10 7v6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div class="fab-ai-txt">
+      <span class="fab-ai-lbl">Ask MjengoAI</span>
+      <span class="fab-ai-sub">AI Construction Assistant</span>
+    </div>
+  </button>
+</div>
+
+<script>
+/* ════════ AI PANEL TOGGLE ════════ */
+function toggleAI(){
+  const o=document.getElementById('aiOvl');
+  const isOpen=o.classList.contains('open');
+  // close WA if open
+  document.getElementById('waOvl').classList.remove('open');
+  o.classList.toggle('open',!isOpen);
+  if(!isOpen) setTimeout(()=>document.getElementById('aiInp').focus(),260);
+}
+
+function toggleWA(){
+  const o=document.getElementById('waOvl');
+  const isOpen=o.classList.contains('open');
+  // close AI if open
+  document.getElementById('aiOvl').classList.remove('open');
+  o.classList.toggle('open',!isOpen);
+}
+
+/* ════════ AI CHAT LOGIC ════════ */
+const AI_RESPONSES={
+  mason:["I found several vetted masons near you. Joseph Kamau (4.8★, 14 yrs) is available in Nairobi at KES 1,600/day. Would you like to see more options or open his profile?","Grace Achieng in Kisumu (4.7★) and Daniel Kiprop in Nakuru (4.5★) are also available. Shall I open the artisans panel for you?"],
+  cement:["Current cement prices: Nairobi avg KES 720/50kg bag, Mombasa KES 755, Nakuru KES 695. Tuff Foam Hardware (Nairobi) has bulk discounts. Want me to show all suppliers?","Cement prices are up 2.1% this month. Lowest price: KES 680 in Mombasa. I can compare prices across all 47 counties — shall I?"],
+  plan:["Mineco House has 10,000+ pre-approved plans. Popular: 3BR Bungalow Type B (KES 15,000) and 2BR Maisonette (KES 9,500). Full BOQ included. Want to browse?","For a 3-bedroom under 3M, I recommend Type B Bungalow — 72m², full working drawings and BOQ for KES 15,000. Shall I open house plans?"],
+  engineer:["Mate Njiru (EBK, 15 yrs) is our top structural engineer in Nairobi at KES 15,000/consult. Faith Omondi covers Kisumu. Want me to show all engineers?","For structural engineering, I recommend checking EBK-registered professionals. There are 220+ on MjengoAI. Shall I open the professionals panel?"],
+  default:["I can help with that! Try searching using the main search bar, or let me know more details — county, budget, or project type — and I'll find the best match for you.","Great question! MjengoAI covers artisans, materials, house plans, professionals, and contractors across all 47 counties. What specifically can I help you find?","I'll connect you with the right people. Could you share your county/location and budget? That helps me give you the most accurate results."]
+};
+
+function getAIReply(msg){
+  const m=msg.toLowerCase();
+  if(m.includes('mason')||m.includes('plumber')||m.includes('electr')||m.includes('carpenter'))return rand(AI_RESPONSES.mason);
+  if(m.includes('cement')||m.includes('steel')||m.includes('material')||m.includes('price'))return rand(AI_RESPONSES.cement);
+  if(m.includes('plan')||m.includes('bedroom')||m.includes('bungalow')||m.includes('design'))return rand(AI_RESPONSES.plan);
+  if(m.includes('engineer')||m.includes('architect')||m.includes('professional')||m.includes('structural'))return rand(AI_RESPONSES.engineer);
+  return rand(AI_RESPONSES.default);
+}
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+function aiSend(){
+  const inp=document.getElementById('aiInp');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  addMsg(msg,'usr');
+  showTyping();
+  setTimeout(()=>{hideTyping();addMsg(getAIReply(msg),'bot');},1100+Math.random()*700);
+}
+
+function aiQuick(msg){addMsg(msg,'usr');showTyping();setTimeout(()=>{hideTyping();addMsg(getAIReply(msg),'bot');},900+Math.random()*600);}
+
+function addMsg(txt,role){
+  const msgs=document.getElementById('aiMsgs');
+  const typing=document.getElementById('aiTyping');
+  const d=document.createElement('div');d.className='ai-msg '+role;
+  const now=new Date();const t=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  d.innerHTML=`<div class="ai-bubble">${txt}</div><div class="ai-time">${t}</div>`;
+  msgs.insertBefore(d,typing);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+function showTyping(){const t=document.getElementById('aiTyping');t.style.display='flex';document.getElementById('aiMsgs').scrollTop=9999;}
+function hideTyping(){document.getElementById('aiTyping').style.display='none';}
+</script>
 </body>
 </html>
