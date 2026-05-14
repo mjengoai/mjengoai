@@ -1,0 +1,56 @@
+{
+  "name": "MjengoAI – Your Construction Partner",
+  "short_name": "MjengoAI",
+  "description": "Kenya's construction professional directory — find architects, engineers, artisans, vendors and materials near you.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#161614",
+  "theme_color": "#3a8c3a",
+  "lang": "en-KE",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    { "src": "icons/icon-72.png",   "sizes": "72x72",   "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-96.png",   "sizes": "96x96",   "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-128.png",  "sizes": "128x128", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-144.png",  "sizes": "144x144", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-152.png",  "sizes": "152x152", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-192.png",  "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-384.png",  "sizes": "384x384", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png",  "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshots/screen1.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "MjengoAI Home"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find Professionals",
+      "short_name": "Professionals",
+      "description": "Browse architects, engineers and consultants",
+      "url": "/index.html#professionals",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Find Artisans",
+      "short_name": "Artisans",
+      "description": "Browse masons, welders, carpenters and more",
+      "url": "/index.html#artisans",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Find Vendors",
+      "short_name": "Vendors",
+      "description": "Browse hardware, materials and suppliers",
+      "url": "/index.html#vendors",
+      "icons": [{ "src": "icons/icon-96.png", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
