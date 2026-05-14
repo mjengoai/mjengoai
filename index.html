@@ -1,33 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- Firebase -->
-<script type="module">
-  import { initializeApp }
-    from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
-  import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs }
-    from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
-  import { getAuth, RecaptchaVerifier, signInWithPhoneNumber }
-    from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
-
-  const firebaseConfig = {
-    apiKey: "PASTE_YOUR_API_KEY_HERE",
-    authDomain: "mjengoai.firebaseapp.com",
-    projectId: "mjengoai",
-    storageBucket: "mjengoai.appspot.com",
-    messagingSenderId: "PASTE_YOUR_SENDER_ID",
-    appId: "PASTE_YOUR_APP_ID"
-  };
-
-  const app  = initializeApp(firebaseConfig);
-  const db   = getFirestore(app);
-  const auth = getAuth(app);
-
-  // Make available to the rest of the page
-  window.MjengoDB   = db;
-  window.MjengoAuth = auth;
-  window.MjengoFirestore = { doc, setDoc, getDoc, collection, query, where, getDocs };
-</script>
-  <head>
+<head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>MjengoAI – Your Construction Partner</title>
@@ -385,8 +358,354 @@ footer{border-top:1px solid var(--bdr);padding:16px 28px;display:flex;align-item
   <meta name="apple-mobile-web-app-title" content="MjengoAI"/>
   <link rel="apple-touch-icon" href="icons/icon-192.png"/>
   <link rel="apple-touch-startup-image" href="icons/icon-512.png"/>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     FIREBASE SDK — MjengoAI (project: mjengoai-e4a9f)
+════════════════════════════════════════════════════════════════ -->
+<script type="module">
+  import { initializeApp }
+    from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+  import { getFirestore, doc, setDoc, getDoc, updateDoc,
+           collection, query, where, getDocs, serverTimestamp }
+    from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+  import { getAuth, RecaptchaVerifier, signInWithPhoneNumber }
+    from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js';
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBe3w1XGc8LBzNd7WfEwsKQ1NZ6mOd0duw",
+    authDomain:        "mjengoai-e4a9f.firebaseapp.com",
+    projectId:         "mjengoai-e4a9f",
+    storageBucket:     "mjengoai-e4a9f.firebasestorage.app",
+    messagingSenderId: "467178823272",
+    appId:             "1:467178823272:web:fe71bb1609783a539965dd"
+  };
+
+  const _app  = initializeApp(firebaseConfig);
+  const _db   = getFirestore(_app);
+  const _auth = getAuth(_app);
+
+  /* ── Globals accessible by all page scripts ── */
+  window.MjengoDB   = _db;
+  window.MjengoAuth = _auth;
+  window.MjengoFS   = { doc, setDoc, getDoc, updateDoc,
+                        collection, query, where, getDocs, serverTimestamp };
+
+  /* ── Fetch live profile from Firestore (called when opening a contact card) ── */
+  window.MjengoGetLiveProfile = async function(phone) {
+    if (!phone) return null;
+    try {
+      const snap = await getDoc(doc(_db, 'members', phone));
+      if (snap.exists() && snap.data().active === true) return snap.data();
+    } catch(e) {}
+    return null;
+  };
+
+  /* ── Save new registration (dormant until admin approves) ── */
+  window.MjengoSaveProfile = async function(phone, data) {
+    await setDoc(doc(_db, 'members', phone), {
+      ...data,
+      active: false, verified: false,
+      joined: serverTimestamp(),
+      rating: 0, reviews: 0, photo_url: ''
+    });
+  };
+
+  console.log('[MjengoAI] Firebase ready ✓ project: mjengoai-e4a9f');
+</script>
+
+<!-- ═══ OTP Registration Logic (plain script, reads window.MjengoAuth) ═══ -->
+<script>
+let _mjConfirm = null;
+let _mjPhone   = null;
+
+async function mjSendOTP(rawPhone) {
+  const phone = rawPhone.replace(/\s/g,'');
+  _mjPhone = phone.startsWith('0') ? '+254'+phone.slice(1)
+           : phone.startsWith('254') ? '+'+phone : phone;
+  try {
+    const { RecaptchaVerifier, signInWithPhoneNumber } = await import(
+      'https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js'
+    );
+    if (!window._mjReCap) {
+      window._mjReCap = new RecaptchaVerifier(
+        window.MjengoAuth, 'mj-recaptcha', { size: 'invisible' }
+      );
+    }
+    _mjConfirm = await signInWithPhoneNumber(
+      window.MjengoAuth, _mjPhone, window._mjReCap
+    );
+    return { ok: true, phone: _mjPhone };
+  } catch(e) {
+    console.error('[MjengoAI] OTP:', e);
+    return { ok: false, error: e.message };
+  }
+}
+
+async function mjVerifyOTP(code) {
+  try {
+    const result = await _mjConfirm.confirm(code);
+    return { ok: true, user: result.user };
+  } catch(e) {
+    return { ok: false, error: 'Wrong code — please try again' };
+  }
+}
+
+async function mjRegister(data) {
+  if (!window.MjengoSaveProfile) return { ok:false, error:'Firebase not ready' };
+  try {
+    await window.MjengoSaveProfile(_mjPhone, data);
+    return { ok: true };
+  } catch(e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+/* ── Modal open / close ── */
+function mjOpenReg() {
+  document.getElementById('mj-reg-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+function mjCloseReg() {
+  document.getElementById('mj-reg-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+/* ── Step controllers ── */
+async function mjSendOTPClick() {
+  const raw = document.getElementById('mj-phone').value.trim();
+  if (raw.replace(/\D/g,'').length < 9) {
+    return mjRegErr('mj-err1','Enter a valid Kenyan phone number');
+  }
+  mjRegErr('mj-err1','');
+  mjBtn('mj-btn1','Sending…',true);
+  const res = await mjSendOTP(raw);
+  mjBtn('mj-btn1','Send Code →',false);
+  if (res.ok) {
+    document.getElementById('mj-phone-show').textContent = res.phone;
+    mjStep(2);
+  } else {
+    mjRegErr('mj-err1', res.error.includes('auth/') ? 'Could not send code. Check the number and try again.' : res.error);
+  }
+}
+
+async function mjVerifyClick() {
+  const code = document.getElementById('mj-otp').value.trim();
+  if (code.length !== 6) return mjRegErr('mj-err2','Enter the 6-digit code');
+  mjRegErr('mj-err2','');
+  mjBtn('mj-btn2','Verifying…',true);
+  const res = await mjVerifyOTP(code);
+  mjBtn('mj-btn2','Verify →',false);
+  if (res.ok) { mjStep(3); }
+  else { mjRegErr('mj-err2', res.error); }
+}
+
+async function mjSubmitProfile() {
+  const name = document.getElementById('mj-name').value.trim();
+  const cat  = document.getElementById('mj-cat').value;
+  const sub  = document.getElementById('mj-sub').value.trim();
+  const loc  = document.getElementById('mj-loc').value.trim();
+  if (!name||!cat||!sub||!loc) return mjRegErr('mj-err3','Fill in all required fields (*)');
+  mjRegErr('mj-err3','');
+  mjBtn('mj-btn3','Submitting…',true);
+  const res = await mjRegister({
+    name, category:cat, subCategory:sub, location:loc,
+    email:  document.getElementById('mj-email').value.trim(),
+    about:  document.getElementById('mj-about').value.trim(),
+    nca_reg:document.getElementById('mj-nca').value.trim(),
+    price:  document.getElementById('mj-price').value.trim()
+  });
+  mjBtn('mj-btn3','✓ Submit Registration',false);
+  if (res.ok) { mjStep(4); }
+  else { mjRegErr('mj-err3','Error saving profile: '+res.error); }
+}
+
+function mjStep(n) {
+  [1,2,3,4].forEach(i => {
+    document.getElementById('mj-s'+i).style.display = i===n ? 'block' : 'none';
+  });
+}
+function mjBtn(id, txt, disabled) {
+  const b = document.getElementById(id);
+  if (b) { b.textContent = txt; b.disabled = disabled; }
+}
+function mjRegErr(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+/* ── Auto-wire "For Pros" / "Join" / "Register" buttons ── */
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('a,button').forEach(el => {
+    const t = el.textContent.trim().toLowerCase();
+    const h = (el.getAttribute('href')||'').toLowerCase();
+    if (t==='for pros'||t.includes('join free')||t.includes('register')||
+        h.includes('register')||h.includes('sign-up')) {
+      el.addEventListener('click', e => { e.preventDefault(); mjOpenReg(); });
+    }
+  });
+});
+</script>
 </head>
 <body>
+
+<!-- ═══ Recaptcha (invisible) ═════════════════════════════════════════ -->
+<div id="mj-recaptcha"></div>
+
+<!-- ═══ Registration Modal ════════════════════════════════════════════ -->
+<div id="mj-reg-modal" onclick="if(event.target===this)mjCloseReg()"
+  style="display:none;position:fixed;inset:0;z-index:9998;
+  background:rgba(0,0,0,0.8);align-items:flex-start;justify-content:center;
+  overflow-y:auto;padding:40px 16px;font-family:'Nunito Sans',sans-serif;">
+  <div style="background:#1f1f1c;border:1px solid rgba(126,200,126,0.2);
+    border-radius:16px;width:100%;max-width:440px;overflow:hidden;
+    box-shadow:0 8px 40px rgba(0,0,0,0.7);">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#1a3a1a,#2d4d2d);
+      padding:20px 24px;border-bottom:1px solid rgba(126,200,126,0.15);
+      display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:10px;letter-spacing:3px;color:#7ec87e;
+          text-transform:uppercase;margin-bottom:4px;">Join MjengoAI</div>
+        <div style="font-size:19px;font-weight:700;color:#f0ede6;">Member Registration</div>
+      </div>
+      <button onclick="mjCloseReg()" style="background:rgba(255,255,255,0.08);
+        border:none;color:#888;border-radius:8px;width:34px;height:34px;
+        font-size:18px;cursor:pointer;line-height:1;">&#x2715;</button>
+    </div>
+
+    <!-- Step 1: Phone -->
+    <div id="mj-s1" style="padding:24px;">
+      <p style="color:#888880;font-size:13px;margin:0 0 18px;line-height:1.6;">
+        Enter your Kenyan phone number to receive a verification code via SMS.
+      </p>
+      <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;
+        text-transform:uppercase;display:block;margin-bottom:7px;">Phone Number *</label>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <div style="background:#2a2a26;border:1px solid rgba(255,255,255,0.1);
+          border-radius:8px;padding:10px 12px;color:#f0ede6;font-size:14px;
+          flex-shrink:0;">&#x1F1F0;&#x1F1EA; +254</div>
+        <input id="mj-phone" type="tel" placeholder="712 345 678"
+          style="flex:1;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);
+          border-radius:8px;padding:10px 14px;color:#f0ede6;font-size:14px;
+          outline:none;min-width:0;"/>
+      </div>
+      <div id="mj-err1" style="color:#e87878;font-size:12px;margin-bottom:10px;display:none;"></div>
+      <button id="mj-btn1" onclick="mjSendOTPClick()"
+        style="width:100%;background:#3a8c3a;border:none;color:#fff;
+        border-radius:10px;padding:13px;font-size:14px;font-weight:700;
+        cursor:pointer;font-family:'Nunito Sans',sans-serif;">Send Code &#x2192;</button>
+    </div>
+
+    <!-- Step 2: OTP -->
+    <div id="mj-s2" style="padding:24px;display:none;">
+      <p style="color:#888880;font-size:13px;margin:0 0 18px;line-height:1.6;">
+        Code sent to <span id="mj-phone-show" style="color:#7ec87e;font-weight:700;"></span>
+      </p>
+      <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;
+        text-transform:uppercase;display:block;margin-bottom:7px;">6-Digit Code *</label>
+      <input id="mj-otp" type="number" placeholder="123456" maxlength="6"
+        style="width:100%;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);
+        border-radius:8px;padding:12px;color:#f0ede6;font-size:24px;
+        letter-spacing:10px;text-align:center;outline:none;
+        box-sizing:border-box;margin-bottom:14px;"/>
+      <div id="mj-err2" style="color:#e87878;font-size:12px;margin-bottom:10px;display:none;"></div>
+      <button id="mj-btn2" onclick="mjVerifyClick()"
+        style="width:100%;background:#3a8c3a;border:none;color:#fff;
+        border-radius:10px;padding:13px;font-size:14px;font-weight:700;
+        cursor:pointer;font-family:'Nunito Sans',sans-serif;">Verify &#x2192;</button>
+      <button onclick="mjStep(1)" style="width:100%;background:none;border:none;
+        color:#666;font-size:12px;cursor:pointer;margin-top:8px;
+        font-family:'Nunito Sans',sans-serif;">&#x2190; Change number</button>
+    </div>
+
+    <!-- Step 3: Profile -->
+    <div id="mj-s3" style="padding:24px;display:none;">
+      <p style="color:#7ec87e;font-size:13px;font-weight:700;margin:0 0 18px;">
+        &#x2713; Verified! Now complete your profile.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px;">Full Name *</label>
+          <input id="mj-name" type="text" placeholder="e.g. Duncan Mwenda"
+            style="width:100%;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f0ede6;font-size:13px;outline:none;box-sizing:border-box;"/>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px;">Category *</label>
+          <select id="mj-cat" style="width:100%;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f0ede6;font-size:13px;outline:none;box-sizing:border-box;">
+            <option value="">Select category...</option>
+            <option>Professionals</option><option>Artisans</option>
+            <option>Vendors</option><option>Materials</option><option>Contractors</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px;">Specialisation *</label>
+          <input id="mj-sub" type="text" placeholder="e.g. Architect, Mason, Hardware Shop"
+            style="width:100%;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f0ede6;font-size:13px;outline:none;box-sizing:border-box;"/>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px;">Town / Location *</label>
+          <input id="mj-loc" type="text" placeholder="e.g. Chuka, Nairobi, Mombasa"
+            style="width:100%;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f0ede6;font-size:13px;outline:none;box-sizing:border-box;"/>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px;">Consultation / Service Fee</label>
+          <input id="mj-price" type="text" placeholder="e.g. KES 5,000/consult or KES 800/day"
+            style="width:100%;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f0ede6;font-size:13px;outline:none;box-sizing:border-box;"/>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px;">Email (optional)</label>
+          <input id="mj-email" type="email" placeholder="your@email.com"
+            style="width:100%;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f0ede6;font-size:13px;outline:none;box-sizing:border-box;"/>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px;">About You / Your Business</label>
+          <textarea id="mj-about" rows="3" placeholder="Describe your experience, services and coverage area..."
+            style="width:100%;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f0ede6;font-size:13px;outline:none;box-sizing:border-box;resize:vertical;font-family:'Nunito Sans',sans-serif;"></textarea>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px;">NCA / Professional Reg. No.</label>
+          <input id="mj-nca" type="text" placeholder="e.g. NCA/2024/12345 or EBK/2023/001"
+            style="width:100%;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f0ede6;font-size:13px;outline:none;box-sizing:border-box;"/>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding:12px;background:rgba(126,200,126,0.05);
+        border-radius:8px;border:1px solid rgba(126,200,126,0.12);">
+        <div style="font-size:11px;color:#666;line-height:1.7;">
+          By registering you agree to MjengoAI's Terms &amp; Conditions and Privacy Policy.
+          Your profile will be reviewed and activated within 24 hours.
+          Kenya Data Protection Act 2019 compliant.
+        </div>
+      </div>
+      <div id="mj-err3" style="color:#e87878;font-size:12px;margin-top:10px;display:none;"></div>
+      <button id="mj-btn3" onclick="mjSubmitProfile()"
+        style="width:100%;background:#3a8c3a;border:none;color:#fff;
+        border-radius:10px;padding:13px;font-size:14px;font-weight:700;
+        cursor:pointer;font-family:'Nunito Sans',sans-serif;margin-top:16px;">
+        &#x2713; Submit Registration
+      </button>
+    </div>
+
+    <!-- Step 4: Success -->
+    <div id="mj-s4" style="padding:40px 24px;text-align:center;display:none;">
+      <div style="font-size:52px;margin-bottom:16px;">&#x2705;</div>
+      <div style="font-size:20px;font-weight:700;color:#f0ede6;margin-bottom:10px;">Registration Received!</div>
+      <div style="font-size:13px;color:#888880;line-height:1.9;">
+        Your profile has been submitted successfully.<br>
+        It will be reviewed and activated within
+        <strong style="color:#7ec87e;">24 hours</strong>.<br><br>
+        <span style="color:#7ec87e;">We'll notify you via SMS when your listing goes live.</span>
+      </div>
+      <button onclick="mjCloseReg()"
+        style="margin-top:24px;background:#3a8c3a;border:none;color:#fff;
+        border-radius:10px;padding:12px 36px;font-size:14px;font-weight:700;
+        cursor:pointer;font-family:'Nunito Sans',sans-serif;">Done</button>
+    </div>
+
+  </div>
+</div>
 
 <!-- PWA Install Banner -->
 <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;
@@ -2277,28 +2596,6 @@ window.addEventListener('appinstalled', () => {
   const b = document.getElementById('pwa-banner');
   if (b) b.style.display = 'none';
 });
-</script>
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-// ADD THIS LINE BELOW:
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyBe3w1XGc8LBzNd7WfEwsKQ1NZ6mOd0duw",
-    authDomain: "mjengoai-e4a9f.firebaseapp.com",
-    projectId: "mjengoai-e4a9f",
-    storageBucket: "mjengoai-e4a9f.firebasestorage.app",
-    messagingSenderId: "467178823272",
-    appId: "1:467178823272:web:fe71bb1609783a539965dd"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-const db = getFirestore(app); // <--- ADD THIS LINE HERE
 </script>
 </body>
 </html>
