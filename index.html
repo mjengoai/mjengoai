@@ -2404,15 +2404,15 @@ buildCounties('');
         <div class="wa-bubble-time">MjengoAI · Now</div>
       </div>
       <div class="wa-ctas">
-        <a class="wa-cta" href="https://wa.me/254724744321?text=Hello%20MjengoAI!%20I%20need%20help%20finding%20an%20artisan." target="_blank" rel="noopener">
+        <a class="wa-cta" href="https://wa.me/254700000000?text=Hello%20MjengoAI!%20I%20need%20help%20finding%20an%20artisan." target="_blank" rel="noopener">
           <div class="wa-cta-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="white"><path d="M10 2C5.6 2 2 5.6 2 10s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm1 11H9V9h2v4zm0-6H9V5h2v2z"/></svg></div>
           <div class="wa-cta-txt"><span class="wa-cta-lbl">Find Artisans & Professionals</span><span class="wa-cta-sub">Masons, plumbers, engineers & more</span></div>
         </a>
-        <a class="wa-cta" href="https://wa.me/254724744321?text=Hello%20MjengoAI!%20Please%20share%20material%20prices." target="_blank" rel="noopener">
+        <a class="wa-cta" href="https://wa.me/254700000000?text=Hello%20MjengoAI!%20Please%20share%20material%20prices." target="_blank" rel="noopener">
           <div class="wa-cta-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="white"><path d="M3 10a7 7 0 1014 0A7 7 0 003 10zm8-3H9v4l3.5 2.1.8-1.2L10 10.5V7z"/></svg></div>
           <div class="wa-cta-txt"><span class="wa-cta-lbl">Material Price Checker</span><span class="wa-cta-sub">Cement, steel, tiles — live prices</span></div>
         </a>
-        <a class="wa-cta" href="https://wa.me/254724744321?text=Hello%20MjengoAI!%20I%20need%20house%20plan%20recommendations." target="_blank" rel="noopener">
+        <a class="wa-cta" href="https://wa.me/254700000000?text=Hello%20MjengoAI!%20I%20need%20house%20plan%20recommendations." target="_blank" rel="noopener">
           <div class="wa-cta-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="white"><path d="M10 2L2 8v10h5v-6h6v6h5V8L10 2z"/></svg></div>
           <div class="wa-cta-txt"><span class="wa-cta-lbl">House Plans & BOQ</span><span class="wa-cta-sub">Browse Mineco House repository</span></div>
         </a>
@@ -2507,59 +2507,13 @@ function hideTyping(){document.getElementById('aiTyping').style.display='none';}
 
 
 <script>
-/* ── Inline Service Worker (no external sw.js file needed) ───────── */
+/* ── Service Worker — external sw.js (GitHub Pages compatible) ── */
 if ('serviceWorker' in navigator) {
-  const swCode = `
-const CACHE = 'mjengoai-v1';
-const PRECACHE = ['/', '/index.html'];
-
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting())
-  );
-});
-
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
-  );
-});
-
-self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  if (req.mode === 'navigate') {
-    e.respondWith(
-      fetch(req).then(r => {
-        const clone = r.clone();
-        caches.open(CACHE).then(c => c.put(req, clone));
-        return r;
-      }).catch(() => caches.match('/index.html'))
-    );
-    return;
-  }
-  e.respondWith(
-    caches.match(req).then(cached => cached || fetch(req).then(r => {
-      if (r && r.status === 200 && r.type !== 'opaque') {
-        const clone = r.clone();
-        caches.open(CACHE).then(c => c.put(req, clone));
-      }
-      return r;
-    }))
-  );
-});`;
-
-  try {
-    const blob = new Blob([swCode], { type: 'application/javascript' });
-    const swUrl = URL.createObjectURL(blob);
-    navigator.serviceWorker.register(swUrl, { scope: './' })
-      .then(reg => console.log('[MjengoAI] SW registered (inline)'))
-      .catch(err => console.log('[MjengoAI] SW inline error:', err));
-  } catch(e) {
-    console.log('[MjengoAI] SW blob not supported:', e);
-  }
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(reg => console.log('[MjengoAI] SW registered ✓ scope:', reg.scope))
+      .catch(err => console.warn('[MjengoAI] SW failed:', err));
+  });
 }
 
 /* ── PWA Install prompt ──────────────────────────────────────────── */
