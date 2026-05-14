@@ -2278,5 +2278,24 @@ window.addEventListener('appinstalled', () => {
   if (b) b.style.display = 'none';
 });
 </script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBe3w1XGc8LBzNd7WfEwsKQ1NZ6mOd0duw",
+    authDomain: "mjengoai-e4a9f.firebaseapp.com",
+    projectId: "mjengoai-e4a9f",
+    storageBucket: "mjengoai-e4a9f.firebasestorage.app",
+    messagingSenderId: "467178823272",
+    appId: "1:467178823272:web:fe71bb1609783a539965dd"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
 </body>
 </html>
