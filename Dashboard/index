@@ -490,7 +490,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:11px 2
           <label class="flabel">Phone Number <span style="color:var(--green)">*</span></label>
           <div class="phone-wrap">
             <div class="phone-pre">🇰🇪 +254</div>
-            <input class="finput" id="f-phone" type="tel" placeholder="712 345 678" maxlength="10"/>
+            <input class="finput" id="f-phone" type="tel" placeholder="712 345 678" maxlength="9"/>
           </div>
         </div>
 
@@ -528,7 +528,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:11px 2
           <input class="otpi" maxlength="1" oninput="otpNext(this,4)" id="otp4"/>
           <input class="otpi" maxlength="1" oninput="otpNext(this,5)" id="otp5"/>
         </div>
-        <button id="btn-verifyotp" class="fcta" onclick="verifyOTP()">Verify &amp; Create Account</button>
+        <button class="fcta" onclick="verifyOTP()">Verify &amp; Create Account</button>
         <p class="fhint" style="margin-top:12px;">Didn't receive code? <a onclick="sendOTP()">Resend</a> · <a onclick="goStep(1)">Change number</a></p>
       </div>
 
@@ -701,6 +701,7 @@ async function initFirebase(){
     firebaseDb = firestoreMod.getFirestore(app);
     firebaseAuth = authMod.getAuth(app);
     firebaseModules = {...firestoreMod, ...authMod};
+    await authMod.signInAnonymously(firebaseAuth).catch(()=>null);
     firebaseReady = true;
     firebaseStatus('Connected.', true);
     return true;
@@ -854,205 +855,109 @@ function switchAuthTab(el, mode){
 }
 
 async function socialLogin(provider){
-  try {
+  try{
     await initFirebase();
     const authMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js');
-    let credential;
-
-    if(provider === 'google'){
+    if(provider==='google'){
       const prov = new authMod.GoogleAuthProvider();
-      prov.addScope('email');
-      prov.addScope('profile');
       const result = await authMod.signInWithPopup(firebaseAuth, prov);
       const user = result.user;
-      currentUser = {
-        name:  user.displayName || user.email || 'Google User',
-        phone: user.phoneNumber || '',
-        email: user.email || '',
-        photo: user.photoURL || '',
-        uid:   user.uid,
-        role:  currentRole,
-        sub:   currentUser.sub || ''
-      };
+      currentUser = {name:user.displayName||user.email||'User',phone:user.phoneNumber||'',email:user.email||'',uid:user.uid,role:currentRole,sub:currentUser.sub||''};
+      localStorage.setItem('mjengoaiUser', JSON.stringify({...currentUser,updatedAt:new Date().toISOString()}));
+      if(firebaseDb && firebaseModules){
+        const {doc,setDoc} = firebaseModules;
+        const id = user.uid;
+        setDoc(doc(firebaseDb,'users',id),{name:currentUser.name,email:currentUser.email,uid:id,role:currentRole,joinedAt:new Date().toISOString()},{merge:true}).catch(e=>console.warn(e.message));
+      }
+      launchDashboard();
     } else {
-      /* Facebook / TikTok — show coming soon message */
-      const err = document.getElementById('err-msg');
-      err.style.display = 'flex';
-      document.getElementById('err-text').textContent =
-        provider.charAt(0).toUpperCase()+provider.slice(1)+' login coming soon. Use Google or phone number.';
-      return;
+      const err=document.getElementById('err-msg');
+      if(err) err.style.display='flex';
+      const et=document.getElementById('err-text');
+      if(et) et.textContent=provider+' login coming soon. Use Google or phone.';
     }
-
-    await saveUserProfile();
-    launchDashboard();
-
-  } catch(e) {
-    if(e.code === 'auth/popup-closed-by-user') return;
-    const err = document.getElementById('err-msg');
-    err.style.display = 'flex';
-    document.getElementById('err-text').textContent = 'Login failed: ' + e.message;
+  }catch(e){
+    if(e.code==='auth/popup-closed-by-user') return;
+    const err=document.getElementById('err-msg');
+    if(err) err.style.display='flex';
+    const et=document.getElementById('err-text');
+    if(et) et.textContent='Login failed: '+e.message;
   }
 }
-
-/* ── Real Firebase Phone OTP ── */
-let _mjConfirmResult = null;
 
 async function sendOTP(){
-  const phone = document.getElementById('f-phone').value.trim().replace(/\s/g,'');
+  const phone = document.getElementById('f-phone').value.trim();
   const fname = document.getElementById('f-fname').value.trim();
   const lname = document.getElementById('f-lname').value.trim();
-  const err   = document.getElementById('err-msg');
-
-  if(!fname||!lname){
-    err.style.display='flex';
-    document.getElementById('err-text').textContent='Please enter your first and last name.';
-    return;
-  }
-  if(!phone||phone.replace(/\D/g,'').length<7){
-    err.style.display='flex';
-    document.getElementById('err-text').textContent='Please enter a valid Kenyan phone number.';
-    return;
-  }
+  const err = document.getElementById('err-msg');
+  if(!fname||!lname){err.style.display='flex';document.getElementById('err-text').textContent='Please enter your first and last name.';return;}
+  if(!phone||phone.replace(/[^0-9]/g,'').length<7){err.style.display='flex';document.getElementById('err-text').textContent='Please enter a valid phone number.';return;}
   err.style.display='none';
-
-  /* UI shows +254 prefix — user types 9 digits only e.g. 712345678
-     Strip everything non-numeric, then always prepend +254 */
-  const digits = phone.replace(/\D/g,'');
-  const formatted = digits.length === 9  ? '+254' + digits        // 712345678
-                  : digits.length === 10 && digits.startsWith('0') ? '+254' + digits.slice(1) // 0712345678
-                  : digits.length === 12 && digits.startsWith('254') ? '+' + digits  // 254712345678
-                  : digits.length === 13 && digits.startsWith('254') ? '+' + digits  // 2547xxxxxxxxx
-                  : '+254' + digits.slice(-9); // fallback — take last 9 digits
-
-  currentUser.name  = fname+' '+lname;
-  currentUser.phone = formatted;
-  currentUser.role  = currentRole;
-
-  const btn = document.getElementById('btn-sendotp');
-  btn.disabled = true;
-  btn.textContent = 'Sending code…';
-
-  try {
-    /* Init Firebase if not yet done */
+  const digits = phone.replace(/[^0-9]/g,'');
+  const formatted = digits.length===9?'+254'+digits:digits.length===10&&digits[0]==='0'?'+254'+digits.slice(1):digits.length>=12&&digits.startsWith('254')?'+'+digits:'+254'+digits.slice(-9);
+  currentUser.name=fname+' '+lname;currentUser.phone=formatted;currentUser.role=currentRole;
+  const btn=document.getElementById('btn-sendotp');
+  btn.disabled=true;btn.textContent='Sending...';
+  try{
     await initFirebase();
-
-    const authMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js');
-
-    /* Create invisible reCAPTCHA only once */
-    if(!window._mjDashReCap){
-      window._mjDashReCap = new authMod.RecaptchaVerifier(
-        firebaseAuth, 'mj-dash-recaptcha', { size: 'invisible' }
-      );
-    }
-
-    _mjConfirmResult = await authMod.signInWithPhoneNumber(
-      firebaseAuth, formatted, window._mjDashReCap
-    );
-
-    document.getElementById('otp-phone-disp').textContent = formatted;
-    err.style.display = 'none';
+    const authMod=await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js');
+    if(window._mjDashReCap){try{window._mjDashReCap.clear();}catch(x){} window._mjDashReCap=null;}
+    window._mjDashReCap=new authMod.RecaptchaVerifier(firebaseAuth,'mj-dash-recaptcha',{size:'invisible'});
+    window._mjConfirmResult=await authMod.signInWithPhoneNumber(firebaseAuth,formatted,window._mjDashReCap);
+    document.getElementById('otp-phone-disp').textContent=formatted;
+    err.style.display='none';
     goStep(2);
-
-  } catch(e) {
-    err.style.display = 'flex';
-    document.getElementById('err-text').textContent =
-      e.code === 'auth/invalid-phone-number'
-        ? 'Invalid phone number format. Use 07XXXXXXXX.'
-        : e.code === 'auth/too-many-requests'
-        ? 'Too many attempts. Please wait a few minutes.'
-        : 'Could not send code: ' + e.message;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Send WhatsApp Verification Code →';
-  }
+  }catch(e){
+    err.style.display='flex';
+    document.getElementById('err-text').textContent=
+      e.code==='auth/invalid-phone-number'?'Invalid number. Type 9 digits e.g. 712345678'
+      :e.code==='auth/too-many-requests'?'Too many attempts. Please wait a few minutes.'
+      :e.code==='auth/billing-not-enabled'?'Service temporarily unavailable. Please try again later.'
+      :'Could not send code: '+e.message;
+  }finally{btn.disabled=false;btn.textContent='Send WhatsApp Verification Code →';}
 }
+/* sendOTP replaced */
 
 async function verifyOTP(){
   const code = [0,1,2,3,4,5].map(i=>{
     const el = document.getElementById('otp'+i);
     return el ? el.value : '';
   }).join('');
+  if(code.replace(/[^0-9]/g,'').length < 6){ return; }
 
-  if(code.replace(/\D/g,'').length < 6){ return; }
-
-  const btn = document.getElementById('btn-verifyotp');
-  if(btn){ btn.disabled = true; btn.textContent = 'Verifying…'; }
+  const btn = document.querySelector('[onclick="verifyOTP()"]');
+  if(btn){ btn.disabled=true; btn.textContent='Verifying...'; }
 
   try {
-    /* Step A: Confirm OTP with Firebase */
-    if(_mjConfirmResult){
-      const result = await _mjConfirmResult.confirm(code);
+    if(window._mjConfirmResult){
+      const result = await window._mjConfirmResult.confirm(code);
       const user = result.user;
-      currentUser.uid   = user.uid;
+      currentUser.uid = user.uid;
       currentUser.phone = user.phoneNumber || currentUser.phone;
     }
-
-    /* Step B: Save to localStorage always */
-    localStorage.setItem('mjengoaiUser', JSON.stringify({
-      ...currentUser, updatedAt: new Date().toISOString()
-    }));
-
-    /* Step C: Save to Firestore if available — non-blocking */
+    /* Save locally always */
+    localStorage.setItem('mjengoaiUser', JSON.stringify({...currentUser, updatedAt:new Date().toISOString()}));
+    /* Save to Firestore non-blocking */
     if(firebaseDb && firebaseModules){
-      try {
-        const {doc, setDoc, serverTimestamp} = firebaseModules;
-        const phone = currentUser.phone || currentUser.uid || 'unknown';
-        /* Save to users collection */
-        await setDoc(doc(firebaseDb,'users', safeDocId(phone)), {
-          name:     currentUser.name,
-          phone:    phone,
-          role:     currentUser.role,
-          uid:      currentUser.uid || '',
-          joinedAt: new Date().toISOString()
-        }, {merge: true});
-        /* Save to members collection for directory */
-        await setDoc(doc(firebaseDb,'members', safeDocId(phone)), {
-          name:        currentUser.name,
-          phone:       phone,
-          role:        currentUser.role,
-          subCategory: currentUser.sub || '',
-          active:      false,
-          verified:    false,
-          joinedAt:    new Date().toISOString(),
-          rating:      0,
-          reviews:     0
-        }, {merge: true});
-      } catch(fsErr){
-        console.warn('[MjengoAI] Firestore write:', fsErr.message);
-        /* Non-fatal — proceed to dashboard anyway */
-      }
+      try{
+        const {doc,setDoc} = firebaseModules;
+        const id = (currentUser.phone||currentUser.uid||'guest').replace(/[^a-zA-Z0-9_-]/g,'_');
+        setDoc(doc(firebaseDb,'users',id),{name:currentUser.name,phone:currentUser.phone||'',role:currentUser.role,uid:currentUser.uid||'',joinedAt:new Date().toISOString()},{merge:true}).catch(e=>console.warn('[MjengoAI]',e.message));
+        setDoc(doc(firebaseDb,'members',id),{name:currentUser.name,phone:currentUser.phone||'',role:currentUser.role,subCategory:currentUser.sub||'',active:false,verified:false,joinedAt:new Date().toISOString(),rating:0,reviews:0},{merge:true}).catch(e=>console.warn('[MjengoAI]',e.message));
+      }catch(fe){console.warn('[MjengoAI] Firestore:',fe.message);}
     }
-
-    /* Step D: Go to dashboard */
     goStep(3);
     setTimeout(launchDashboard, 500);
-
-  } catch(e){
-    const errEl = document.getElementById('err-msg');
-    const errTxt = document.getElementById('err-text');
-    if(errEl) errEl.style.display = 'flex';
-    if(errTxt) errTxt.textContent =
-      e.code === 'auth/invalid-verification-code' ? 'Wrong code. Please check and try again.'
-      : e.code === 'auth/code-expired' ? 'Code expired. Please go back and request a new code.'
-      : e.code === 'auth/session-expired' ? 'Session expired. Please go back and try again.'
-      : 'Verification failed: ' + e.message;
-    console.error('[MjengoAI] verifyOTP error:', e);
+  } catch(e) {
+    const errEl=document.getElementById('err-msg');
+    const errTxt=document.getElementById('err-text');
+    if(errEl) errEl.style.display='flex';
+    if(errTxt) errTxt.textContent = e.code==='auth/invalid-verification-code'
+      ? 'Wrong code. Please check and try again.'
+      : e.code==='auth/code-expired' ? 'Code expired. Request a new one.'
+      : 'Verification failed: '+e.message;
   } finally {
-    if(btn){ btn.disabled = false; btn.textContent = 'Verify & Create Account →'; }
-  }
-}
-
-/* REMOVE - original broken fragment below gets replaced */
-/* end verifyOTP */ch(e) {
-    const err = document.getElementById('err-msg');
-    err.style.display = 'flex';
-    document.getElementById('err-text').textContent =
-      e.code === 'auth/invalid-verification-code'
-        ? 'Wrong code. Please check and try again.'
-        : 'Verification failed: ' + e.message;
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Verify & Enter Dashboard →';
+    if(btn){ btn.disabled=false; btn.textContent='Verify & Create Account'; }
   }
 }
 
@@ -1555,4 +1460,3 @@ goTo('landing');
 </script>
 </body>
 </html>
-
