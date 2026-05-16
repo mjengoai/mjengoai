@@ -489,7 +489,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:11px 2
           <label class="flabel">Phone Number <span style="color:var(--green)">*</span></label>
           <div class="phone-wrap">
             <div class="phone-pre">🇰🇪 +254</div>
-            <input class="finput" id="f-phone" type="tel" placeholder="712 345 678" maxlength="9"/>
+            <input class="finput" id="f-phone" type="tel" placeholder="712 345 678" maxlength="10"/>
           </div>
         </div>
 
@@ -907,15 +907,21 @@ async function sendOTP(){
     document.getElementById('err-text').textContent='Please enter your first and last name.';
     return;
   }
-  if(!phone||phone.replace(/\D/g,'').length<9){
+  if(!phone||phone.replace(/\D/g,'').length<7){
     err.style.display='flex';
     document.getElementById('err-text').textContent='Please enter a valid Kenyan phone number.';
     return;
   }
   err.style.display='none';
 
-  const formatted = phone.startsWith('0') ? '+254'+phone.slice(1)
-                  : phone.startsWith('254') ? '+'+phone : phone;
+  /* UI shows +254 prefix — user types 9 digits only e.g. 712345678
+     Strip everything non-numeric, then always prepend +254 */
+  const digits = phone.replace(/\D/g,'');
+  const formatted = digits.length === 9  ? '+254' + digits        // 712345678
+                  : digits.length === 10 && digits.startsWith('0') ? '+254' + digits.slice(1) // 0712345678
+                  : digits.length === 12 && digits.startsWith('254') ? '+' + digits  // 254712345678
+                  : digits.length === 13 && digits.startsWith('254') ? '+' + digits  // 2547xxxxxxxxx
+                  : '+254' + digits.slice(-9); // fallback — take last 9 digits
 
   currentUser.name  = fname+' '+lname;
   currentUser.phone = formatted;
