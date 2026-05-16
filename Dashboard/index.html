@@ -528,7 +528,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:11px 2
           <input class="otpi" maxlength="1" oninput="otpNext(this,4)" id="otp4"/>
           <input class="otpi" maxlength="1" oninput="otpNext(this,5)" id="otp5"/>
         </div>
-        <button class="fcta" onclick="verifyOTP()">Verify &amp; Create Account</button>
+        <button id="btn-verifyotp" class="fcta" onclick="verifyOTP()">Verify &amp; Create Account</button>
         <p class="fhint" style="margin-top:12px;">Didn't receive code? <a onclick="sendOTP()">Resend</a> · <a onclick="goStep(1)">Change number</a></p>
       </div>
 
@@ -968,43 +968,82 @@ async function sendOTP(){
 }
 
 async function verifyOTP(){
-  const code = [0,1,2,3,4,5].map(i=>document.getElementById('otp'+i).value).join('');
-  if(code.length < 6){ return; }
+  const code = [0,1,2,3,4,5].map(i=>{
+    const el = document.getElementById('otp'+i);
+    return el ? el.value : '';
+  }).join('');
+
+  if(code.replace(/\D/g,'').length < 6){ return; }
 
   const btn = document.getElementById('btn-verifyotp');
-  btn.disabled = true;
-  btn.textContent = 'Verifying…';
+  if(btn){ btn.disabled = true; btn.textContent = 'Verifying…'; }
 
   try {
-    let user;
+    /* Step A: Confirm OTP with Firebase */
     if(_mjConfirmResult){
-      /* Real Firebase OTP verify */
       const result = await _mjConfirmResult.confirm(code);
-      user = result.user;
+      const user = result.user;
       currentUser.uid   = user.uid;
-      currentUser.phone = user.phoneNumber;
+      currentUser.phone = user.phoneNumber || currentUser.phone;
     }
-    /* Save profile to Firestore */
-    await saveUserProfile();
-    /* Save to members collection too for directory listing */
-    if(firebaseDb){
-      const {doc, setDoc, serverTimestamp} = firebaseModules;
-      await setDoc(doc(firebaseDb,'members', safeDocId(currentUser.phone)),{
-        name:        currentUser.name,
-        phone:       currentUser.phone,
-        role:        currentUser.role,
-        subCategory: currentUser.sub || '',
-        active:      false,
-        verified:    false,
-        joined:      serverTimestamp(),
-        rating:      0,
-        reviews:     0
-      },{merge:true});
-    }
-    goStep(3);
-    setTimeout(launchDashboard, 600);
 
-  } catch(e) {
+    /* Step B: Save to localStorage always */
+    localStorage.setItem('mjengoaiUser', JSON.stringify({
+      ...currentUser, updatedAt: new Date().toISOString()
+    }));
+
+    /* Step C: Save to Firestore if available — non-blocking */
+    if(firebaseDb && firebaseModules){
+      try {
+        const {doc, setDoc, serverTimestamp} = firebaseModules;
+        const phone = currentUser.phone || currentUser.uid || 'unknown';
+        /* Save to users collection */
+        await setDoc(doc(firebaseDb,'users', safeDocId(phone)), {
+          name:     currentUser.name,
+          phone:    phone,
+          role:     currentUser.role,
+          uid:      currentUser.uid || '',
+          joinedAt: new Date().toISOString()
+        }, {merge: true});
+        /* Save to members collection for directory */
+        await setDoc(doc(firebaseDb,'members', safeDocId(phone)), {
+          name:        currentUser.name,
+          phone:       phone,
+          role:        currentUser.role,
+          subCategory: currentUser.sub || '',
+          active:      false,
+          verified:    false,
+          joinedAt:    new Date().toISOString(),
+          rating:      0,
+          reviews:     0
+        }, {merge: true});
+      } catch(fsErr){
+        console.warn('[MjengoAI] Firestore write:', fsErr.message);
+        /* Non-fatal — proceed to dashboard anyway */
+      }
+    }
+
+    /* Step D: Go to dashboard */
+    goStep(3);
+    setTimeout(launchDashboard, 500);
+
+  } catch(e){
+    const errEl = document.getElementById('err-msg');
+    const errTxt = document.getElementById('err-text');
+    if(errEl) errEl.style.display = 'flex';
+    if(errTxt) errTxt.textContent =
+      e.code === 'auth/invalid-verification-code' ? 'Wrong code. Please check and try again.'
+      : e.code === 'auth/code-expired' ? 'Code expired. Please go back and request a new code.'
+      : e.code === 'auth/session-expired' ? 'Session expired. Please go back and try again.'
+      : 'Verification failed: ' + e.message;
+    console.error('[MjengoAI] verifyOTP error:', e);
+  } finally {
+    if(btn){ btn.disabled = false; btn.textContent = 'Verify & Create Account →'; }
+  }
+}
+
+/* REMOVE - original broken fragment below gets replaced */
+/* end verifyOTP */ch(e) {
     const err = document.getElementById('err-msg');
     err.style.display = 'flex';
     document.getElementById('err-text').textContent =
