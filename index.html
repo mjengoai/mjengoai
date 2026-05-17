@@ -2245,7 +2245,7 @@ function applyLoc(){
 document.addEventListener('click',e=>{if(!document.getElementById('srow').contains(e.target))document.getElementById('locdrop').classList.remove('open');});
 
 /* ════════════════════ SEARCH ════════════════════ */
-const API_URL='http://localhost:8000'; /* ← change to Render URL when deployed */
+const API_URL='https://mjengoai.onrender.com'; /* ← change to Render URL when deployed */
 
 async function doSearch(){
   const q=document.getElementById('sinput').value.trim();
