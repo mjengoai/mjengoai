@@ -1,8 +1,10 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import Optional
 import os
+import traceback
 from dotenv import load_dotenv
 
 from search import handle_query
@@ -15,30 +17,26 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Allow your frontend (MjengoAI website) to call this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # tighten to your domain in production
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# ── Request / Response models ─────────────────────────────────────────────────
-
 class SearchRequest(BaseModel):
-    query: str                        # e.g. "find a mason in Westlands"
-    county: Optional[str] = None      # e.g. "Nairobi"
-    town:   Optional[str] = None      # e.g. "Westlands"
+    query: str
+    county: Optional[str] = None
+    town:   Optional[str] = None
+
 
 class SearchResponse(BaseModel):
-    answer:  str                      # AI-generated grounded answer
-    intent:  str                      # what the AI detected: artisan_search, price_check …
-    sources: list                     # raw DB rows that backed the answer
-    query:   str                      # echoed back for the frontend
+    answer:  str
+    intent:  str
+    sources: list
+    query:   str
 
-
-# ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.get("/")
 def root():
@@ -50,25 +48,33 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/search", response_model=SearchResponse)
-async def search(req: SearchRequest):
-    """
-    Main search endpoint.
-    Accepts a natural-language query + optional location filters.
-    Returns an AI-grounded answer plus the raw DB sources.
-    """
-    result = await handle_query(
-        user_query=req.query,
-        county=req.county,
-        town=req.town
-    )
-    return SearchResponse(
-        answer=result["answer"],
-        intent=result["intent"],
-        sources=result["sources"],
-        query=req.query
-    )
+@app.post("/search")
+async def search(req: SearchRequest, request: Request):
+    try:
+        result = await handle_query(
+            user_query=req.query,
+            county=req.county,
+            town=req.town
+        )
+        return {
+            "answer":  result["answer"],
+            "intent":  result["intent"],
+            "sources": result["sources"],
+            "query":   req.query
+        }
+    except Exception as e:
+        # Log full traceback to Render logs
+        tb = traceback.format_exc()
+        print(f"[MjengoAI ERROR] {e}\n{tb}")
+        # Return helpful error instead of plain 500
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error":   str(e),
+                "message": "Search failed — check Render logs for details",
+                "query":   req.query
+            }
+        )
 
 
-# ── Run locally ───────────────────────────────────────────────────────────────
-# uvicorn main:app --reload --port 8000
+# uvicorn main:app --host 0.0.0.0 --port $PORT
