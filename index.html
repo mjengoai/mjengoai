@@ -2287,7 +2287,7 @@ const TICK=[
   {n:'Timber 2×4"',p:'KES 320/m',c:'+0.8%',u:true},{n:'Quarry stone/t',p:'KES 3,200',c:'Stable',u:null},
   {n:'BRC mesh',p:'KES 8,500/roll',c:'+1.2%',u:true},{n:'Crown Paint 20L',p:'KES 5,500',c:'-0.5%',u:false},
 ];
-document.getElementById('ticker').innerHTML=[...TICK,...TICK].map(p=>`<span class="ti"><span class="tn">${p.n}</span><span class="tp">${p.p}</span>${p.u===null?'':`<span class="${p.u?'tup':'tdn'}">${p.c}</span>`}<span class="tdot"></span></span>`).join('');
+document.getElementById('ticker').innerHTML=// Supabase config — get these from Project Settings → API const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co'; const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';  // use anon key here, NOT service_role const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);  async function loadTicker() {   const { data, error } = await sb     .from('materials')     .select('name, price_kes, unit, county')     .order('price_date', { ascending: false })     .limit(10);    const items = (data && data.length) ? data : TICK; // fallback to static if DB empty    const html = [...items, ...items].map(p => `     <span class="ti">       <span class="tn">${p.name || p.n}</span>       <span class="tp">KES ${(p.price_kes || p.p).toLocaleString()}/${p.unit || ''}</span>       <span class="tdot"></span>     </span>`).join('');    document.getElementById('ticker').innerHTML = html; }  loadTicker();  // Refresh ticker every 5 minutes setInterval(loadTicker, 5 * 60 * 1000);
 
 /* ════════════════════ INIT ════════════════════ */
 buildCats();
