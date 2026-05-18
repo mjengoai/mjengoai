@@ -455,80 +455,74 @@ async function mjVerifyOTP(code) {
 
 async function mjRegister(data) {
   try {
-    /* ── Save to Supabase registrations table ── */
     const SURL = 'https://vqizhsoohdatplrzpjrfm.supabase.co';
-    const SKEY = 'YOUR_ANON_PUBLIC_KEY'; 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODk0ODI1NCwiZXhwIjoyMDk0NTI0MjU0fQ.DuMMJWwqpd0g4BBPGbHLMPu4hdCrJQtyAaHoQ6h_R0M'
+    const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MzI1MjksImV4cCI6MjA2MzAwODUyOX0.x05MJOKTTkAFYFp1NpkLLtRQ5v1IcQdHnGdC7DUWT_g';
 
-    const payload = {
-      full_name:      data.name        || '',
-      phone:          _mjPhone         || '',
-      category:       data.category    || '',
-      specialisation: data.subCategory || '',
-      town:           data.location    || '',
-      fee:            data.price       || '',
-      email:          data.email       || '',
-      about:          data.about       || '',
-      reg_number:     data.nca_reg     || '',
-      status:         'pending'
-    };
-
-    const res = await fetch(`${SURL}/rest/v1/registrations`, {
-      method:  'POST',
+    /* 1 — save to registrations table (always) */
+    const regRes = await fetch(`${SURL}/rest/v1/registrations`, {
+      method: 'POST',
       headers: {
         'Content-Type':  'application/json',
         'apikey':        SKEY,
         'Authorization': 'Bearer ' + SKEY,
         'Prefer':        'return=minimal'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        full_name:      data.name        || '',
+        phone:          _mjPhone         || '',
+        category:       data.category    || '',
+        specialisation: data.subCategory || '',
+        town:           data.location    || '',
+        fee:            data.price       || '',
+        email:          data.email       || '',
+        about:          data.about       || '',
+        reg_number:     data.nca_reg     || '',
+        status:         'pending'
+      })
     });
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error('[MjengoAI] Registration error:', err);
-      return { ok: false, error: 'Could not save profile. Please try again.' };
+    if (!regRes.ok) {
+      const e = await regRes.text();
+      console.error('[MjengoAI] reg error:', e);
+      return { ok: false, error: 'Could not save. Try again.' };
     }
 
-    /* ── Also save to artisans/professionals table if verified ── */
-    if (data.category === 'Artisans' || data.category === 'Professionals') {
-      await fetch(`${SURL}/rest/v1/${data.category==='Artisans'?'artisans':'professionals'}`, {
-        method:  'POST',
-        headers: {
-          'Content-Type':  'application/json',
-          'apikey':        SKEY,
-          'Authorization': 'Bearer ' + SKEY,
-          'Prefer':        'return=minimal'
-        },
-        body: JSON.stringify(
-          data.category === 'Artisans'
-            ? {
-                name:       data.name        || '',
-                trade:      (data.subCategory||'').toLowerCase().replace(/ /g,'_'),
-                county:     (data.location||'').split(',').pop().trim(),
-                town:       (data.location||'').split(',')[0].trim(),
-                phone:      _mjPhone         || '',
-                daily_rate: parseInt(data.price) || 0,
-                verified:   false
-              }
-            : {
-                full_name:       data.name        || '',
-                profession:      (data.subCategory||'').toLowerCase().replace(/ /g,'_'),
-                county:          (data.location||'').split(',').pop().trim(),
-                town:            (data.location||'').split(',')[0].trim(),
-                phone:           _mjPhone         || '',
-                consult_fee_kes: parseInt(data.price) || 0,
-                bio:             data.about       || '',
-                reg_number:      data.nca_reg     || '',
-                is_verified:     false
-              }
-        )
-      }).catch(()=>{}); /* non-blocking — registration still succeeds */
+    /* 2 — also add to artisans or professionals table */
+    const cat = (data.category || '').toLowerCase();
+    if (cat === 'artisans') {
+      await fetch(`${SURL}/rest/v1/artisans`, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+SKEY,'Prefer':'return=minimal' },
+        body: JSON.stringify({
+          name:       data.name || '',
+          trade:      (data.subCategory||'').toLowerCase().replace(/\s+/g,'_'),
+          county:     (data.location||'').split(',').pop().trim(),
+          town:       (data.location||'').split(',')[0].trim(),
+          phone:      _mjPhone || '',
+          daily_rate: parseInt(data.price)||0,
+          verified:   false
+        })
+      }).catch(()=>{});
+    } else if (cat === 'professionals') {
+      await fetch(`${SURL}/rest/v1/professionals`, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+SKEY,'Prefer':'return=minimal' },
+        body: JSON.stringify({
+          full_name:       data.name || '',
+          profession:      (data.subCategory||'').toLowerCase().replace(/\s+/g,'_'),
+          county:          (data.location||'').split(',').pop().trim(),
+          town:            (data.location||'').split(',')[0].trim(),
+          phone:           _mjPhone || '',
+          consult_fee_kes: parseInt(data.price)||0,
+          bio:             data.about || '',
+          reg_number:      data.nca_reg || '',
+          is_verified:     false
+        })
+      }).catch(()=>{});
     }
 
     return { ok: true };
-
   } catch(e) {
-    console.error('[MjengoAI] Registration exception:', e);
+    console.error('[MjengoAI] mjRegister exception:', e);
     return { ok: false, error: e.message };
   }
 }
@@ -2353,19 +2347,32 @@ async function doSearch(){
     const ql=q.toLowerCase();
     let k='masons';
     if(ql.includes('plan')||ql.includes('bedroom')||ql.includes('bungalow')||ql.includes('maisonette'))k='residential';
-    else if(ql.includes('commercial')||ql.includes('plaza'))k='commercial';
+    else if(ql.includes('commercial')||ql.includes('plaza')||ql.includes('warehouse'))k='commercial';
     else if(ql.includes('architect'))k='architects';
-    else if(ql.includes('structural'))k='structural_eng';
-    else if(ql.includes('quantity')||ql.includes('qs'))k='quantity_surveyor';
+    else if(ql.includes('structural')||ql.includes('civil eng'))k='structural_eng';
+    else if(ql.includes('quantity')||ql.includes('qs')||ql.includes('boq'))k='quantity_surveyor';
+    else if(ql.includes('planner')||ql.includes('planning'))k='physical_planner';
+    else if(ql.includes('interior design'))k='interior_designer';
+    else if(ql.includes('land economist'))k='land_economist';
+    else if(ql.includes('mep'))k='mep_eng';
     else if(ql.includes('electr'))k='electricians';
     else if(ql.includes('plumb'))k='plumbers';
     else if(ql.includes('carpenter'))k='carpenters';
     else if(ql.includes('weld'))k='welders';
+    else if(ql.includes('steel fix'))k='steel_fixers';
+    else if(ql.includes('tile fix'))k='tiles_fixers';
+    else if(ql.includes('paint'))k='painters';
     else if(ql.includes('mason'))k='masons';
+    else if(ql.includes('contractor')||ql.includes('builder'))k='builders';
     else if(ql.includes('hardware')||ql.includes('cement'))k='hardware_vendors';
     else if(ql.includes('timber'))k='timber_vendors';
+    else if(ql.includes('precast')||ql.includes('block'))k='precast_vendors';
+    else if(ql.includes('roofing material'))k='roofing_mat';
+    else if(ql.includes('tile')||ql.includes('ceramic'))k='finishes_mat';
+    else if(ql.includes('calculator'))k='calculators';
     else if(ql.includes('tender'))k='tender_alert';
-    else if(ql.includes('mjt')||ql.includes('wallet'))k='ewallet';
+    else if(ql.includes('nca'))k='nca';
+    else if(ql.includes('mjengo token')||ql.includes('mjt')||ql.includes('wallet'))k='ewallet';
     cData=DB[k]||[];fData=[...cData];
     document.getElementById('ptitle').textContent='Search: "'+q+'"';
     document.getElementById('psub').textContent='Static data · AI connecting…';
@@ -2376,8 +2383,8 @@ async function doSearch(){
 function qs(q){document.getElementById('sinput').value=q;doSearch();}
 
 /* ════════════════════ TICKER ════════════════════ */
-const SUPABASE_URL  = 'https://vqizhsoohdatplrzpjrfm.supabase.co';
-const SUPABASE_ANON = 'YOUR_ANON_PUBLIC_KEY'; 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3ODk0ODI1NCwiZXhwIjoyMDk0NTI0MjU0fQ.DuMMJWwqpd0g4BBPGbHLMPu4hdCrJQtyAaHoQ6h_R0M';
+const SUPABASE_URL='https://vqizhsoohdatplrzpjrfm.supabase.co';
+const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MzI1MjksImV4cCI6MjA2MzAwODUyOX0.x05MJOKTTkAFYFp1NpkLLtRQ5v1IcQdHnGdC7DUWT_g';
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
 
 const TICK=[
@@ -2387,7 +2394,6 @@ const TICK=[
   {n:'Timber 2×4"',p:'KES 320/m',c:'+0.8%',u:true},{n:'Quarry stone/t',p:'KES 3,200',c:'Stable',u:null},
   {n:'BRC mesh',p:'KES 8,500/roll',c:'+1.2%',u:true},{n:'Crown Paint 20L',p:'KES 5,500',c:'-0.5%',u:false},
 ];
-
 function renderTicker(items){
   document.getElementById('ticker').innerHTML=[...items,...items].map(p=>`
     <span class="ti">
@@ -2397,7 +2403,6 @@ function renderTicker(items){
       <span class="tdot"></span>
     </span>`).join('');
 }
-
 async function loadTicker(){
   try{
     const {data,error}=await sb.from('materials')
@@ -2405,7 +2410,7 @@ async function loadTicker(){
       .order('price_date',{ascending:false}).limit(10);
     if(error||!data||!data.length)throw new Error('empty');
     renderTicker(data);
-  }catch(e){ renderTicker(TICK); }
+  }catch(e){renderTicker(TICK);}
 }
 loadTicker();
 setInterval(loadTicker,5*60*1000);
@@ -2684,18 +2689,14 @@ function hideTyping(){document.getElementById('aiTyping').style.display='none';}
 
 
 <script>
-/* ── Service Worker — only registers on real deployed domain ── */
+/* ── Service Worker — only on real deployed domain ── */
 if ('serviceWorker' in navigator) {
-  const _swHost = location.hostname;
-  const _isDeploy = _swHost !== 'localhost'
-    && _swHost !== '127.0.0.1'
-    && !_swHost.includes('claudeusercontent.com')
-    && _swHost !== '';
-  if (_isDeploy) {
+  const _h=location.hostname;
+  if(_h!=='localhost'&&_h!=='127.0.0.1'&&!_h.includes('claudeusercontent.com')&&_h!==''){
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js', { scope: '/' })
-        .then(reg => { console.log('[MjengoAI] SW registered ✓'); setInterval(()=>reg.update(),60000); })
-        .catch(err => console.warn('[MjengoAI] SW failed:', err));
+        .then(reg=>{console.log('[MjengoAI] SW registered ✓');setInterval(()=>reg.update(),60000);})
+        .catch(err=>console.warn('[MjengoAI] SW failed:',err));
     });
   }
 }
