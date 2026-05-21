@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>MjengoAI — Construction Calculators</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,wght@0,300;0,700;0,900;1,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --ink:#0D1F0E;
+  --ink2:#2C4A2E;
+  --ink3:#4A7A4D;
+  --paper:#F2F5EE;
+  --paper2:#E8EDE3;
+  --paper3:#D8E5CC;
+  --green:#2C6E31;
+  --green2:#3A8C3F;
+  --green3:#5AB060;
+  --accent:#C8E63C;
+  --accent2:#E8F547;
+  --warn:#E85D2B;
+  --gold:#C8960A;
+  --white:#FFFFFF;
+  --card:#FFFFFF;
+  --shadow:0 2px 16px rgba(13,31,14,.10);
+  --shadow2:0 8px 32px rgba(13,31,14,.16);
+}
+html,body{height:100%;background:var(--paper);font-family:'DM Sans',sans-serif;color:var(--ink);overflow-x:hidden;}
+
+/* ── HUB ── */
+.hub{min-height:100vh;padding:0 0 40px;}
+
+.hub-hero{background:var(--green);padding:52px 20px 36px;position:relative;overflow:hidden;}
+.hub-hero::before{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;background:rgba(200,230,60,.12);}
+.hub-hero::after{content:'';position:absolute;left:-40px;bottom:-80px;width:180px;height:180px;border-radius:50%;background:rgba(200,230,60,.08);}
+.hub-label{font-family:'DM Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.16em;color:var(--accent);text-transform:uppercase;margin-bottom:10px;}
+.hub-title{font-family:'Fraunces',serif;font-size:34px;font-weight:900;color:var(--white);line-height:1.1;margin-bottom:8px;}
+.hub-title em{color:var(--accent);font-style:italic;}
+.hub-sub{font-size:13px;color:rgba(255,255,255,.65);font-weight:300;}
+
+.app-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px 16px 0;}
+
+.app-card{background:var(--card);border-radius:20px;padding:20px 16px;cursor:pointer;border:1.5px solid transparent;transition:all .22s cubic-bezier(.4,0,.2,1);box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.app-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 60%,rgba(90,176,96,.06));pointer-events:none;}
+.app-card:active{transform:scale(.97);}
+.app-card:hover{border-color:var(--green3);box-shadow:var(--shadow2);}
+
+.app-card.wide{grid-column:1/-1;}
+
+.app-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px;}
+.ic-truck{background:linear-gradient(135deg,#1A4D1C,#2C6E31);}
+.ic-roof{background:linear-gradient(135deg,#2C4A8C,#3A5FA8);}
+.ic-ceil{background:linear-gradient(135deg,#8C4A1A,#A85F30);}
+.ic-block{background:linear-gradient(135deg,#4A1A8C,#6030A8);}
+.ic-tile{background:linear-gradient(135deg,#1A7A6E,#2A9A8C);}
+
+.app-name{font-family:'Fraunces',serif;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.app-desc{font-size:11.5px;color:var(--ink3);line-height:1.5;font-weight:300;}
+.app-arrow{position:absolute;top:18px;right:16px;width:28px;height:28px;border-radius:50%;background:var(--paper2);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--ink3);}
+
+.by-mineco{text-align:center;padding:28px 0 8px;font-size:11px;color:var(--ink3);font-family:'DM Mono',monospace;}
+.by-mineco span{color:var(--green);font-weight:500;}
+
+/* ── CALCULATOR SCREEN (fullscreen) ── */
+.calc-screen{position:fixed;inset:0;background:var(--paper);z-index:100;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);}
+.calc-screen.open{transform:translateY(0);}
+
+.cs-hdr{display:flex;align-items:center;gap:12px;padding:52px 18px 16px;position:relative;}
+.cs-back{width:36px;height:36px;border-radius:50%;background:var(--paper2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--ink2);flex-shrink:0;}
+.cs-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.cs-hdr-info{flex:1;}
+.cs-title{font-family:'Fraunces',serif;font-size:20px;font-weight:700;color:var(--ink);}
+.cs-sub{font-size:11px;color:var(--ink3);font-weight:300;}
+
+.cs-body{flex:1;overflow-y:auto;padding:0 16px 24px;}
+
+/* Result banner */
+.result-banner{background:var(--green);border-radius:18px;padding:20px;margin-bottom:20px;position:relative;overflow:hidden;}
+.result-banner::after{content:'';position:absolute;right:-20px;bottom:-20px;width:100px;height:100px;border-radius:50%;background:rgba(200,230,60,.15);}
+.rb-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;}
+.rb-grid{display:grid;gap:12px;}
+.rb-item{}
+.rb-val{font-family:'Fraunces',serif;font-size:28px;font-weight:900;color:var(--white);line-height:1;}
+.rb-unit{font-size:11px;color:rgba(255,255,255,.6);margin-top:2px;font-weight:300;}
+.rb-sub{font-size:11px;color:rgba(255,255,255,.5);margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.12);}
+
+.rb-grid-2{grid-template-columns:1fr 1fr;}
+.rb-grid-3{grid-template-columns:1fr 1fr 1fr;}
+
+/* Input section */
+.input-section{background:var(--card);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:var(--shadow);}
+.is-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--green);text-transform:uppercase;margin-bottom:14px;font-weight:500;}
+
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+.field label{font-size:12px;font-weight:500;color:var(--ink2);display:block;margin-bottom:6px;}
+.field input,.field select{width:100%;height:46px;background:var(--paper);border:1.5px solid var(--paper3);border-radius:12px;padding:0 14px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--ink);outline:none;transition:border-color .15s;-webkit-appearance:none;}
+.field input:focus,.field select:focus{border-color:var(--green3);}
+.field .hint{font-size:10.5px;color:var(--ink3);margin-top:5px;font-weight:300;}
+
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+
+/* Segmented control */
+.seg{display:flex;background:var(--paper2);border-radius:10px;padding:3px;gap:2px;margin-top:6px;}
+.seg-btn{flex:1;padding:7px 4px;border-radius:8px;border:none;background:transparent;font-size:11.5px;font-weight:500;color:var(--ink3);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.seg-btn.on{background:var(--white);color:var(--green);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+
+/* Calc button */
+.calc-btn{width:100%;padding:16px;background:var(--green);color:var(--white);border:none;border-radius:14px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.calc-btn:active{background:var(--ink2);transform:scale(.98);}
+
+/* Material chip selector */
+.mat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+.mat-chip{padding:10px 12px;border-radius:11px;border:1.5px solid var(--paper3);background:var(--paper);cursor:pointer;transition:all .15s;}
+.mat-chip.on{border-color:var(--green3);background:rgba(58,140,63,.08);}
+.mat-chip-name{font-size:12px;font-weight:600;color:var(--ink);}
+.mat-chip-den{font-size:10px;color:var(--ink3);margin-top:1px;}
+
+/* Info note */
+.info-note{background:rgba(44,110,49,.07);border-left:3px solid var(--green3);border-radius:0 10px 10px 0;padding:10px 12px;font-size:11.5px;color:var(--ink2);line-height:1.55;margin-bottom:14px;}
+
+/* Waste badge */
+.waste-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+.waste-label{font-size:12px;color:var(--ink3);}
+.waste-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--warn);font-weight:500;}
+</style>
+</head>
+<body>
+
+<!-- ══ HUB ══ -->
+<div class="hub" id="hub">
+  <div class="hub-hero">
+    <div class="hub-label">Mineco × MjengoAI</div>
+    <div class="hub-title">Construction<br/><em>Calculators</em></div>
+    <div class="hub-sub">Professional tools for Kenya's builders</div>
+  </div>
+
+  <div class="app-grid">
+    <div class="app-card wide" onclick="open_calc('truck')">
+      <div class="app-icon ic-truck">🚛</div>
+      <div class="app-arrow">→</div>
+      <div class="app-name">Truck Weight</div>
+      <div class="app-desc">Enter truck bed dimensions — instantly get load volume and weight for sand, ballast, soil, hardcore, and more.</div>
+    </div>
+
+    <div class="app-card" onclick="open_calc('roof')">
+      <div class="app-icon ic-roof">🏠</div>
+      <div class="app-arrow">→</div>
+      <div class="app-name">Roof Calculator</div>
+      <div class="app-desc">Sheets, battens, ridge, nails & felt — all calculated from your roof dimensions.</div>
+    </div>
+
+    <div class="app-card" onclick="open_calc('ceil')">
+      <div class="app-icon ic-ceil">📐</div>
+      <div class="app-arrow">→</div>
+      <div class="app-name">Ceiling Calculator</div>
+      <div class="app-desc">Tiles, grid battens & hangers for any room. Wastage factored in.</div>
+    </div>
+
+    <div class="app-card" onclick="open_calc('block')">
+      <div class="app-icon ic-block">🧱</div>
+      <div class="app-arrow">→</div>
+      <div class="app-name">Block Calculator</div>
+      <div class="app-desc">Blocks, cement bags & sand for any wall. Choose block size and mortar ratio.</div>
+    </div>
+
+    <div class="app-card wide" onclick="open_calc('tile')">
+      <div class="app-icon ic-tile">🟦</div>
+      <div class="app-arrow">→</div>
+      <div class="app-name">Tiles Calculator</div>
+      <div class="app-desc">Floor or wall tiling — tile count, boxes needed, adhesive bags & grout. Includes wastage percentage selector.</div>
+    </div>
+  </div>
+
+  <div class="by-mineco">Powered by <span>Mineco Houses</span> × MjengoAI</div>
+</div>
+
+<!-- ══ CALCULATOR SCREENS ══ -->
+
+<!-- TRUCK WEIGHT -->
+<div class="calc-screen" id="calc-truck">
+  <div class="cs-hdr">
+    <button class="cs-back" onclick="close_calc('truck')">←</button>
+    <div class="cs-icon ic-truck">🚛</div>
+    <div class="cs-hdr-info">
+      <div class="cs-title">Truck Weight</div>
+      <div class="cs-sub">Volume & weight for any material</div>
+    </div>
+  </div>
+  <div class="cs-body">
+    <div class="result-banner" id="truck-result">
+      <div class="rb-label">Results</div>
+      <div class="rb-grid rb-grid-2">
+        <div class="rb-item">
+          <div class="rb-val" id="tr-vol">—</div>
+          <div class="rb-unit">m³ Volume</div>
+        </div>
+        <div class="rb-item">
+          <div class="rb-val" id="tr-wt">—</div>
+          <div class="rb-unit">Tonnes</div>
+        </div>
+      </div>
+      <div class="rb-sub" id="tr-sub">Enter truck dimensions and select material</div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Truck Bed Dimensions</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Length (m)</label>
+          <input type="number" id="tr-len" placeholder="e.g. 4.5" step="0.1" oninput="calc_truck()"/>
+        </div>
+        <div class="field">
+          <label>Width (m)</label>
+          <input type="number" id="tr-wid" placeholder="e.g. 2.2" step="0.1" oninput="calc_truck()"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Height / Depth of Load (m)</label>
+        <input type="number" id="tr-hgt" placeholder="e.g. 1.2" step="0.1" oninput="calc_truck()"/>
+        <div class="hint">How deep material is loaded in the truck</div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Select Material</div>
+      <div class="mat-grid" id="tr-mats">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Load Factor</div>
+      <div class="field">
+        <label>Fill level</label>
+        <div class="seg" id="tr-fill">
+          <button class="seg-btn on" onclick="setTrFill(this,1.0)">Full 100%</button>
+          <button class="seg-btn" onclick="setTrFill(this,0.9)">90%</button>
+          <button class="seg-btn" onclick="setTrFill(this,0.75)">75%</button>
+          <button class="seg-btn" onclick="setTrFill(this,0.5)">Half 50%</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROOF CALCULATOR -->
+<div class="calc-screen" id="calc-roof">
+  <div class="cs-hdr">
+    <button class="cs-back" onclick="close_calc('roof')">←</button>
+    <div class="cs-icon ic-roof">🏠</div>
+    <div class="cs-hdr-info">
+      <div class="cs-title">Roof Calculator</div>
+      <div class="cs-sub">Materials for your full roof</div>
+    </div>
+  </div>
+  <div class="cs-body">
+    <div class="result-banner" id="roof-result">
+      <div class="rb-label">Materials Needed</div>
+      <div class="rb-grid rb-grid-3">
+        <div class="rb-item"><div class="rb-val" id="ro-sheets">—</div><div class="rb-unit">Sheets</div></div>
+        <div class="rb-item"><div class="rb-val" id="ro-batt">—</div><div class="rb-unit">Battens</div></div>
+        <div class="rb-item"><div class="rb-val" id="ro-ridge">—</div><div class="rb-unit">Ridge m</div></div>
+      </div>
+      <div class="rb-grid rb-grid-3" style="margin-top:12px;">
+        <div class="rb-item"><div class="rb-val" id="ro-nails">—</div><div class="rb-unit">Nails kg</div></div>
+        <div class="rb-item"><div class="rb-val" id="ro-felt">—</div><div class="rb-unit">Felt m²</div></div>
+        <div class="rb-item"><div class="rb-val" id="ro-purlins">—</div><div class="rb-unit">Purlins</div></div>
+      </div>
+      <div class="rb-sub" id="ro-sub">Enter roof dimensions below</div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Roof Dimensions</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Length (m)</label>
+          <input type="number" id="ro-len" placeholder="e.g. 12" step="0.5" oninput="calc_roof()"/>
+        </div>
+        <div class="field">
+          <label>Width / Span (m)</label>
+          <input type="number" id="ro-wid" placeholder="e.g. 8" step="0.5" oninput="calc_roof()"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Roof Pitch</label>
+        <div class="seg">
+          <button class="seg-btn on" onclick="setRoofPitch(this,15)">15°</button>
+          <button class="seg-btn" onclick="setRoofPitch(this,22.5)">22.5°</button>
+          <button class="seg-btn" onclick="setRoofPitch(this,30)">30°</button>
+          <button class="seg-btn" onclick="setRoofPitch(this,45)">45°</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Roofing Sheet Type</div>
+      <div class="field">
+        <label>Sheet Profile</label>
+        <div class="seg">
+          <button class="seg-btn on" onclick="setSheetType(this,'box')">Box Profile</button>
+          <button class="seg-btn" onclick="setSheetType(this,'cor')">Corrugated</button>
+          <button class="seg-btn" onclick="setSheetType(this,'tile')">Tile Effect</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Sheet Length (m)</label>
+        <div class="seg">
+          <button class="seg-btn" onclick="setSheetLen(this,2.4)">2.4m</button>
+          <button class="seg-btn on" onclick="setSheetLen(this,3.0)">3.0m</button>
+          <button class="seg-btn" onclick="setSheetLen(this,3.6)">3.6m</button>
+          <button class="seg-btn" onclick="setSheetLen(this,4.2)">4.2m</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Wastage %</label>
+        <div class="seg">
+          <button class="seg-btn on" onclick="setRoofWaste(this,5)">5%</button>
+          <button class="seg-btn" onclick="setRoofWaste(this,10)">10%</button>
+          <button class="seg-btn" onclick="setRoofWaste(this,15)">15%</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CEILING CALCULATOR -->
+<div class="calc-screen" id="calc-ceil">
+  <div class="cs-hdr">
+    <button class="cs-back" onclick="close_calc('ceil')">←</button>
+    <div class="cs-icon ic-ceil">📐</div>
+    <div class="cs-hdr-info">
+      <div class="cs-title">Ceiling Calculator</div>
+      <div class="cs-sub">Tiles, grid & hangers for any room</div>
+    </div>
+  </div>
+  <div class="cs-body">
+    <div class="result-banner" id="ceil-result">
+      <div class="rb-label">Materials Needed</div>
+      <div class="rb-grid rb-grid-3">
+        <div class="rb-item"><div class="rb-val" id="ce-tiles">—</div><div class="rb-unit">Tiles</div></div>
+        <div class="rb-item"><div class="rb-val" id="ce-main">—</div><div class="rb-unit">Main Tees</div></div>
+        <div class="rb-item"><div class="rb-val" id="ce-cross">—</div><div class="rb-unit">Cross Tees</div></div>
+      </div>
+      <div class="rb-grid rb-grid-3" style="margin-top:12px;">
+        <div class="rb-item"><div class="rb-val" id="ce-wall">—</div><div class="rb-unit">Wall Angle m</div></div>
+        <div class="rb-item"><div class="rb-val" id="ce-hang">—</div><div class="rb-unit">Hangers</div></div>
+        <div class="rb-item"><div class="rb-val" id="ce-boxes">—</div><div class="rb-unit">Boxes</div></div>
+      </div>
+      <div class="rb-sub" id="ce-sub">Enter room dimensions below</div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Room Dimensions</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Length (m)</label>
+          <input type="number" id="ce-len" placeholder="e.g. 5" step="0.5" oninput="calc_ceil()"/>
+        </div>
+        <div class="field">
+          <label>Width (m)</label>
+          <input type="number" id="ce-wid" placeholder="e.g. 4" step="0.5" oninput="calc_ceil()"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Tile Size</div>
+      <div class="field">
+        <label>Standard tile dimensions</label>
+        <div class="seg">
+          <button class="seg-btn on" onclick="setCeilTile(this,0.6,0.6)">600×600</button>
+          <button class="seg-btn" onclick="setCeilTile(this,0.6,1.2)">600×1200</button>
+          <button class="seg-btn" onclick="setCeilTile(this,0.3,0.6)">300×600</button>
+          <button class="seg-btn" onclick="setCeilTile(this,0.3,0.3)">300×300</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Wastage %</label>
+        <div class="seg">
+          <button class="seg-btn on" onclick="setCeilWaste(this,10)">10%</button>
+          <button class="seg-btn" onclick="setCeilWaste(this,15)">15%</button>
+          <button class="seg-btn" onclick="setCeilWaste(this,20)">20%</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BLOCK CALCULATOR -->
+<div class="calc-screen" id="calc-block">
+  <div class="cs-hdr">
+    <button class="cs-back" onclick="close_calc('block')">←</button>
+    <div class="cs-icon ic-block">🧱</div>
+    <div class="cs-hdr-info">
+      <div class="cs-title">Block Calculator</div>
+      <div class="cs-sub">Blocks, cement & sand for any wall</div>
+    </div>
+  </div>
+  <div class="cs-body">
+    <div class="result-banner" id="block-result">
+      <div class="rb-label">Materials Needed</div>
+      <div class="rb-grid rb-grid-3">
+        <div class="rb-item"><div class="rb-val" id="bl-blocks">—</div><div class="rb-unit">Blocks</div></div>
+        <div class="rb-item"><div class="rb-val" id="bl-cement">—</div><div class="rb-unit">Cement Bags</div></div>
+        <div class="rb-item"><div class="rb-val" id="bl-sand">—</div><div class="rb-unit">Sand m³</div></div>
+      </div>
+      <div class="rb-sub" id="bl-sub">Enter wall dimensions below</div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Wall Dimensions</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Length (m)</label>
+          <input type="number" id="bl-len" placeholder="e.g. 10" step="0.5" oninput="calc_block()"/>
+        </div>
+        <div class="field">
+          <label>Height (m)</label>
+          <input type="number" id="bl-hgt" placeholder="e.g. 3" step="0.25" oninput="calc_block()"/>
+        </div>
+      </div>
+      <div class="field">
+        <label>Number of walls</label>
+        <input type="number" id="bl-walls" placeholder="1" min="1" max="20" oninput="calc_block()"/>
+        <div class="hint">For perimeter walls, count each wall section separately</div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Block Size</div>
+      <div class="field">
+        <div class="seg">
+          <button class="seg-btn on" onclick="setBlockSize(this,400,200,200)">400mm</button>
+          <button class="seg-btn" onclick="setBlockSize(this,400,150,200)">150mm</button>
+          <button class="seg-btn" onclick="setBlockSize(this,400,100,200)">100mm</button>
+          <button class="seg-btn" onclick="setBlockSize(this,400,75,200)">75mm</button>
+        </div>
+        <div class="hint" id="bl-size-hint">400×200×200mm — standard hollow block</div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Mortar Mix Ratio</div>
+      <div class="field">
+        <div class="seg">
+          <button class="seg-btn on" onclick="setMortarRatio(this,1,4)">1:4</button>
+          <button class="seg-btn" onclick="setMortarRatio(this,1,5)">1:5</button>
+          <button class="seg-btn" onclick="setMortarRatio(this,1,6)">1:6</button>
+        </div>
+        <div class="hint">Cement : Sand ratio for mortar</div>
+      </div>
+      <div class="field">
+        <label>Wastage %</label>
+        <div class="seg">
+          <button class="seg-btn on" onclick="setBlockWaste(this,5)">5%</button>
+          <button class="seg-btn" onclick="setBlockWaste(this,10)">10%</button>
+          <button class="seg-btn" onclick="setBlockWaste(this,15)">15%</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Openings (Doors & Windows)</div>
+      <div class="info-note">Subtract openings from total wall area to avoid over-ordering.</div>
+      <div class="field-row">
+        <div class="field">
+          <label>No. of Doors</label>
+          <input type="number" id="bl-doors" placeholder="0" min="0" oninput="calc_block()"/>
+        </div>
+        <div class="field">
+          <label>No. of Windows</label>
+          <input type="number" id="bl-wins" placeholder="0" min="0" oninput="calc_block()"/>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TILES CALCULATOR -->
+<div class="calc-screen" id="calc-tile">
+  <div class="cs-hdr">
+    <button class="cs-back" onclick="close_calc('tile')">←</button>
+    <div class="cs-icon ic-tile">🟦</div>
+    <div class="cs-hdr-info">
+      <div class="cs-title">Tiles Calculator</div>
+      <div class="cs-sub">Tiles, adhesive & grout</div>
+    </div>
+  </div>
+  <div class="cs-body">
+    <div class="result-banner" id="tile-result">
+      <div class="rb-label">Materials Needed</div>
+      <div class="rb-grid rb-grid-3">
+        <div class="rb-item"><div class="rb-val" id="ti-tiles">—</div><div class="rb-unit">Tiles</div></div>
+        <div class="rb-item"><div class="rb-val" id="ti-boxes">—</div><div class="rb-unit">Boxes</div></div>
+        <div class="rb-item"><div class="rb-val" id="ti-adh">—</div><div class="rb-unit">Adhesive Bags</div></div>
+      </div>
+      <div class="rb-grid rb-grid-2" style="margin-top:12px;">
+        <div class="rb-item"><div class="rb-val" id="ti-grout">—</div><div class="rb-unit">Grout kg</div></div>
+        <div class="rb-item"><div class="rb-val" id="ti-area">—</div><div class="rb-unit">Total m²</div></div>
+      </div>
+      <div class="rb-sub" id="ti-sub">Enter room dimensions below</div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Area to Tile</div>
+      <div class="field">
+        <label>Tiling surface</label>
+        <div class="seg">
+          <button class="seg-btn on" onclick="setTileArea(this,'room')">Full Room</button>
+          <button class="seg-btn" onclick="setTileArea(this,'custom')">Custom m²</button>
+        </div>
+      </div>
+      <div id="ti-room-fields">
+        <div class="field-row">
+          <div class="field">
+            <label>Length (m)</label>
+            <input type="number" id="ti-len" placeholder="e.g. 5" step="0.1" oninput="calc_tile()"/>
+          </div>
+          <div class="field">
+            <label>Width (m)</label>
+            <input type="number" id="ti-wid" placeholder="e.g. 4" step="0.1" oninput="calc_tile()"/>
+          </div>
+        </div>
+      </div>
+      <div id="ti-custom-field" style="display:none;">
+        <div class="field">
+          <label>Area (m²)</label>
+          <input type="number" id="ti-custom-area" placeholder="e.g. 25" step="0.5" oninput="calc_tile()"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Tile Size</div>
+      <div class="field">
+        <div class="seg">
+          <button class="seg-btn" onclick="setTileSize(this,30,30,9)">300×300</button>
+          <button class="seg-btn on" onclick="setTileSize(this,40,40,6)">400×400</button>
+          <button class="seg-btn" onclick="setTileSize(this,60,60,4)">600×600</button>
+          <button class="seg-btn" onclick="setTileSize(this,60,120,2)">600×1200</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Tiles per box</label>
+        <input type="number" id="ti-perbox" placeholder="e.g. 4" value="4" min="1" oninput="calc_tile()"/>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="is-label">Wastage & Grout</div>
+      <div class="field">
+        <label>Wastage allowance</label>
+        <div class="seg">
+          <button class="seg-btn" onclick="setTileWaste(this,5)">5% Simple</button>
+          <button class="seg-btn on" onclick="setTileWaste(this,10)">10% Standard</button>
+          <button class="seg-btn" onclick="setTileWaste(this,15)">15% Complex</button>
+          <button class="seg-btn" onclick="setTileWaste(this,20)">20% Diagonal</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Grout joint width</label>
+        <div class="seg">
+          <button class="seg-btn on" onclick="setGrout(this,2)">2mm</button>
+          <button class="seg-btn" onclick="setGrout(this,3)">3mm</button>
+          <button class="seg-btn" onclick="setGrout(this,5)">5mm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════
+   HUB NAVIGATION
+══════════════════════════════════════ */
+function open_calc(id){
+  document.getElementById('calc-'+id).classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function close_calc(id){
+  document.getElementById('calc-'+id).classList.remove('open');
+  document.body.style.overflow='';
+}
+
+/* ══════════════════════════════════════
+   TRUCK WEIGHT CALCULATOR
+══════════════════════════════════════ */
+const MATERIALS = [
+  {id:'sand',    name:'River Sand',    den:1.6,  icon:'🏖️'},
+  {id:'ballast', name:'Ballast',       den:1.55, icon:'⛏️'},
+  {id:'hardcore',name:'Hardcore',      den:1.8,  icon:'🪨'},
+  {id:'soil',    name:'Soil',          den:1.45, icon:'🌱'},
+  {id:'gravel',  name:'Gravel',        den:1.7,  icon:'🔵'},
+  {id:'murram',  name:'Murram',        den:1.9,  icon:'🟤'},
+  {id:'cement',  name:'Cement (bulk)', den:1.2,  icon:'🪣'},
+  {id:'crusher', name:'Crusher Dust',  den:1.5,  icon:'💨'},
+];
+let trMat = MATERIALS[0];
+let trFill = 1.0;
+
+function initTruckMats(){
+  const g = document.getElementById('tr-mats');
+  g.innerHTML = MATERIALS.map((m,i)=>`
+    <div class="mat-chip ${i===0?'on':''}" onclick="selectMat('${m.id}',this)">
+      <div class="mat-chip-name">${m.icon} ${m.name}</div>
+      <div class="mat-chip-den">${m.den} t/m³</div>
+    </div>`).join('');
+}
+
+function selectMat(id, el){
+  trMat = MATERIALS.find(m=>m.id===id);
+  document.querySelectorAll('.mat-chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  calc_truck();
+}
+
+function setTrFill(el, val){
+  trFill = val;
+  document.querySelectorAll('#tr-fill .seg-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
+  calc_truck();
+}
+
+function calc_truck(){
+  const L = parseFloat(document.getElementById('tr-len').value)||0;
+  const W = parseFloat(document.getElementById('tr-wid').value)||0;
+  const H = parseFloat(document.getElementById('tr-hgt').value)||0;
+  if(!L||!W||!H) return;
+  const vol = L*W*H*trFill;
+  const wt  = vol*trMat.den;
+  document.getElementById('tr-vol').textContent = vol.toFixed(2);
+  document.getElementById('tr-wt').textContent  = wt.toFixed(2);
+  document.getElementById('tr-sub').textContent =
+    `${trMat.name} · Density ${trMat.den} t/m³ · ${(trFill*100).toFixed(0)}% load · Bed: ${L}×${W}×${H}m`;
+}
+
+/* ══════════════════════════════════════
+   ROOF CALCULATOR
+══════════════════════════════════════ */
+let roofPitch=15, sheetType='box', sheetLen=3.0, roofWaste=0.05;
+// Coverage widths (effective) by profile in metres
+const sheetCoverage = {box:0.850, cor:0.762, tile:0.900};
+// Batten spacing by pitch
+function battenSpacing(pitch){
+  if(pitch<=15) return 0.45;
+  if(pitch<=22.5) return 0.38;
+  if(pitch<=30) return 0.33;
+  return 0.28;
+}
+
+function setRoofPitch(el,v){ roofPitch=v; document.querySelectorAll('#calc-roof .seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); calc_roof(); }
+function setSheetType(el,v){ sheetType=v; el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); calc_roof(); }
+function setSheetLen(el,v){  sheetLen=v;  el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); calc_roof(); }
+function setRoofWaste(el,v){ roofWaste=v/100; el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); calc_roof(); }
+
+function calc_roof(){
+  const L = parseFloat(document.getElementById('ro-len').value)||0;
+  const W = parseFloat(document.getElementById('ro-wid').value)||0;
+  if(!L||!W) return;
+  // Rafter length from pitch
+  const pitchRad = roofPitch*Math.PI/180;
+  const rafterLen = (W/2)/Math.cos(pitchRad);
+  const roofArea = 2*L*rafterLen;
+  // Sheets
+  const cov = sheetCoverage[sheetType]||0.85;
+  const sheetsRow = Math.ceil(rafterLen/sheetLen);
+  const sheetsPerRow = Math.ceil(L/cov);
+  const sheetsRaw = sheetsRow*sheetsPerRow*2; // both sides
+  const sheets = Math.ceil(sheetsRaw*(1+roofWaste));
+  // Battens (purlins)
+  const bsp = battenSpacing(roofPitch);
+  const battenRows = Math.ceil(rafterLen/bsp)+1;
+  const battens = Math.ceil(battenRows*2*(L/3.6)*(1+roofWaste)); // 3.6m batten lengths
+  const purlins = Math.ceil(battenRows*2);
+  // Ridge
+  const ridge = Math.ceil(L*(1+0.1));
+  // Nails: ~0.15kg per sheet
+  const nails = Math.ceil(sheets*0.15*10)/10;
+  // Felt (underlay) m²
+  const felt = Math.ceil(roofArea*(1+roofWaste));
+
+  document.getElementById('ro-sheets').textContent  = sheets;
+  document.getElementById('ro-batt').textContent    = battens;
+  document.getElementById('ro-ridge').textContent   = ridge;
+  document.getElementById('ro-nails').textContent   = nails.toFixed(1);
+  document.getElementById('ro-felt').textContent    = felt;
+  document.getElementById('ro-purlins').textContent = purlins;
+  document.getElementById('ro-sub').textContent     =
+    `Roof area: ${roofArea.toFixed(1)}m² · Rafter: ${rafterLen.toFixed(2)}m · Pitch: ${roofPitch}° · ${(roofWaste*100)}% wastage`;
+}
+
+/* ══════════════════════════════════════
+   CEILING CALCULATOR
+══════════════════════════════════════ */
+let ceilTileW=0.6, ceilTileH=0.6, ceilWaste=0.10;
+
+function setCeilTile(el,w,h){ ceilTileW=w; ceilTileH=h; el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); calc_ceil(); }
+function setCeilWaste(el,v){ ceilWaste=v/100; el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); calc_ceil(); }
+
+function calc_ceil(){
+  const L = parseFloat(document.getElementById('ce-len').value)||0;
+  const W = parseFloat(document.getElementById('ce-wid').value)||0;
+  if(!L||!W) return;
+  const area = L*W;
+  const tileArea = ceilTileW*ceilTileH;
+  const tiles = Math.ceil((area/tileArea)*(1+ceilWaste));
+  // Grid: main tees run length @ 1.2m centres; cross tees span width @ tile width centres
+  const mainTees = Math.ceil((W/1.2)+1)*Math.ceil(L/3.6); // 3.6m main tee lengths
+  const crossTees = Math.ceil(L/ceilTileW)*Math.ceil(W/1.2);
+  // Wall angle (perimeter in metres)
+  const wallAngle = Math.ceil(2*(L+W)*(1.05));
+  // Hangers: every 1.2m along main tee, every 1.2m span
+  const hangers = Math.ceil((L/1.2)*(W/1.2)*(1.1));
+  // Boxes (tiles per box varies: assume 600×600 → 10/box, smaller → 16/box)
+  const perBox = ceilTileW>=0.6 ? 10 : 16;
+  const boxes = Math.ceil(tiles/perBox);
+
+  document.getElementById('ce-tiles').textContent = tiles;
+  document.getElementById('ce-main').textContent  = mainTees;
+  document.getElementById('ce-cross').textContent = crossTees;
+  document.getElementById('ce-wall').textContent  = wallAngle;
+  document.getElementById('ce-hang').textContent  = hangers;
+  document.getElementById('ce-boxes').textContent = boxes;
+  document.getElementById('ce-sub').textContent   =
+    `Area: ${area.toFixed(1)}m² · Tile: ${ceilTileW*1000}×${ceilTileH*1000}mm · ${(ceilWaste*100)}% wastage`;
+}
+
+/* ══════════════════════════════════════
+   BLOCK CALCULATOR
+══════════════════════════════════════ */
+let blkW=0.4, blkT=0.2, blkH=0.2;
+let mortarRatioC=1, mortarRatioS=4;
+let blkWaste=0.05;
+
+function setBlockSize(el,l,t,h){
+  blkW=l/1000; blkT=t/1000; blkH=h/1000;
+  el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on');
+  document.getElementById('bl-size-hint').textContent=`${l}×${t}×${h}mm`;
+  calc_block();
+}
+function setMortarRatio(el,c,s){ mortarRatioC=c; mortarRatioS=s; el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); calc_block(); }
+function setBlockWaste(el,v){ blkWaste=v/100; el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); calc_block(); }
+
+function calc_block(){
+  const L = parseFloat(document.getElementById('bl-len').value)||0;
+  const H = parseFloat(document.getElementById('bl-hgt').value)||0;
+  const walls = parseInt(document.getElementById('bl-walls').value)||1;
+  const doors = parseInt(document.getElementById('bl-doors').value)||0;
+  const wins  = parseInt(document.getElementById('bl-wins').value)||0;
+  if(!L||!H) return;
+  // Opening deductions (standard door 0.9×2.1m, window 1.2×1.2m)
+  const openArea = doors*0.9*2.1 + wins*1.2*1.2;
+  const wallArea = Math.max(0, L*H*walls - openArea);
+  // Blocks per m²
+  const jointT = 0.01; // 10mm joint
+  const blocksPerM2 = 1/((blkW+jointT)*(blkH+jointT));
+  const blocksRaw = wallArea*blocksPerM2;
+  const blocks = Math.ceil(blocksRaw*(1+blkWaste));
+  // Mortar volume: joint volume per m² of wall
+  const mortarVol = wallArea*0.025; // ~25L mortar per m²
+  // Cement bags (50kg): 1 bag ≈ 0.036m³ in 1:4 mix → cement fraction = 1/(1+mortarRatioS)
+  const cementFrac = 1/(1+mortarRatioS);
+  const cementVol = mortarVol*cementFrac*1.35; // 35% compaction factor
+  const cementBags = Math.ceil(cementVol/0.036);
+  // Sand m³
+  const sandVol = Math.ceil((mortarVol*(mortarRatioS/(1+mortarRatioS))*1.35)*10)/10;
+
+  document.getElementById('bl-blocks').textContent = blocks;
+  document.getElementById('bl-cement').textContent = cementBags;
+  document.getElementById('bl-sand').textContent   = sandVol.toFixed(2);
+  document.getElementById('bl-sub').textContent    =
+    `Wall area: ${wallArea.toFixed(1)}m² · ${blocks} blocks · Mix 1:${mortarRatioS} · ${(blkWaste*100)}% wastage`;
+}
+
+/* ══════════════════════════════════════
+   TILES CALCULATOR
+══════════════════════════════════════ */
+let tileSizeW=0.4, tileSizeH=0.4, tilesPerBox=4, tileWaste=0.10, groutJoint=2;
+let tileAreaMode='room';
+
+function setTileArea(el,mode){
+  tileAreaMode=mode;
+  document.getElementById('ti-room-fields').style.display=mode==='room'?'block':'none';
+  document.getElementById('ti-custom-field').style.display=mode==='custom'?'block':'none';
+  el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on');
+  calc_tile();
+}
+function setTileSize(el,w,h,perBox){
+  tileSizeW=w/100; tileSizeH=h/100; tilesPerBox=perBox;
+  document.getElementById('ti-perbox').value=perBox;
+  el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on');
+  calc_tile();
+}
+function setTileWaste(el,v){ tileWaste=v/100; el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); calc_tile(); }
+function setGrout(el,v){ groutJoint=v; el.parentElement.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on')); el.classList.add('on'); calc_tile(); }
+
+function calc_tile(){
+  let area=0;
+  if(tileAreaMode==='room'){
+    const L=parseFloat(document.getElementById('ti-len').value)||0;
+    const W=parseFloat(document.getElementById('ti-wid').value)||0;
+    if(!L||!W) return;
+    area=L*W;
+  } else {
+    area=parseFloat(document.getElementById('ti-custom-area').value)||0;
+    if(!area) return;
+  }
+  const perBox = parseInt(document.getElementById('ti-perbox').value)||4;
+  const tileArea = tileSizeW*tileSizeH;
+  const tilesNet = area/tileArea;
+  const tiles = Math.ceil(tilesNet*(1+tileWaste));
+  const boxes = Math.ceil(tiles/perBox);
+  // Adhesive: 1 bag (20kg) covers ~5m²
+  const adhBags = Math.ceil(area*(1+tileWaste)/5);
+  // Grout: kg = area × joint factor
+  const jFactor = groutJoint===2?0.3:groutJoint===3?0.45:0.75;
+  const grout = Math.ceil(area*jFactor*10)/10;
+
+  document.getElementById('ti-tiles').textContent = tiles;
+  document.getElementById('ti-boxes').textContent = boxes;
+  document.getElementById('ti-adh').textContent   = adhBags;
+  document.getElementById('ti-grout').textContent = grout.toFixed(1);
+  document.getElementById('ti-area').textContent  = area.toFixed(1);
+  document.getElementById('ti-sub').textContent   =
+    `Area: ${area.toFixed(1)}m² · Tile: ${tileSizeW*100}×${tileSizeH*100}cm · ${(tileWaste*100)}% wastage · ${groutJoint}mm joint`;
+}
+
+/* ══ INIT ══ */
+initTruckMats();
+</script>
+</body>
+</html>
