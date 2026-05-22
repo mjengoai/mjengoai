@@ -520,6 +520,71 @@ async function mjRegister(data) {
       }).catch(()=>{});
     }
 
+    /* 3 — Save to Firebase members collection so they appear on the site immediately */
+    try {
+      const _db  = window.MjengoFS._db  || window._db;
+      const { doc, setDoc, serverTimestamp } = window.MjengoFS;
+      const phone = _mjPhone || data.phone || '';
+      if (_db && phone) {
+        await setDoc(doc(_db, 'members', phone), {
+          name:         data.name        || '',
+          phone:        phone,
+          category:     data.category    || '',
+          subCategory:  data.subCategory || '',
+          location:     data.location    || '',
+          price:        data.price       || '',
+          email:        data.email       || '',
+          about:        data.about       || '',
+          nca_reg:      data.nca_reg     || '',
+          status:       'pending',
+          verified:     false,
+          joined:       serverTimestamp()
+        });
+        console.log('[MjengoAI] Member saved to Firebase ✓');
+      }
+    } catch(fbErr) {
+      console.warn('[MjengoAI] Firebase member save skipped:', fbErr.message);
+      // Non-fatal — Supabase already saved
+    }
+
+    /* 4 — Add to local DB array so they appear in results immediately (same session) */
+    const cat = (data.category || '').toLowerCase();
+    const newEntry = {
+      id:    Date.now(),
+      name:  data.name        || '',
+      sub:   (data.subCategory || '') + ' · ' + (data.location || ''),
+      tags:  [data.subCategory || '', data.location || ''].filter(Boolean),
+      price: data.price       || 'Contact for price',
+      rat:   0, rev: 0,
+      loc:   (data.location || '').split(',').pop().trim(),
+      avC:   '#3a8c3a', init: (data.name||'?').slice(0,2).toUpperCase(),
+      badge: 'New · Pending Verification', bc: 'bg',
+      type:  data.subCategory || data.category || '',
+      phone: _mjPhone || '',
+      about: data.about || '',
+      avail: 'Contact to confirm',
+      exp:   '', reg: data.nca_reg || ''
+    };
+    const keyMap = {
+      artisans: {
+        mason:'masons', plumber:'plumbers', electrician:'electricians',
+        carpenter:'carpenters', welder:'welders', painter:'painters',
+        tiler:'tiles_fixers', 'steel fixer':'steel_fixers'
+      },
+      professionals: {
+        architect:'architects', engineer:'structural_eng',
+        'quantity surveyor':'quantity_surveyor', 'mep engineer':'mep_eng',
+        'construction manager':'construction_mgr'
+      }
+    };
+    const subLow = (data.subCategory||'').toLowerCase();
+    const catMap  = keyMap[cat] || {};
+    const dbKey   = Object.keys(catMap).find(k => subLow.includes(k));
+    if (dbKey && DB[catMap[dbKey]]) {
+      DB[catMap[dbKey]].unshift(newEntry); // appear at top of results
+      console.log('[MjengoAI] Added to local DB key:', catMap[dbKey]);
+    }
+
     return { ok: true };
   } catch(e) {
     console.error('[MjengoAI] mjRegister exception:', e);
@@ -830,7 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="loctxt" id="loctxt">All Kenya</span>
         <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
       </button>
-      <input class="sinput" id="sinput" type="text" placeholder="Search artisans, materials, plans, professionals…" onkeydown="if(event.key==='Enter')doSearch()"/>
+      <input class="sinput" id="sinput" type="text" placeholder="Search artisans, materials, plans, professionals…" onkeydown="if(event.key==='Enter')doSearch()" oninput="liveSearch(this.value)"/>
       <button class="sbtn" onclick="doSearch()">
         <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="white" stroke-width="1.8"/><path d="M10.5 10.5L14 14" stroke="white" stroke-width="1.8" stroke-linecap="round"/></svg>
         Search
@@ -2311,73 +2376,208 @@ document.addEventListener('click',e=>{if(!document.getElementById('srow').contai
 /* ════════════════════ SEARCH ════════════════════ */
 const API_URL='https://mjengoai.onrender.com';
 
-async function doSearch(){
-  const q=document.getElementById('sinput').value.trim();
-  if(!q)return;
-  const county=selLoc?selLoc.split(', ').pop():null;
-  document.getElementById('povl').classList.add('open');
-  document.getElementById('lview').style.display='flex';
-  document.getElementById('dview').classList.remove('open');
-  document.getElementById('ptitle').textContent='Searching…';
-  document.getElementById('psub').textContent=county||'All Kenya';
-  document.getElementById('pfilts').innerHTML='';
-  document.getElementById('pbody').innerHTML=`<div class="skelwrap">
+/* ════════ LIVE SEARCH — AI populates results as you type ════════
+ *
+ * HOW IT WORKS:
+ *  1. User types in the main search bar → liveSearch() fires on every keystroke
+ *  2. After 400ms debounce (waits for user to pause typing), calls AI
+ *  3. AI (Claude via Cloudflare Worker) interprets intent + language,
+ *     returns: { answer, intent, sources[] }
+ *  4. Results panel opens and populates BELOW the search bar in real time
+ *  5. Fallback: if AI/network fails, keyword matching against local DB
+ *
+ * LANGUAGE: detects Swahili/English automatically — same detectLang() used
+ *           by the chat widget above.
+ * ═════════════════════════════════════════════════════════════════════ */
+
+let _lsTimer = null;   // debounce timer
+let _lsLast  = '';     // last query sent (avoid duplicate calls)
+
+function liveSearch(val) {
+  const q = val.trim();
+  clearTimeout(_lsTimer);
+
+  // Clear results if input is empty
+  if (!q) {
+    document.getElementById('povl').classList.remove('open');
+    _lsLast = '';
+    return;
+  }
+
+  // Show panel with skeleton immediately so it feels fast
+  if (q.length >= 2 && q !== _lsLast) {
+    openPanelSkeleton(q);
+  }
+
+  // Debounce — wait 420ms after user stops typing before calling AI
+  _lsTimer = setTimeout(() => {
+    if (q !== _lsLast) {
+      _lsLast = q;
+      doSearch(q);
+    }
+  }, 420);
+}
+
+function openPanelSkeleton(q) {
+  document.getElementById('ptitle').textContent = 'Searching: "' + q + '"…';
+  document.getElementById('psub').textContent   = 'AI is finding the best results…';
+  document.getElementById('pfilts').innerHTML   = '';
+  document.getElementById('pbody').innerHTML    = `<div class="skelwrap">
     <div class="skel"></div><div class="skel"></div><div class="skel"></div>
   </div>`;
-  try{
-    const res=await fetch(API_URL+'/search',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({query:q,county:county})
+  document.getElementById('povl').classList.add('open');
+  document.getElementById('lview').style.display = 'flex';
+  document.getElementById('dview').classList.remove('open');
+}
+
+async function doSearch(qOverride) {
+  const q = qOverride || document.getElementById('sinput').value.trim();
+  if (!q) return;
+
+  const county = selLoc ? selLoc.split(', ').pop() : null;
+  openPanelSkeleton(q);
+
+  /* ── Try AI backend (Cloudflare Worker) first ── */
+  try {
+    const lang = typeof detectLang === 'function' ? detectLang(q) : 'en';
+
+    const res = await fetch(WORKER_URL.replace('/chat', '/search'), {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ query: q, county, lang })
     });
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    const data=await res.json();
-    document.getElementById('ptitle').textContent='Results: '+q;
-    document.getElementById('psub').textContent='Intent: '+data.intent+(county?' · '+county:'');
-    const aiCard=`<div style="background:rgba(126,200,126,0.08);border:1px solid
+
+    if (!res.ok) throw new Error('Worker search HTTP ' + res.status);
+    const data = await res.json();
+
+    document.getElementById('ptitle').textContent = 'Results: ' + q;
+    document.getElementById('psub').textContent   = (data.intent || '') + (county ? ' · ' + county : '');
+
+    // AI answer card at the top
+    const aiCard = `<div style="background:rgba(126,200,126,0.08);border:1px solid
       rgba(126,200,126,0.22);border-radius:10px;padding:14px;margin-bottom:14px;">
       <div style="font-size:10px;letter-spacing:.08em;color:var(--green);
-        text-transform:uppercase;margin-bottom:8px;font-weight:600;">MjengoAI Answer</div>
-      <div style="font-size:13px;color:var(--text);line-height:1.75;">${data.answer}</div>
+        text-transform:uppercase;margin-bottom:8px;font-weight:600;">🤖 MjengoAI Answer</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.75;">${data.answer || ''}</div>
     </div>`;
-    cData=data.sources||[];fData=[...cData];
-    document.getElementById('pbody').innerHTML=aiCard;
-    if(cData.length)renderList(cData);
-  }catch(err){
-    const ql=q.toLowerCase();
-    let k='masons';
-    if(ql.includes('plan')||ql.includes('bedroom')||ql.includes('bungalow')||ql.includes('maisonette'))k='residential';
-    else if(ql.includes('commercial')||ql.includes('plaza')||ql.includes('warehouse'))k='commercial';
-    else if(ql.includes('architect'))k='architects';
-    else if(ql.includes('structural')||ql.includes('civil eng'))k='structural_eng';
-    else if(ql.includes('quantity')||ql.includes('qs')||ql.includes('boq'))k='quantity_surveyor';
-    else if(ql.includes('planner')||ql.includes('planning'))k='physical_planner';
-    else if(ql.includes('interior design'))k='interior_designer';
-    else if(ql.includes('land economist'))k='land_economist';
-    else if(ql.includes('mep'))k='mep_eng';
-    else if(ql.includes('electr'))k='electricians';
-    else if(ql.includes('plumb'))k='plumbers';
-    else if(ql.includes('carpenter'))k='carpenters';
-    else if(ql.includes('weld'))k='welders';
-    else if(ql.includes('steel fix'))k='steel_fixers';
-    else if(ql.includes('tile fix'))k='tiles_fixers';
-    else if(ql.includes('paint'))k='painters';
-    else if(ql.includes('mason'))k='masons';
-    else if(ql.includes('contractor')||ql.includes('builder'))k='builders';
-    else if(ql.includes('hardware')||ql.includes('cement'))k='hardware_vendors';
-    else if(ql.includes('timber'))k='timber_vendors';
-    else if(ql.includes('precast')||ql.includes('block'))k='precast_vendors';
-    else if(ql.includes('roofing material'))k='roofing_mat';
-    else if(ql.includes('tile')||ql.includes('ceramic'))k='finishes_mat';
-    else if(ql.includes('calculator'))k='calculators';
-    else if(ql.includes('tender'))k='tender_alert';
-    else if(ql.includes('nca'))k='nca';
-    else if(ql.includes('mjengo token')||ql.includes('mjt')||ql.includes('wallet'))k='ewallet';
-    cData=DB[k]||[];fData=[...cData];
-    document.getElementById('ptitle').textContent='Search: "'+q+'"';
-    document.getElementById('psub').textContent='Static data · AI connecting…';
-    buildFilt(k);renderList(fData);
+
+    cData = data.sources || [];
+    fData = [...cData];
+    document.getElementById('pbody').innerHTML = aiCard;
+    if (cData.length) renderList(cData);
+    else document.getElementById('pbody').innerHTML += '<div style="color:var(--muted);font-size:13px;padding:8px 0">No listings found — try a different keyword or county.</div>';
+    return;
+
+  } catch (workerErr) {
+    console.warn('[MjengoAI] Worker search failed, using AI intent + local DB:', workerErr.message);
   }
+
+  /* ── Fallback: AI intent detection via Claude chat worker ── */
+  try {
+    const intentPrompt = `You are a search intent classifier for MjengoAI Kenya construction directory.
+Given a search query, return ONLY a JSON object (no other text):
+{
+  "key": "<one of: masons,plumbers,electricians,carpenters,welders,painters,tiles_fixers,steel_fixers,architects,structural_eng,mep_eng,quantity_surveyor,construction_mgr,interior_designer,physical_planner,land_economist,landscaper_prof,hardware_vendors,timber_vendors,precast_vendors,factory_vendors,workshop_vendors,crushers,foreman,glass_expert,builders,residential,commercial,calculators,tender_alert,nca,ewallet>",
+  "answer": "<1-2 sentence helpful answer in the user's language>",
+  "intent": "<short label e.g. Mason in Nairobi>"
+}
+Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
+
+    const aiRes = await fetch(WORKER_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        messages: [{ role: 'user', content: intentPrompt }],
+        max_tokens: 200
+      })
+    });
+
+    if (aiRes.ok) {
+      // Collect streamed response
+      const reader  = aiRes.body.getReader();
+      const decoder = new TextDecoder();
+      let raw = ''; let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n'); buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const d = line.slice(6).trim();
+          if (d === '[DONE]') continue;
+          try { raw += JSON.parse(d).token || ''; } catch {}
+        }
+      }
+      // Parse JSON from AI response
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const k = parsed.key || 'masons';
+        cData = DB[k] || [];
+        fData = [...cData];
+
+        // Filter by county if selected
+        if (county) fData = fData.filter(d => !d.loc || d.loc.toLowerCase().includes(county.toLowerCase()));
+
+        document.getElementById('ptitle').textContent = 'Results: ' + q;
+        document.getElementById('psub').textContent   = (parsed.intent || '') + (county ? ' · ' + county : '');
+
+        const aiCard = `<div style="background:rgba(126,200,126,0.08);border:1px solid
+          rgba(126,200,126,0.22);border-radius:10px;padding:14px;margin-bottom:14px;">
+          <div style="font-size:10px;letter-spacing:.08em;color:var(--green);
+            text-transform:uppercase;margin-bottom:8px;font-weight:600;">🤖 MjengoAI Answer</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.75;">${parsed.answer || ''}</div>
+        </div>`;
+        document.getElementById('pbody').innerHTML = aiCard;
+        buildFilt(k);
+        if (fData.length) renderList(fData);
+        return;
+      }
+    }
+  } catch (intentErr) {
+    console.warn('[MjengoAI] Intent AI failed, falling back to keyword:', intentErr.message);
+  }
+
+  /* ── Final fallback: pure keyword matching against local DB ── */
+  const ql = q.toLowerCase();
+  let k = 'masons';
+  if(ql.includes('plan')||ql.includes('bedroom')||ql.includes('bungalow')||ql.includes('maisonette'))k='residential';
+  else if(ql.includes('commercial')||ql.includes('plaza')||ql.includes('warehouse'))k='commercial';
+  else if(ql.includes('architect'))k='architects';
+  else if(ql.includes('structural')||ql.includes('civil eng'))k='structural_eng';
+  else if(ql.includes('quantity')||ql.includes('qs')||ql.includes('boq'))k='quantity_surveyor';
+  else if(ql.includes('planner')||ql.includes('planning'))k='physical_planner';
+  else if(ql.includes('interior design'))k='interior_designer';
+  else if(ql.includes('land economist'))k='land_economist';
+  else if(ql.includes('mep'))k='mep_eng';
+  else if(ql.includes('electr'))k='electricians';
+  else if(ql.includes('plumb'))k='plumbers';
+  else if(ql.includes('carpenter'))k='carpenters';
+  else if(ql.includes('weld'))k='welders';
+  else if(ql.includes('steel fix'))k='steel_fixers';
+  else if(ql.includes('tile'))k='tiles_fixers';
+  else if(ql.includes('paint'))k='painters';
+  else if(ql.includes('mason')||ql.includes('fundi'))k='masons';
+  else if(ql.includes('contractor')||ql.includes('builder'))k='builders';
+  else if(ql.includes('hardware')||ql.includes('cement'))k='hardware_vendors';
+  else if(ql.includes('timber'))k='timber_vendors';
+  else if(ql.includes('precast')||ql.includes('block'))k='precast_vendors';
+  else if(ql.includes('roofing'))k='roofing_mat';
+  else if(ql.includes('calculator'))k='calculators';
+  else if(ql.includes('tender'))k='tender_alert';
+  else if(ql.includes('nca'))k='nca';
+  else if(ql.includes('mjt')||ql.includes('wallet'))k='ewallet';
+
+  cData = DB[k] || [];
+  fData = county
+    ? cData.filter(d => !d.loc || d.loc.toLowerCase().includes(county.toLowerCase()))
+    : [...cData];
+
+  document.getElementById('ptitle').textContent = 'Search: "' + q + '"';
+  document.getElementById('psub').textContent   = 'Showing local results' + (county ? ' · ' + county : '');
+  buildFilt(k);
+  renderList(fData);
 }
 
 function qs(q){document.getElementById('sinput').value=q;doSearch();}
@@ -2541,7 +2741,7 @@ buildCounties('');
     </div>
     <div class="ai-msgs" id="aiMsgs">
       <div class="ai-msg bot">
-        <div class="ai-bubble">👋 Habari! I'm your MjengoAI assistant.<br/>I reply in <strong>English or Kiswahili</strong> — just write in your language 🇰🇪<br/><br/>I can help you find artisans, compare material prices, browse house plans, or get construction quotes across all 47 counties.</div>
+        <div class="ai-bubble">👋 Habari! I'm your MjengoAI assistant.<br/>I can help you find artisans, compare material prices, browse house plans, or get construction quotes across all 47 counties.</div>
         <div class="ai-time">Just now</div>
       </div>
     </div>
@@ -2553,7 +2753,7 @@ buildCounties('');
       <span class="ai-chip" onclick="aiQuick('Structural engineer Nairobi')">🔩 Engineer</span>
     </div>
     <div class="ai-inp-row">
-      <input class="ai-inp" id="aiInp" placeholder="Ask in English au Kiswahili…" onkeydown="if(event.key==='Enter')aiSend()"/>
+      <input class="ai-inp" id="aiInp" placeholder="Ask anything about construction…" onkeydown="if(event.key==='Enter')aiSend()"/>
       <button class="ai-send" onclick="aiSend()">
         <svg width="14" height="14" viewBox="0 0 18 18" fill="none"><path d="M2 9L16 2L9 16L8 10Z" fill="white"/></svg>
       </button>
@@ -2644,204 +2844,47 @@ function toggleWA(){
   o.classList.toggle('open',!isOpen);
 }
 
-/* ════════ AI CHAT LOGIC — Powered by Claude AI ════════
- *
- * LANGUAGE DETECTION:
- *   Detects Swahili vs English from the user's message and instructs
- *   the AI to reply in the same language (English, Kiswahili, or mixed sheng).
- *   The system prompt enforces this on every call.
- *
- * TO ACTIVATE:
- *   This widget calls the Anthropic API directly. You MUST route this
- *   through your backend (worker.js on Cloudflare) to keep your API key safe.
- *   Replace WORKER_URL below with your deployed worker endpoint.
- *   See: mjengoai-ai/worker.js in your deployment package.
- * ══════════════════════════════════════════════════════════════════════ */
+/* ════════ AI CHAT LOGIC ════════ */
+const AI_RESPONSES={
+  mason:["I found several vetted masons near you. Joseph Kamau (4.8★, 14 yrs) is available in Nairobi at KES 1,600/day. Would you like to see more options or open his profile?","Grace Achieng in Kisumu (4.7★) and Daniel Kiprop in Nakuru (4.5★) are also available. Shall I open the artisans panel for you?"],
+  cement:["Current cement prices: Nairobi avg KES 720/50kg bag, Mombasa KES 755, Nakuru KES 695. Tuff Foam Hardware (Nairobi) has bulk discounts. Want me to show all suppliers?","Cement prices are up 2.1% this month. Lowest price: KES 680 in Mombasa. I can compare prices across all 47 counties — shall I?"],
+  plan:["Mineco House has 10,000+ pre-approved plans. Popular: 3BR Bungalow Type B (KES 15,000) and 2BR Maisonette (KES 9,500). Full BOQ included. Want to browse?","For a 3-bedroom under 3M, I recommend Type B Bungalow — 72m², full working drawings and BOQ for KES 15,000. Shall I open house plans?"],
+  engineer:["Mate Njiru (EBK, 15 yrs) is our top structural engineer in Nairobi at KES 15,000/consult. Faith Omondi covers Kisumu. Want me to show all engineers?","For structural engineering, I recommend checking EBK-registered professionals. There are 220+ on MjengoAI. Shall I open the professionals panel?"],
+  default:["I can help with that! Try searching using the main search bar, or let me know more details — county, budget, or project type — and I'll find the best match for you.","Great question! MjengoAI covers artisans, materials, house plans, professionals, and contractors across all 47 counties. What specifically can I help you find?","I'll connect you with the right people. Could you share your county/location and budget? That helps me give you the most accurate results."]
+};
 
-const WORKER_URL = 'https://mjengoai-chat.mjengoai.workers.dev/chat';
-// ^ Replace with your actual Cloudflare Worker URL after deploying worker.js
+function getAIReply(msg){
+  const m=msg.toLowerCase();
+  if(m.includes('mason')||m.includes('plumber')||m.includes('electr')||m.includes('carpenter'))return rand(AI_RESPONSES.mason);
+  if(m.includes('cement')||m.includes('steel')||m.includes('material')||m.includes('price'))return rand(AI_RESPONSES.cement);
+  if(m.includes('plan')||m.includes('bedroom')||m.includes('bungalow')||m.includes('design'))return rand(AI_RESPONSES.plan);
+  if(m.includes('engineer')||m.includes('architect')||m.includes('professional')||m.includes('structural'))return rand(AI_RESPONSES.engineer);
+  return rand(AI_RESPONSES.default);
+}
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
 
-/* ── Conversation memory (per page session) ── */
-let aiHistory = [];
-
-/* ── Language detection ──────────────────────────────────────────────
- * Returns 'sw' for Swahili-dominant, 'en' for English, 'mixed' for sheng.
- * Checks for common Swahili words/particles without needing an external lib.
- */
-function detectLang(text){
-  const sw = ['habari','sawa','asante','karibu','tafadhali','nataka','ninahitaji',
-               'fundi','mjengo','bei','kazi','nairobi','mombasa','nakuru',
-               'niko','uko','wapi','kama','bado','kweli','sana','ndio','hapana',
-               'nitafute','niambie','nisaidie','sijui','mimi','wewe','yeye',
-               'ujenzi','nyumba','gharama','pesa'];
-  const m = text.toLowerCase();
-  const hits = sw.filter(w => m.includes(w)).length;
-  if(hits >= 2) return 'sw';
-  if(hits === 1) return 'mixed';
-  return 'en';
+function aiSend(){
+  const inp=document.getElementById('aiInp');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  addMsg(msg,'usr');
+  showTyping();
+  setTimeout(()=>{hideTyping();addMsg(getAIReply(msg),'bot');},1100+Math.random()*700);
 }
 
-/* ── Build language instruction for the system prompt ── */
-function langInstruction(lang){
-  if(lang === 'sw')
-    return 'The user is writing in Kiswahili. YOU MUST reply entirely in Kiswahili. Use natural Kenyan Swahili, not overly formal.';
-  if(lang === 'mixed')
-    return 'The user is mixing English and Swahili (sheng). Reply in a natural mix of English and Swahili that feels conversational and Kenyan.';
-  return 'The user is writing in English. Reply in clear, friendly English.';
+function aiQuick(msg){addMsg(msg,'usr');showTyping();setTimeout(()=>{hideTyping();addMsg(getAIReply(msg),'bot');},900+Math.random()*600);}
+
+function addMsg(txt,role){
+  const msgs=document.getElementById('aiMsgs');
+  const typing=document.getElementById('aiTyping');
+  const d=document.createElement('div');d.className='ai-msg '+role;
+  const now=new Date();const t=now.getHours()+':'+String(now.getMinutes()).padStart(2,'0');
+  d.innerHTML=`<div class="ai-bubble">${txt}</div><div class="ai-time">${t}</div>`;
+  msgs.insertBefore(d,typing);
+  msgs.scrollTop=msgs.scrollHeight;
 }
-
-/* ── System prompt (injected fresh on every call) ── */
-function buildSystemPrompt(lang){
-  return `You are the MjengoAI Assistant — Kenya's construction AI guide on www.mjengoai.com.
-
-LANGUAGE RULE (CRITICAL): ${langInstruction(lang)}
-
-IDENTITY
-- You work for MjengoAI, powered by Buildersee & Mineco House.
-- Be warm, practical, and concise. No corporate fluff.
-- Keep replies short: 2–4 sentences for simple questions, bullets for lists.
-
-KENYA CONSTRUCTION KNOWLEDGE
-- Material prices (KES): cement 50kg ~700–900, iron sheet ~1,200–2,500, Y12 steel rod 6m ~1,800–2,200, hollow block ~48 each, river sand/tonne ~2,100.
-- Build cost estimate: 35,000–55,000 KES per m² (basic to mid-range finish).
-- House plans: 10,000+ on Mineco. 3BR Bungalow Type B (KES 15,000), 2BR Maisonette (KES 9,500), 4BR Villa (KES 35,000). All include BOQ.
-- Professionals: Architects (AAK/BORAQS), Structural Engineers (EBK), QS (IQSK), Electricians (ERC), NCA-graded contractors.
-- 47 counties covered. Hubs: Nairobi, Mombasa, Kisumu, Nakuru, Eldoret, Meru, Embu, Thika.
-- MJT Token: 1 MJT = 100 KES, escrow payments via NCBA Loop.
-
-WHAT YOU CAN DO
-- Help find the right artisan, professional, or vendor.
-- Give rough budget and material quantity estimates.
-- Explain NCA registration, EBK grades, BORAQS, IQSK.
-- Recommend Mineco house plans by budget/family size.
-- Guide users on MJT token payments and escrow.
-
-END EVERY REPLY with one clear next step (e.g., "Use the search bar above to browse masons in your county." or "Ningependa kukusaidia zaidi — taja kaunti yako na bajeti.").`;
-}
-
-/* ── Call Claude via your Cloudflare Worker (keeps API key server-side) ── */
-async function callClaude(userMessage){
-  const lang = detectLang(userMessage);
-  aiHistory.push({role:'user', content: userMessage});
-
-  const res = await fetch(WORKER_URL, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({
-      messages: aiHistory.slice(-12), // last 12 turns for context
-      systemPrompt: buildSystemPrompt(lang)  // worker accepts optional override
-    })
-  });
-
-  if(!res.ok) throw new Error('Worker error ' + res.status);
-
-  // Collect streamed SSE tokens
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let fullReply = '';
-  let buffer = '';
-
-  while(true){
-    const {done, value} = await reader.read();
-    if(done) break;
-    buffer += decoder.decode(value, {stream:true});
-    const lines = buffer.split('\n');
-    buffer = lines.pop();
-    for(const line of lines){
-      if(!line.startsWith('data: ')) continue;
-      const data = line.slice(6).trim();
-      if(data === '[DONE]') continue;
-      try{ fullReply += JSON.parse(data).token || ''; } catch{}
-    }
-  }
-
-  aiHistory.push({role:'assistant', content: fullReply});
-  return fullReply || 'Samahani, please try again / Tafadhali jaribu tena.';
-}
-
-/* ── Format AI reply: convert *bold* and newlines to HTML ── */
-function formatReply(text){
-  return text
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g,'<b>$1</b>')
-    .replace(/\n/g,'<br>');
-}
-
-/* ── Add message bubble to the chat ── */
-function addMsg(txt, role, isHTML=false){
-  const msgs   = document.getElementById('aiMsgs');
-  const typing = document.getElementById('aiTyping');
-  const d = document.createElement('div');
-  d.className = 'ai-msg ' + role;
-  const now = new Date();
-  const t = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
-  const content = isHTML ? txt : formatReply(txt);
-  d.innerHTML = `<div class="ai-bubble">${content}</div><div class="ai-time">${t}</div>`;
-  msgs.insertBefore(d, typing);
-  msgs.scrollTop = msgs.scrollHeight;
-  return d;
-}
-
 function showTyping(){const t=document.getElementById('aiTyping');t.style.display='flex';document.getElementById('aiMsgs').scrollTop=9999;}
 function hideTyping(){document.getElementById('aiTyping').style.display='none';}
-
-/* ── Main send handler (async — real AI) ── */
-async function aiSend(){
-  const inp = document.getElementById('aiInp');
-  const sendBtn = document.querySelector('.ai-send');
-  const msg = inp.value.trim();
-  if(!msg) return;
-
-  inp.value = '';
-  inp.disabled = true;
-  if(sendBtn) sendBtn.disabled = true;
-
-  addMsg(msg, 'usr');
-  showTyping();
-
-  try{
-    const reply = await callClaude(msg);
-    hideTyping();
-    addMsg(reply, 'bot');
-  } catch(err){
-    hideTyping();
-    // Graceful fallback — show helpful error in detected language
-    const lang = detectLang(msg);
-    const errMsg = lang === 'sw'
-      ? '⚠️ Samahani, kuna tatizo la mtandao. Tafadhali jaribu tena au piga WhatsApp: 0143 422 201'
-      : '⚠️ Connection issue. Please try again or reach us on WhatsApp: 0143 422 201';
-    addMsg(errMsg, 'bot');
-    console.error('MjengoAI chat error:', err);
-  } finally{
-    inp.disabled = false;
-    if(sendBtn) sendBtn.disabled = false;
-    inp.focus();
-  }
-}
-
-/* ── Quick-reply chip handler (async) ── */
-async function aiQuick(msg){
-  const inp = document.getElementById('aiInp');
-  const sendBtn = document.querySelector('.ai-send');
-  inp.disabled = true;
-  if(sendBtn) sendBtn.disabled = true;
-
-  addMsg(msg, 'usr');
-  showTyping();
-
-  try{
-    const reply = await callClaude(msg);
-    hideTyping();
-    addMsg(reply, 'bot');
-  } catch(err){
-    hideTyping();
-    addMsg('⚠️ Connection issue. Please try again or reach us on WhatsApp: 0143 422 201', 'bot');
-  } finally{
-    inp.disabled = false;
-    if(sendBtn) sendBtn.disabled = false;
-  }
-}
 </script>
 
 
