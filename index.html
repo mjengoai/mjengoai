@@ -2280,10 +2280,12 @@ function filterPanel(q) {
 
 function stars(r){if(!r)return '';const f=Math.floor(r);return '★'.repeat(f)+(r%1>=0.5?'½':'')+`<span style="color:var(--bg4)">`+'★'.repeat(5-f-(r%1>=0.5?1:0))+'</span>';}
 
-/* ── Clear result cards but preserve the AI answer card ── */
+/* ── Clear result cards but always preserve the AI answer card ── */
 function clearResults() {
   const pbody = document.getElementById('pbody');
-  [...pbody.children].forEach(el => { if (el.id !== 'ai-ctx-card') el.remove(); });
+  [...pbody.children].forEach(el => {
+    if (el.id !== 'ai-ctx-card') el.remove();
+  });
 }
 
 /* ── Score and rank results: exact matches first, then broader results ── */
@@ -2520,16 +2522,21 @@ function liveSearch(val) {
 }
 
 function openPanelSkeleton(q) {
-  // Only show skeleton if panel has no results yet (first search)
   document.getElementById('ptitle').textContent = 'Search: "' + q + '"';
   document.getElementById('povl').classList.add('open');
   document.getElementById('lview').style.display = 'flex';
   document.getElementById('dview').classList.remove('open');
-  if (!_lsHasResults) {
+  // NEVER wipe pbody here — skeleton only shown when panel is truly empty
+  const pbody = document.getElementById('pbody');
+  if (!_lsHasResults && !pbody.querySelector('.lcard')) {
     document.getElementById('psub').textContent = 'Finding results…';
-    document.getElementById('pbody').innerHTML = `<div class="skelwrap">
-      <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-    </div>`;
+    // Only inject skeleton if pbody has nothing real yet
+    if (!pbody.querySelector('.skel')) {
+      const sk = document.createElement('div');
+      sk.className = 'skelwrap';
+      sk.innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+      pbody.appendChild(sk);
+    }
   }
 }
 
@@ -2734,32 +2741,39 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
   document.getElementById('ptitle').textContent = 'Search: "' + q + '"';
   document.getElementById('psub').textContent   = (fData.length ? fData.length + ' local results' : 'No results') + (county ? ' · ' + county : '');
 
-  // Build entire panel content in one go using a fragment — zero flash
+  // Rebuild panel — keep AI card if it already has a real answer
   const pbody = document.getElementById('pbody');
-  const frag = document.createDocumentFragment();
+  const existingAI = document.getElementById('ai-ctx-card');
+  const aiHasContent = existingAI && existingAI.style.display !== 'none' && existingAI.innerHTML.trim() !== '';
 
-  // Guide card node
+  // Clear everything except a visible AI card
+  [...pbody.children].forEach(el => {
+    if (el.id === 'ai-ctx-card') return; // keep it
+    el.remove();
+  });
+
+  // Guide card — insert before AI card (or at top if no AI card)
   const gc = document.createElement('div');
   gc.innerHTML = guideCard(q);
-  frag.appendChild(gc.firstElementChild);
+  const gcNode = gc.firstElementChild;
+  if (existingAI) {
+    pbody.insertBefore(gcNode, existingAI);
+  } else {
+    // Create hidden AI placeholder
+    const aiPh = document.createElement('div');
+    aiPh.id = 'ai-ctx-card';
+    aiPh.style.display = 'none';
+    pbody.appendChild(gcNode);
+    pbody.appendChild(aiPh);
+  }
 
-  // AI context placeholder — hidden until AI responds (no loading flash)
-  const aiPh = document.createElement('div');
-  aiPh.id = 'ai-ctx-card';
-  aiPh.style.display = 'none';
-  frag.appendChild(aiPh);
-
-  // Empty state or results will be appended to frag below
+  // Empty state
   if (!fData.length) {
     const em = document.createElement('div');
     em.className = 'pempty';
     em.innerHTML = `Nothing found for "<b>${q}</b>".<br>Try a different keyword or browse a category above.`;
-    frag.appendChild(em);
+    pbody.appendChild(em);
   }
-
-  // Single DOM write — replaces everything atomically, no flash
-  pbody.innerHTML = '';
-  pbody.appendChild(frag);
 
   if (fData.length) renderList(fData, q);
 
@@ -2816,9 +2830,16 @@ async function fetchAIContext(q, county) {
   const planPrices = (DB.residential || []).slice(0,4)
     .map(d => `${d.name}: ${d.price}`).join('; ');
 
-  // ── Reuse the hidden placeholder already in the DOM ──
-  const placeholder = document.getElementById('ai-ctx-card');
-  if (!placeholder) return;
+  // ── Get or create the AI card node ──
+  let placeholder = document.getElementById('ai-ctx-card');
+  if (!placeholder) {
+    placeholder = document.createElement('div');
+    placeholder.id = 'ai-ctx-card';
+    placeholder.style.display = 'none';
+    const pbody = document.getElementById('pbody');
+    if (pbody) pbody.insertBefore(placeholder, pbody.firstChild);
+    else return;
+  }
 
   // ── Build a context-aware system prompt ──
   let focus = '';
