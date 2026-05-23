@@ -2512,31 +2512,30 @@ function liveSearch(val) {
 
   if (!q) {
     document.getElementById('povl').classList.remove('open');
-    _lsLast = ''; _lsHasResults = false;
+    _lsLast = ''; _lsHasResults = false; _aiAnswered = false;
     return;
   }
 
-  // Open panel immediately on first char — but DON'T wipe existing results
+  // Open panel immediately — never wipe existing results
   if (q.length >= 2) {
     document.getElementById('povl').classList.add('open');
     document.getElementById('lview').style.display = 'flex';
     document.getElementById('dview').classList.remove('open');
-    // Only show spinner subtitle, never blank the results area
     document.getElementById('ptitle').textContent = 'Search: "' + q + '"';
     if (!_lsHasResults) {
       document.getElementById('psub').textContent = 'Finding results…';
     }
   }
 
-  // Debounce — fire search 400ms after user stops typing
+  // If query hasn't changed from what's already showing, do nothing at all
+  if (q === _lsLast && _lsHasResults) return;
+
+  // Debounce — only fire doSearch when query actually changes
   _lsTimer = setTimeout(() => {
-    // If AI already gave a full answer for this query, don't rebuild
-    if (_aiAnswered && q === _lsLast) return;
-    if (q !== _lsLast) {
-      _lsLast = q;
-      _aiAnswered = false; // new query resets AI answered state
-      doSearch(q);
-    }
+    if (q === _lsLast && _lsHasResults) return; // already showing results for this query
+    _lsLast = q;
+    _aiAnswered = false;
+    doSearch(q);
   }, 400);
 }
 
@@ -2608,6 +2607,9 @@ function updateGuideCard(q) {
 async function doSearch(qOverride) {
   const q = qOverride || document.getElementById('sinput').value.trim();
   if (!q) return;
+
+  // Guard: if we already have results for this exact query, don't wipe them
+  if (q === _lsLast && _lsHasResults && _aiAnswered) return;
 
   const county = selLoc ? selLoc.split(', ').pop() : null;
   openPanelSkeleton(q);
