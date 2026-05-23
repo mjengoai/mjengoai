@@ -2249,6 +2249,7 @@ function applyFilt(el,f){
     if(f==='Paint')return d.type&&d.type.includes('Paint');
     return d.loc&&d.loc.toLowerCase().includes(f.toLowerCase());
   }).filter(d=>mQ(d,q));
+  clearResults();
   renderList(fData);
 }
 
@@ -2263,7 +2264,7 @@ function mQ(d, q) {
   return tokens.every(t => haystack.includes(t));
 }
 function filterPanel(q) {
-  if (!q) { fData = [...cData]; document.getElementById('pbody').innerHTML=''; renderList(fData, _lsLast); return; }
+  if (!q) { fData = [...cData]; clearResults(); renderList(fData, _lsLast); return; }
   const ql = q.toLowerCase();
   // First try within current category
   let results = cData.filter(d => mQ(d, ql));
@@ -2272,10 +2273,17 @@ function filterPanel(q) {
     results = Object.values(DB).flat().filter(d => mQ(d, ql));
   }
   fData = results;
+  clearResults();
   renderList(fData, _lsLast);
 }
 
 function stars(r){if(!r)return '';const f=Math.floor(r);return '★'.repeat(f)+(r%1>=0.5?'½':'')+`<span style="color:var(--bg4)">`+'★'.repeat(5-f-(r%1>=0.5?1:0))+'</span>';}
+
+/* ── Clear result cards but preserve the AI answer card ── */
+function clearResults() {
+  const pbody = document.getElementById('pbody');
+  [...pbody.children].forEach(el => { if (el.id !== 'ai-ctx-card') el.remove(); });
+}
 
 /* ── Score and rank results: exact matches first, then broader results ── */
 function rankResults(items, q) {
@@ -2342,12 +2350,19 @@ function rankResults(items, q) {
 }
 
 function renderList(items, q) {
+  const pbody = document.getElementById('pbody');
   if (!items.length) {
-    document.getElementById('pbody').innerHTML += '<div class="pempty">No results. Try adjusting filters or search term.</div>';
+    const empty = document.createElement('div');
+    empty.className = 'pempty';
+    empty.textContent = 'No results. Try adjusting filters or search term.';
+    pbody.appendChild(empty);
     return;
   }
   const ranked = rankResults(items, q || _lsLast);
-  document.getElementById('pbody').innerHTML += ranked.map(d => `
+  const frag = document.createDocumentFragment();
+  ranked.forEach(d => {
+    const el = document.createElement('div');
+    el.innerHTML = `
     <div class="lcard" onclick="openDetail(${d.id})">
       <div class="lav" style="background:${d.avC}22;color:${d.avC}">${d.init}</div>
       <div class="lbody">
@@ -2363,7 +2378,10 @@ function renderList(items, q) {
         <div class="lprice">${d.price && !d.price.startsWith('📞') ? d.price : '<span style="color:var(--muted);font-size:10px">Call for price</span>'}</div>
         <span class="lbadge ${d.bc}">${d.badge}</span>
       </div>
-    </div>`).join('');
+    </div>`;
+    frag.appendChild(el.firstElementChild);
+  });
+  pbody.appendChild(frag);
 }
 
 function openDetail(id){
