@@ -2323,7 +2323,7 @@ function openDetail(id){
 }
 
 function showList(){document.getElementById('lview').style.display='flex';document.getElementById('dview').classList.remove('open');}
-function closePanel(){document.getElementById('povl').classList.remove('open');}
+function closePanel(){document.getElementById('povl').classList.remove('open');_lsHasResults=false;_lsLast='';}
 
 /* ════════════════════ LOCATION ════════════════════ */
 let selCounty='',selTown='',selLoc='';
@@ -2399,42 +2399,79 @@ const WORKER_URL = 'https://mjengoai.onrender.com/chat';
 
 let _lsTimer = null;   // debounce timer
 let _lsLast  = '';     // last query sent (avoid duplicate calls)
+let _lsHasResults = false; // track whether panel already has real results
 
 function liveSearch(val) {
   const q = val.trim();
   clearTimeout(_lsTimer);
 
-  // Clear results if input is empty
   if (!q) {
     document.getElementById('povl').classList.remove('open');
-    _lsLast = '';
+    _lsLast = ''; _lsHasResults = false;
     return;
   }
 
-  // Show panel with skeleton immediately so it feels fast
-  if (q.length >= 2 && q !== _lsLast) {
-    openPanelSkeleton(q);
+  // Open panel immediately on first char — but DON'T wipe existing results
+  if (q.length >= 2) {
+    document.getElementById('povl').classList.add('open');
+    document.getElementById('lview').style.display = 'flex';
+    document.getElementById('dview').classList.remove('open');
+    // Only show spinner subtitle, never blank the results area
+    document.getElementById('ptitle').textContent = 'Search: "' + q + '"';
+    if (!_lsHasResults) {
+      document.getElementById('psub').textContent = 'Finding results…';
+    }
   }
 
-  // Debounce — wait 420ms after user stops typing before calling AI
+  // Debounce — fire search 400ms after user stops typing
   _lsTimer = setTimeout(() => {
     if (q !== _lsLast) {
       _lsLast = q;
       doSearch(q);
     }
-  }, 420);
+  }, 400);
 }
 
 function openPanelSkeleton(q) {
-  document.getElementById('ptitle').textContent = 'Searching: "' + q + '"…';
-  document.getElementById('psub').textContent   = 'AI is finding the best results…';
-  document.getElementById('pfilts').innerHTML   = '';
-  document.getElementById('pbody').innerHTML    = `<div class="skelwrap">
-    <div class="skel"></div><div class="skel"></div><div class="skel"></div>
-  </div>`;
+  // Only show skeleton if panel has no results yet (first search)
+  document.getElementById('ptitle').textContent = 'Search: "' + q + '"';
   document.getElementById('povl').classList.add('open');
   document.getElementById('lview').style.display = 'flex';
   document.getElementById('dview').classList.remove('open');
+  if (!_lsHasResults) {
+    document.getElementById('psub').textContent = 'Finding results…';
+    document.getElementById('pbody').innerHTML = `<div class="skelwrap">
+      <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+    </div>`;
+  }
+}
+
+/* Guide card shown when only local results are available */
+function guideCard(q) {
+  const ql = q.toLowerCase();
+  let tip = '';
+  if (ql.length < 3) {
+    tip = 'Keep typing — try a trade, name, or location e.g. <b>"mason Nairobi"</b>';
+  } else if (!ql.includes(' ')) {
+    tip = 'Add a location for better results e.g. <b>"' + q + ' Nairobi"</b> or <b>"' + q + ' Chuka"</b>';
+  } else {
+    tip = 'Showing the closest local matches. Try the filters above to narrow down.';
+  }
+  return `<div style="background:rgba(74,126,192,0.08);border:1px solid rgba(74,126,192,0.2);
+    border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start;">
+    <span style="font-size:16px;flex-shrink:0;">💡</span>
+    <div>
+      <div style="font-size:10px;letter-spacing:.08em;color:var(--blue);text-transform:uppercase;
+        font-weight:700;margin-bottom:5px;">Search Tip</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.7;">${tip}</div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        ${['Mason Nairobi','Plumber Chuka','Architect Embu','Cement hardware','Precast blocks']
+          .map(s=>`<span onclick="qs('${s}')" style="font-size:11px;padding:3px 9px;border-radius:14px;
+            background:rgba(74,126,192,0.12);border:1px solid rgba(74,126,192,0.25);color:var(--blue);
+            cursor:pointer;">${s}</span>`).join('')}
+      </div>
+    </div>
+  </div>`;
 }
 
 async function doSearch(qOverride) {
@@ -2470,6 +2507,8 @@ async function doSearch(qOverride) {
 
     cData = data.sources || [];
     fData = [...cData];
+    _lsHasResults = true;
+    document.getElementById('psub').textContent = (data.intent || 'AI results') + (county ? ' · ' + county : '');
     document.getElementById('pbody').innerHTML = aiCard;
     if (cData.length) renderList(cData);
     else document.getElementById('pbody').innerHTML += '<div style="color:var(--muted);font-size:13px;padding:8px 0">No listings found — try a different keyword or county.</div>';
@@ -2536,6 +2575,7 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
             text-transform:uppercase;margin-bottom:8px;font-weight:600;">🤖 MjengoAI Answer</div>
           <div style="font-size:13px;color:var(--text);line-height:1.75;">${parsed.answer || ''}</div>
         </div>`;
+        _lsHasResults = true;
         document.getElementById('pbody').innerHTML = aiCard;
         buildFilt(k);
         if (fData.length) renderList(fData);
@@ -2603,9 +2643,14 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
     document.getElementById('pfilts').innerHTML = '<span class="fp on">All</span>';
   }
 
+  _lsHasResults = true;
   document.getElementById('ptitle').textContent = 'Search: "' + q + '"';
-  document.getElementById('psub').textContent   = 'Showing local results' + (county ? ' · ' + county : '');
-  renderList(fData);
+  document.getElementById('psub').textContent   = (fData.length ? fData.length + ' local results' : 'No results') + (county ? ' · ' + county : '');
+  // Show guide card above results so user knows how to refine
+  document.getElementById('pbody').innerHTML = guideCard(q);
+  if (fData.length) renderList(fData);
+  else document.getElementById('pbody').innerHTML += `<div class="pempty">
+    Nothing found for "<b>${q}</b>".<br>Try a different keyword or browse a category above.</div>`;
 }
 
 function qs(q){document.getElementById('sinput').value=q;doSearch();}
