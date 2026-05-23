@@ -2263,7 +2263,7 @@ function mQ(d, q) {
   return tokens.every(t => haystack.includes(t));
 }
 function filterPanel(q) {
-  if (!q) { fData = [...cData]; renderList(fData); return; }
+  if (!q) { fData = [...cData]; document.getElementById('pbody').innerHTML=''; renderList(fData, _lsLast); return; }
   const ql = q.toLowerCase();
   // First try within current category
   let results = cData.filter(d => mQ(d, ql));
@@ -2272,14 +2272,55 @@ function filterPanel(q) {
     results = Object.values(DB).flat().filter(d => mQ(d, ql));
   }
   fData = results;
-  renderList(fData);
+  renderList(fData, _lsLast);
 }
 
 function stars(r){if(!r)return '';const f=Math.floor(r);return '★'.repeat(f)+(r%1>=0.5?'½':'')+`<span style="color:var(--bg4)">`+'★'.repeat(5-f-(r%1>=0.5?1:0))+'</span>';}
 
-function renderList(items){
-  if(!items.length){document.getElementById('pbody').innerHTML='<div class="pempty">No results. Try adjusting filters or search term.</div>';return;}
-  document.getElementById('pbody').innerHTML=items.map(d=>`
+/* ── Score and rank results: location match > rated > verified > listed ── */
+function rankResults(items, q) {
+  const ql = (q || _lsLast || '').toLowerCase();
+  // Extract location tokens from query (words that match known towns/counties)
+  const locTokens = ql.split(/\s+/).filter(t => t.length > 2);
+
+  return [...items].sort((a, b) => {
+    function score(d) {
+      let s = 0;
+      const dloc = (d.loc || '').toLowerCase();
+      const dname = (d.name || '').toLowerCase();
+      const dsub  = (d.sub  || '').toLowerCase();
+
+      // 1. Location match in result — strongest signal
+      for (const t of locTokens) {
+        if (dloc.includes(t)) { s += 40; break; }
+      }
+      // 2. Name/sub exact match to any query token
+      for (const t of locTokens) {
+        if (dname.includes(t) || dsub.includes(t)) { s += 10; break; }
+      }
+      // 3. Has a real rating
+      if (d.rat >= 4.5) s += 20;
+      else if (d.rat >= 4.0) s += 12;
+      else if (d.rat > 0)    s += 5;
+      // 4. Verified/BORAQS/AAK badge
+      if (d.badge && (d.badge.includes('BORAQS') || d.badge.includes('AAK') ||
+          d.badge.includes('EBK') || d.badge.includes('Verified') ||
+          d.badge.includes('Top'))) s += 8;
+      // 5. Has a price (not just a phone number)
+      if (d.price && !d.price.startsWith('📞')) s += 4;
+      return s;
+    }
+    return score(b) - score(a);
+  });
+}
+
+function renderList(items, q) {
+  if (!items.length) {
+    document.getElementById('pbody').innerHTML += '<div class="pempty">No results. Try adjusting filters or search term.</div>';
+    return;
+  }
+  const ranked = rankResults(items, q || _lsLast);
+  document.getElementById('pbody').innerHTML += ranked.map(d => `
     <div class="lcard" onclick="openDetail(${d.id})">
       <div class="lav" style="background:${d.avC}22;color:${d.avC}">${d.init}</div>
       <div class="lbody">
@@ -2292,7 +2333,7 @@ function renderList(items){
         </div>
       </div>
       <div class="lright">
-        <div class="lprice">${d.price}</div>
+        <div class="lprice">${d.price && !d.price.startsWith('📞') ? d.price : '<span style="color:var(--muted);font-size:10px">Call for price</span>'}</div>
         <span class="lbadge ${d.bc}">${d.badge}</span>
       </div>
     </div>`).join('');
@@ -2510,7 +2551,7 @@ async function doSearch(qOverride) {
     _lsHasResults = true;
     document.getElementById('psub').textContent = (data.intent || 'AI results') + (county ? ' · ' + county : '');
     document.getElementById('pbody').innerHTML = aiCard;
-    if (cData.length) renderList(cData);
+    if (cData.length) renderList(cData, q);
     else document.getElementById('pbody').innerHTML += '<div style="color:var(--muted);font-size:13px;padding:8px 0">No listings found — try a different keyword or county.</div>';
     return;
 
@@ -2578,7 +2619,7 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
         _lsHasResults = true;
         document.getElementById('pbody').innerHTML = aiCard;
         buildFilt(k);
-        if (fData.length) renderList(fData);
+        if (fData.length) renderList(fData, q);
         return;
       }
     }
@@ -2646,11 +2687,78 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
   _lsHasResults = true;
   document.getElementById('ptitle').textContent = 'Search: "' + q + '"';
   document.getElementById('psub').textContent   = (fData.length ? fData.length + ' local results' : 'No results') + (county ? ' · ' + county : '');
-  // Show guide card above results so user knows how to refine
+  // Show guide card above results
   document.getElementById('pbody').innerHTML = guideCard(q);
-  if (fData.length) renderList(fData);
+  if (fData.length) renderList(fData, q);
   else document.getElementById('pbody').innerHTML += `<div class="pempty">
     Nothing found for "<b>${q}</b>".<br>Try a different keyword or browse a category above.</div>`;
+  // Fire AI context card asynchronously — fills in without blocking results
+  fetchAIContext(q, county);
+}
+
+/* ── AI context card — calls Anthropic API directly for a local insight ── */
+async function fetchAIContext(q, county) {
+  // Only run for queries that look like a real question (3+ words or location mentioned)
+  const ql = q.toLowerCase();
+  const hasLocation = ql.split(/\s+/).some(t => t.length > 3 &&
+    ['nairobi','mombasa','kisumu','nakuru','eldoret','meru','chuka','embu','thika',
+     'isiolo','garissa','kitui','machakos','nyeri','murang','kirinyaga','tharaka',
+     'laikipia','samburu','marsabit','mandera','wajir','isiolo','nkubu','chogoria',
+     'ukunda','malindi','kilifi','lamu','kwale','taita','kajiado','narok','bomet',
+     'kericho','nandi','uasin','trans','west','bungoma','busia','kakamega',
+     'vihiga','siaya','homa','migori','kisii','nyamira'].includes(t));
+  const isQuestion = q.trim().split(/\s+/).length >= 3 || hasLocation;
+  if (!isQuestion) return;
+
+  const pbody = document.getElementById('pbody');
+  // Insert a loading placeholder at the top
+  const placeholder = document.createElement('div');
+  placeholder.id = 'ai-ctx-card';
+  placeholder.innerHTML = `<div style="background:rgba(126,200,126,0.06);border:1px solid rgba(126,200,126,0.15);
+    border-radius:10px;padding:14px;margin-bottom:12px;display:flex;gap:10px;align-items:center;">
+    <span style="font-size:18px">🤖</span>
+    <span style="font-size:12px;color:var(--muted);">MjengoAI is preparing context…</span>
+  </div>`;
+  pbody.insertBefore(placeholder, pbody.firstChild);
+
+  try {
+    const systemPrompt = `You are MjengoAI, a Kenya construction directory assistant.
+When given a search query, respond with a SHORT helpful context card (3-5 sentences max).
+Cover: what to expect in that location, typical price range, what to look for when hiring, 
+any local regulations or tips relevant to Kenya. Be specific to the county/town if mentioned.
+Respond in plain text only — no markdown, no bullet points, no headers.`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 180,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: 'Search query: "' + q + '"' + (county ? ' (County: ' + county + ')' : '') }]
+      })
+    });
+
+    if (!response.ok) throw new Error('API ' + response.status);
+    const data = await response.json();
+    const text = (data.content || []).map(b => b.text || '').join('').trim();
+    if (!text) throw new Error('empty');
+
+    const card = document.getElementById('ai-ctx-card');
+    if (card) {
+      card.innerHTML = `<div style="background:rgba(126,200,126,0.08);border:1px solid rgba(126,200,126,0.22);
+        border-radius:10px;padding:14px;margin-bottom:12px;">
+        <div style="font-size:10px;letter-spacing:.08em;color:var(--green);text-transform:uppercase;
+          font-weight:700;margin-bottom:7px;">🤖 MjengoAI · Local Insight</div>
+        <div style="font-size:12.5px;color:var(--text);line-height:1.8;">${text}</div>
+      </div>`;
+    }
+  } catch(e) {
+    // Silently remove the placeholder if AI fails
+    const card = document.getElementById('ai-ctx-card');
+    if (card) card.remove();
+    console.warn('[MjengoAI] Context card failed:', e.message);
+  }
 }
 
 function qs(q){document.getElementById('sinput').value=q;doSearch();}
