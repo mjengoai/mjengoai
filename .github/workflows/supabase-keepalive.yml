@@ -1,7 +1,8 @@
 name: Keep Supabase Alive
+
 on:
   schedule:
-    - cron: '0 9 * * *'
+    - cron: '*/10 * * * *'   # every 10 minutes
   workflow_dispatch:
 
 jobs:
@@ -10,7 +11,12 @@ jobs:
     steps:
       - name: Ping Supabase
         run: |
-          curl -s -o /dev/null -w "%{http_code}" \
-            "https://vqizhsoohdatplrzpjrfm.supabase.co/rest/v1/registrations?select=id&limit=1" \
+          curl --fail --silent --max-time 10 \
+            "https://vqizhsoohdatplrzpjrfm.supabase.co/rest/v1/" \
             -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MzI1MjksImV4cCI6MjA2MzAwODUyOX0.x05MJOKTTkAFYFp1NpkLLtRQ5v1IcQdHnGdC7DUWT_g" \
-            -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MzI1MjksImV4cCI6MjA2MzAwODUyOX0.x05MJOKTTkAFYFp1NpkLLtRQ5v1IcQdHnGdC7DUWT_g"
+            && echo "Supabase OK" || echo "Supabase unreachable"
+      - name: Ping Render API
+        run: |
+          curl --silent --max-time 30 \
+            "https://mjengoai.onrender.com/health" \
+            && echo "Render OK" || echo "Render waking up"
