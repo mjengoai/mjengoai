@@ -2277,37 +2277,64 @@ function filterPanel(q) {
 
 function stars(r){if(!r)return '';const f=Math.floor(r);return '★'.repeat(f)+(r%1>=0.5?'½':'')+`<span style="color:var(--bg4)">`+'★'.repeat(5-f-(r%1>=0.5?1:0))+'</span>';}
 
-/* ── Score and rank results: location match > rated > verified > listed ── */
+/* ── Score and rank results: exact matches first, then broader results ── */
 function rankResults(items, q) {
-  const ql = (q || _lsLast || '').toLowerCase();
-  // Extract location tokens from query (words that match known towns/counties)
-  const locTokens = ql.split(/\s+/).filter(t => t.length > 2);
+  const ql = (q || _lsLast || '').toLowerCase().trim();
+  const queryTokens = ql.split(/\s+/).filter(t => t.length > 1);
 
   return [...items].sort((a, b) => {
     function score(d) {
       let s = 0;
-      const dloc = (d.loc || '').toLowerCase();
-      const dname = (d.name || '').toLowerCase();
-      const dsub  = (d.sub  || '').toLowerCase();
+      const dloc  = (d.loc   || '').toLowerCase();
+      const dname = (d.name  || '').toLowerCase();
+      const dsub  = (d.sub   || '').toLowerCase();
+      const dtags = (d.tags  || []).join(' ').toLowerCase();
+      const dabout= (d.about || '').toLowerCase();
 
-      // 1. Location match in result — strongest signal
-      for (const t of locTokens) {
-        if (dloc.includes(t)) { s += 40; break; }
+      // 1. EXACT full-query match in name — highest priority
+      if (dname === ql) s += 200;
+      else if (dname.includes(ql)) s += 100;
+
+      // 2. Full-query match in sub/specialty
+      if (dsub === ql) s += 80;
+      else if (dsub.includes(ql)) s += 50;
+
+      // 3. All query tokens match name (e.g. "Joseph mason")
+      if (queryTokens.length > 1 && queryTokens.every(t => dname.includes(t))) s += 60;
+
+      // 4. Any single token is an exact word match in name
+      for (const t of queryTokens) {
+        const wordRe = new RegExp('\\b' + t + '\\b');
+        if (wordRe.test(dname)) { s += 30; break; }
       }
-      // 2. Name/sub exact match to any query token
-      for (const t of locTokens) {
-        if (dname.includes(t) || dsub.includes(t)) { s += 10; break; }
+
+      // 5. Token match in sub/specialty
+      for (const t of queryTokens) {
+        if (dsub.includes(t)) { s += 20; break; }
       }
-      // 3. Has a real rating
-      if (d.rat >= 4.5) s += 20;
-      else if (d.rat >= 4.0) s += 12;
-      else if (d.rat > 0)    s += 5;
-      // 4. Verified/BORAQS/AAK badge
+
+      // 6. Tag match
+      for (const t of queryTokens) {
+        if (dtags.includes(t)) { s += 12; break; }
+      }
+
+      // 7. Location match in result
+      for (const t of queryTokens) {
+        if (dloc.includes(t)) { s += 8; break; }
+      }
+
+      // 8. Has a real rating (secondary tiebreaker)
+      if (d.rat >= 4.5) s += 6;
+      else if (d.rat >= 4.0) s += 4;
+      else if (d.rat > 0)    s += 2;
+
+      // 9. Verified/professional badge
       if (d.badge && (d.badge.includes('BORAQS') || d.badge.includes('AAK') ||
           d.badge.includes('EBK') || d.badge.includes('Verified') ||
-          d.badge.includes('Top'))) s += 8;
-      // 5. Has a price (not just a phone number)
-      if (d.price && !d.price.startsWith('📞')) s += 4;
+          d.badge.includes('Top'))) s += 3;
+
+      // 10. Has a listed price
+      if (d.price && !d.price.startsWith('📞')) s += 1;
       return s;
     }
     return score(b) - score(a);
