@@ -2733,19 +2733,52 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
   _lsHasResults = true;
   document.getElementById('ptitle').textContent = 'Search: "' + q + '"';
   document.getElementById('psub').textContent   = (fData.length ? fData.length + ' local results' : 'No results') + (county ? ' · ' + county : '');
-  // Show guide card above results
-  document.getElementById('pbody').innerHTML = guideCard(q);
+
+  // Build entire panel content in one go using a fragment — zero flash
+  const pbody = document.getElementById('pbody');
+  const frag = document.createDocumentFragment();
+
+  // Guide card node
+  const gc = document.createElement('div');
+  gc.innerHTML = guideCard(q);
+  frag.appendChild(gc.firstElementChild);
+
+  // AI context placeholder — hidden until AI responds (no loading flash)
+  const aiPh = document.createElement('div');
+  aiPh.id = 'ai-ctx-card';
+  aiPh.style.display = 'none';
+  frag.appendChild(aiPh);
+
+  // Empty state or results will be appended to frag below
+  if (!fData.length) {
+    const em = document.createElement('div');
+    em.className = 'pempty';
+    em.innerHTML = `Nothing found for "<b>${q}</b>".<br>Try a different keyword or browse a category above.`;
+    frag.appendChild(em);
+  }
+
+  // Single DOM write — replaces everything atomically, no flash
+  pbody.innerHTML = '';
+  pbody.appendChild(frag);
+
   if (fData.length) renderList(fData, q);
-  else document.getElementById('pbody').innerHTML += `<div class="pempty">
-    Nothing found for "<b>${q}</b>".<br>Try a different keyword or browse a category above.</div>`;
-  // Fire AI context card asynchronously — fills in without blocking results
+
+  // Fire AI context card — fills placeholder asynchronously
   fetchAIContext(q, county);
 }
 
 /* ══════════════════════════════════════════════════════════════════
- * fetchAIContext — smart AI answer card
+ * fetchAIContext — smart AI answer card via Render worker
  * Detects question type, feeds live DB + ticker data, returns real answer
  * ══════════════════════════════════════════════════════════════════ */
+
+// Pre-warm the Render worker so it's awake when the user searches
+(function pingWorker() {
+  setTimeout(() => {
+    fetch(API_URL + '/ping', { method: 'GET' }).catch(() => {});
+  }, 1500);
+})();
+
 async function fetchAIContext(q, county) {
   const ql = q.toLowerCase();
   const words = ql.trim().split(/\s+/);
@@ -2783,17 +2816,9 @@ async function fetchAIContext(q, county) {
   const planPrices = (DB.residential || []).slice(0,4)
     .map(d => `${d.name}: ${d.price}`).join('; ');
 
-  // ── Show loading placeholder ──
-  const pbody = document.getElementById('pbody');
-  const placeholder = document.createElement('div');
-  placeholder.id = 'ai-ctx-card';
-  placeholder.innerHTML = `<div style="background:rgba(126,200,126,0.06);border:1px solid
-    rgba(126,200,126,0.15);border-radius:10px;padding:13px 14px;margin-bottom:12px;
-    display:flex;gap:10px;align-items:center;">
-    <span style="font-size:16px;animation:blink 1.4s infinite;">🤖</span>
-    <span style="font-size:12px;color:var(--muted);">MjengoAI is thinking…</span>
-  </div>`;
-  pbody.insertBefore(placeholder, pbody.firstChild);
+  // ── Reuse the hidden placeholder already in the DOM ──
+  const placeholder = document.getElementById('ai-ctx-card');
+  if (!placeholder) return;
 
   // ── Build a context-aware system prompt ──
   let focus = '';
@@ -2827,20 +2852,47 @@ ${topListings ? 'Top listings found: ' + topListings : ''}
 ${(isBudget || isFeasible) && planPrices ? 'House plan prices: ' + planPrices : ''}`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Route through Render worker (handles CORS + API key server-side)
+    const response = await fetch(WORKER_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user',   content: userMsg }
+        ],
         max_tokens: 250,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userMsg }]
+        stream: false
       })
     });
 
-    if (!response.ok) throw new Error('API ' + response.status);
-    const data = await response.json();
-    const text = (data.content || []).map(b => b.text || '').join('').trim();
+    if (!response.ok) throw new Error('Worker ' + response.status);
+
+    // Handle both streamed and non-streamed responses
+    let text = '';
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('text/event-stream')) {
+      const reader  = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n'); buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const d = line.slice(6).trim();
+          if (d === '[DONE]') continue;
+          try { text += JSON.parse(d).token || JSON.parse(d).text || ''; } catch {}
+        }
+      }
+    } else {
+      const data = await response.json();
+      text = (data.content || data.text || data.response || (data.choices && data.choices[0]?.message?.content) || '');
+      if (Array.isArray(text)) text = text.map(b => b.text || '').join('');
+    }
+    text = text.trim();
     if (!text) throw new Error('empty response');
 
     // ── Determine card colour by question type ──
@@ -2850,6 +2902,7 @@ ${(isBudget || isFeasible) && planPrices ? 'House plan prices: ' + planPrices : 
 
     const card = document.getElementById('ai-ctx-card');
     if (card) {
+      card.style.display = '';
       card.innerHTML = `<div style="background:${accentDim};border:1px solid ${accent}33;
         border-radius:10px;padding:14px;margin-bottom:12px;">
         <div style="font-size:10px;letter-spacing:.08em;color:${accent};text-transform:uppercase;
@@ -2862,9 +2915,8 @@ ${(isBudget || isFeasible) && planPrices ? 'House plan prices: ' + planPrices : 
       </div>`;
     }
   } catch(e) {
-    const card = document.getElementById('ai-ctx-card');
-    if (card) card.remove();
-    console.warn('[MjengoAI] AI context failed:', e.message);
+    // Card is hidden — just leave it hidden, no visible change
+    console.warn('[MjengoAI] AI context unavailable:', e.message);
   }
 }
 
