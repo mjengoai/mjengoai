@@ -520,35 +520,8 @@ async function mjRegister(data) {
       }).catch(()=>{});
     }
 
-    /* 3 — Save to Firebase members collection so they appear on the site immediately */
-    try {
-      const _db  = window.MjengoFS._db  || window._db;
-      const { doc, setDoc, serverTimestamp } = window.MjengoFS;
-      const phone = _mjPhone || data.phone || '';
-      if (_db && phone) {
-        await setDoc(doc(_db, 'members', phone), {
-          name:         data.name        || '',
-          phone:        phone,
-          category:     data.category    || '',
-          subCategory:  data.subCategory || '',
-          location:     data.location    || '',
-          price:        data.price       || '',
-          email:        data.email       || '',
-          about:        data.about       || '',
-          nca_reg:      data.nca_reg     || '',
-          status:       'pending',
-          verified:     false,
-          joined:       serverTimestamp()
-        });
-        console.log('[MjengoAI] Member saved to Firebase ✓');
-      }
-    } catch(fbErr) {
-      console.warn('[MjengoAI] Firebase member save skipped:', fbErr.message);
-      // Non-fatal — Supabase already saved
-    }
-
-    /* 4 — Add to local DB array so they appear in results immediately (same session) */
-    const cat = (data.category || '').toLowerCase();
+    /* 3 — Add to local DB array so they appear in results immediately (same session) */
+    // cat already declared above — reuse it
     const newEntry = {
       id:    Date.now(),
       name:  data.name        || '',
@@ -2267,7 +2240,16 @@ function applyFilt(el,f){
   renderList(fData);
 }
 
-function mQ(d,q){if(!q)return true;return d.name.toLowerCase().includes(q)||d.sub.toLowerCase().includes(q)||d.tags.some(t=>t.toLowerCase().includes(q))||d.loc.toLowerCase().includes(q);}
+/* ── Improved match: splits query into tokens, ALL tokens must appear somewhere
+ *    in name / sub / tags / loc / type / about — gives precise multi-word results ── */
+function mQ(d, q) {
+  if (!q) return true;
+  const tokens = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return true;
+  const haystack = [d.name, d.sub, d.loc, d.type, d.about, ...(d.tags||[])]
+    .filter(Boolean).join(' ').toLowerCase();
+  return tokens.every(t => haystack.includes(t));
+}
 function filterPanel(q){fData=cData.filter(d=>mQ(d,q.toLowerCase()));renderList(fData);}
 
 function stars(r){if(!r)return '';const f=Math.floor(r);return '★'.repeat(f)+(r%1>=0.5?'½':'')+`<span style="color:var(--bg4)">`+'★'.repeat(5-f-(r%1>=0.5?1:0))+'</span>';}
@@ -2539,40 +2521,60 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
     console.warn('[MjengoAI] Intent AI failed, falling back to keyword:', intentErr.message);
   }
 
-  /* ── Final fallback: pure keyword matching against local DB ── */
+  /* ── Final fallback: keyword → DB key, then filter by full query within that set ── */
   const ql = q.toLowerCase();
-  let k = 'masons';
-  if(ql.includes('plan')||ql.includes('bedroom')||ql.includes('bungalow')||ql.includes('maisonette'))k='residential';
-  else if(ql.includes('commercial')||ql.includes('plaza')||ql.includes('warehouse'))k='commercial';
+
+  // Pick the best matching DB key from the query
+  let k = 'masons'; // default
+  if(ql.includes('plan')||ql.includes('bedroom')||ql.includes('bungalow')||ql.includes('maisonette')||ql.includes('house design'))k='residential';
+  else if(ql.includes('commercial')||ql.includes('plaza')||ql.includes('warehouse')||ql.includes('godown'))k='commercial';
   else if(ql.includes('architect'))k='architects';
   else if(ql.includes('structural')||ql.includes('civil eng'))k='structural_eng';
-  else if(ql.includes('quantity')||ql.includes('qs')||ql.includes('boq'))k='quantity_surveyor';
-  else if(ql.includes('planner')||ql.includes('planning'))k='physical_planner';
-  else if(ql.includes('interior design'))k='interior_designer';
+  else if(ql.includes('quantity')||ql.includes(' qs ')||ql.includes('boq'))k='quantity_surveyor';
+  else if(ql.includes('physical planner')||ql.includes('town planner'))k='physical_planner';
+  else if(ql.includes('interior design')||ql.includes('interior'))k='interior_designer';
   else if(ql.includes('land economist'))k='land_economist';
   else if(ql.includes('mep'))k='mep_eng';
+  else if(ql.includes('electrical eng'))k='electrical_eng';
   else if(ql.includes('electr'))k='electricians';
   else if(ql.includes('plumb'))k='plumbers';
-  else if(ql.includes('carpenter'))k='carpenters';
+  else if(ql.includes('carpenter')||ql.includes('joiner')||ql.includes('cabinet'))k='carpenters';
   else if(ql.includes('weld'))k='welders';
-  else if(ql.includes('steel fix'))k='steel_fixers';
-  else if(ql.includes('tile'))k='tiles_fixers';
+  else if(ql.includes('steel fix')||ql.includes('steel fixer'))k='steel_fixers';
+  else if(ql.includes('tile')||ql.includes('tiler'))k='tiles_fixers';
   else if(ql.includes('paint'))k='painters';
-  else if(ql.includes('mason')||ql.includes('fundi'))k='masons';
+  else if(ql.includes('mason')||ql.includes('fundi')||ql.includes('bricklayer'))k='masons';
+  else if(ql.includes('foreman')||ql.includes('site manager'))k='foreman';
+  else if(ql.includes('glass')||ql.includes('glazier'))k='glass_expert';
+  else if(ql.includes('landscape')||ql.includes('garden'))k='landscapers_art';
+  else if(ql.includes('nema')||ql.includes('eia'))k='nema_eia';
   else if(ql.includes('contractor')||ql.includes('builder'))k='builders';
-  else if(ql.includes('hardware')||ql.includes('cement'))k='hardware_vendors';
-  else if(ql.includes('timber'))k='timber_vendors';
-  else if(ql.includes('precast')||ql.includes('block'))k='precast_vendors';
-  else if(ql.includes('roofing'))k='roofing_mat';
+  else if(ql.includes('hardware')||ql.includes('cement')||ql.includes('building materials'))k='hardware_vendors';
+  else if(ql.includes('timber')||ql.includes('wood')||ql.includes('lumber'))k='timber_vendors';
+  else if(ql.includes('precast')||ql.includes('hollow block')||ql.includes('slab'))k='precast_vendors';
+  else if(ql.includes('roofing')||ql.includes('mabati'))k='roofing_mat';
+  else if(ql.includes('quarry')||ql.includes('crusher')||ql.includes('ballast'))k='crushers';
   else if(ql.includes('calculator'))k='calculators';
   else if(ql.includes('tender'))k='tender_alert';
   else if(ql.includes('nca'))k='nca';
   else if(ql.includes('mjt')||ql.includes('wallet'))k='ewallet';
 
   cData = DB[k] || [];
+
+  // Apply full query filter within the selected category (exact multi-word matching)
+  const qFiltered = cData.filter(d => mQ(d, ql));
+
+  // Also apply county/location filter if selected
   fData = county
-    ? cData.filter(d => !d.loc || d.loc.toLowerCase().includes(county.toLowerCase()))
-    : [...cData];
+    ? qFiltered.filter(d => !d.loc || d.loc.toLowerCase().includes(county.toLowerCase()))
+    : qFiltered;
+
+  // If the filtered set is empty, fall back to full category (avoid blank panel)
+  if (!fData.length && cData.length) {
+    fData = county
+      ? cData.filter(d => !d.loc || d.loc.toLowerCase().includes(county.toLowerCase()))
+      : [...cData];
+  }
 
   document.getElementById('ptitle').textContent = 'Search: "' + q + '"';
   document.getElementById('psub').textContent   = 'Showing local results' + (county ? ' · ' + county : '');
