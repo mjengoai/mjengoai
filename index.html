@@ -2427,7 +2427,7 @@ function openDetail(id){
 }
 
 function showList(){document.getElementById('lview').style.display='flex';document.getElementById('dview').classList.remove('open');}
-function closePanel(){document.getElementById('povl').classList.remove('open');_lsHasResults=false;_lsLast='';}
+function closePanel(){document.getElementById('povl').classList.remove('open');_lsHasResults=false;_lsLast='';_aiAnswered=false;}
 
 /* ════════════════════ LOCATION ════════════════════ */
 let selCounty='',selTown='',selLoc='';
@@ -2504,6 +2504,7 @@ const WORKER_URL = 'https://mjengoai.onrender.com/chat';
 let _lsTimer = null;   // debounce timer
 let _lsLast  = '';     // last query sent (avoid duplicate calls)
 let _lsHasResults = false; // track whether panel already has real results
+let _aiAnswered = false;   // true when AI has given a real answer — block further rebuilds
 
 function liveSearch(val) {
   const q = val.trim();
@@ -2529,8 +2530,11 @@ function liveSearch(val) {
 
   // Debounce — fire search 400ms after user stops typing
   _lsTimer = setTimeout(() => {
+    // If AI already gave a full answer for this query, don't rebuild
+    if (_aiAnswered && q === _lsLast) return;
     if (q !== _lsLast) {
       _lsLast = q;
+      _aiAnswered = false; // new query resets AI answered state
       doSearch(q);
     }
   }, 400);
@@ -2635,6 +2639,7 @@ async function doSearch(qOverride) {
     cData = data.sources || [];
     fData = [...cData];
     _lsHasResults = true;
+    _aiAnswered = true;  // lock — don't let debounce overwrite this
     document.getElementById('psub').textContent = (data.intent || 'AI results') + (county ? ' · ' + county : '');
     setPbody(aiCard);
     if (cData.length) renderList(cData, q);
@@ -2703,6 +2708,7 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
           <div style="font-size:13px;color:var(--text);line-height:1.75;">${parsed.answer || ''}</div>
         </div>`;
         _lsHasResults = true;
+        _aiAnswered = true;  // lock — don't let debounce overwrite this
         setPbody(aiCard);
         buildFilt(k);
         if (fData.length) renderList(fData, q);
@@ -2974,6 +2980,7 @@ ${(isBudget || isFeasible) && planPrices ? 'House plan prices: ' + planPrices : 
 
     const card = document.getElementById('ai-ctx-card');
     if (card) {
+      _aiAnswered = true;  // context card received — freeze panel
       card.style.display = '';
       card.innerHTML = `<div style="background:${accentDim};border:1px solid ${accent}33;
         border-radius:10px;padding:14px;margin-bottom:12px;">
