@@ -2696,68 +2696,129 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
   fetchAIContext(q, county);
 }
 
-/* ── AI context card — calls Anthropic API directly for a local insight ── */
+/* ══════════════════════════════════════════════════════════════════
+ * fetchAIContext — smart AI answer card
+ * Detects question type, feeds live DB + ticker data, returns real answer
+ * ══════════════════════════════════════════════════════════════════ */
 async function fetchAIContext(q, county) {
-  // Only run for queries that look like a real question (3+ words or location mentioned)
   const ql = q.toLowerCase();
-  const hasLocation = ql.split(/\s+/).some(t => t.length > 3 &&
-    ['nairobi','mombasa','kisumu','nakuru','eldoret','meru','chuka','embu','thika',
-     'isiolo','garissa','kitui','machakos','nyeri','murang','kirinyaga','tharaka',
-     'laikipia','samburu','marsabit','mandera','wajir','isiolo','nkubu','chogoria',
-     'ukunda','malindi','kilifi','lamu','kwale','taita','kajiado','narok','bomet',
-     'kericho','nandi','uasin','trans','west','bungoma','busia','kakamega',
-     'vihiga','siaya','homa','migori','kisii','nyamira'].includes(t));
-  const isQuestion = q.trim().split(/\s+/).length >= 3 || hasLocation;
+  const words = ql.trim().split(/\s+/);
+
+  // Only fire for genuine questions (3+ words, or contains question indicators)
+  const isQuestion = words.length >= 3 ||
+    ['can','how','what','which','where','who','cost','price','budget','best','find',
+     'need','want','hire','build','construct','much','many'].some(w => ql.startsWith(w));
   if (!isQuestion) return;
 
+  // ── Detect question type ──
+  const isBudget    = /\d+m|\d+k|\d+ million|\d+,\d{3}|budget|afford|cost|price|how much|kes/i.test(q);
+  const isFeasible  = /can i|can we|is it possible|feasible|enough|sufficient/i.test(q);
+  const isHiring    = /hire|find|looking for|need a|where.*get|recommend/i.test(q);
+  const isProcess   = /how (do|to|long|many)|steps|process|permit|approval|nca|ebk/i.test(q);
+
+  // ── Snapshot relevant live data to feed the AI ──
+  // 1. Material prices from ticker (currently loaded)
+  const tickerEls = [...document.querySelectorAll('.ti')];
+  const materialPrices = tickerEls.slice(0, tickerEls.length / 2).map(el => {
+    const n = el.querySelector('.tn');
+    const p = el.querySelector('.tp');
+    return n && p ? n.textContent.trim() + ': ' + p.textContent.trim() : null;
+  }).filter(Boolean).join(', ');
+
+  // 2. Relevant DB entries — top 5 rated from current results
+  const topListings = (fData || [])
+    .filter(d => d.rat > 0)
+    .sort((a,b) => b.rat - a.rat)
+    .slice(0, 5)
+    .map(d => `${d.name} (${d.loc||'Kenya'}, ${d.price}, ${d.rat}★)`)
+    .join('; ');
+
+  // 3. House plan prices if relevant
+  const planPrices = (DB.residential || []).slice(0,4)
+    .map(d => `${d.name}: ${d.price}`).join('; ');
+
+  // ── Show loading placeholder ──
   const pbody = document.getElementById('pbody');
-  // Insert a loading placeholder at the top
   const placeholder = document.createElement('div');
   placeholder.id = 'ai-ctx-card';
-  placeholder.innerHTML = `<div style="background:rgba(126,200,126,0.06);border:1px solid rgba(126,200,126,0.15);
-    border-radius:10px;padding:14px;margin-bottom:12px;display:flex;gap:10px;align-items:center;">
-    <span style="font-size:18px">🤖</span>
-    <span style="font-size:12px;color:var(--muted);">MjengoAI is preparing context…</span>
+  placeholder.innerHTML = `<div style="background:rgba(126,200,126,0.06);border:1px solid
+    rgba(126,200,126,0.15);border-radius:10px;padding:13px 14px;margin-bottom:12px;
+    display:flex;gap:10px;align-items:center;">
+    <span style="font-size:16px;animation:blink 1.4s infinite;">🤖</span>
+    <span style="font-size:12px;color:var(--muted);">MjengoAI is thinking…</span>
   </div>`;
   pbody.insertBefore(placeholder, pbody.firstChild);
 
-  try {
-    const systemPrompt = `You are MjengoAI, a Kenya construction directory assistant.
-When given a search query, respond with a SHORT helpful context card (3-5 sentences max).
-Cover: what to expect in that location, typical price range, what to look for when hiring, 
-any local regulations or tips relevant to Kenya. Be specific to the county/town if mentioned.
-Respond in plain text only — no markdown, no bullet points, no headers.`;
+  // ── Build a context-aware system prompt ──
+  let focus = '';
+  if (isBudget || isFeasible) {
+    focus = `This is a BUDGET or FEASIBILITY question. Give a direct YES/NO answer first, 
+then break down approximate costs using the live prices provided. 
+Include: land/plot not included, plan fees, labour, materials estimate, contingency (15%).
+Be specific with KES figures. Max 6 sentences.`;
+  } else if (isHiring) {
+    focus = `This is a HIRING question. Name 1-2 top professionals from the listings data provided.
+Give typical rate range for Kenya, what to check (registration, experience), and one practical tip.
+Max 5 sentences.`;
+  } else if (isProcess) {
+    focus = `This is a PROCESS/REGULATORY question about Kenya construction.
+Cover the actual steps, which bodies are involved (NCA, county, NEMA if relevant), 
+typical timelines and costs. Be practical and Kenya-specific. Max 6 sentences.`;
+  } else {
+    focus = `Give a helpful LOCAL INSIGHT for this query — county-specific info, 
+typical costs, what to look for, any Kenya regulations relevant. Max 5 sentences.`;
+  }
 
+  const systemPrompt = `You are MjengoAI, Kenya's construction directory AI assistant.
+You have access to live data from the MjengoAI database.
+Always respond in plain conversational text — NO markdown, NO bullet points, NO headers, NO asterisks.
+Use KES for all prices. Be direct and practical for a Kenyan audience.
+${focus}`;
+
+  const userMsg = `Query: "${q}"${county ? ' | Location filter: ' + county : ''}
+Live material prices: ${materialPrices || 'Cement 50kg: KES 720, Steel rod 12mm: KES 680/m, Roofing sheet: KES 1,250, Hollow block: KES 48, River sand/t: KES 2,100'}
+${topListings ? 'Top listings found: ' + topListings : ''}
+${(isBudget || isFeasible) && planPrices ? 'House plan prices: ' + planPrices : ''}`;
+
+  try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 180,
+        max_tokens: 250,
         system: systemPrompt,
-        messages: [{ role: 'user', content: 'Search query: "' + q + '"' + (county ? ' (County: ' + county + ')' : '') }]
+        messages: [{ role: 'user', content: userMsg }]
       })
     });
 
     if (!response.ok) throw new Error('API ' + response.status);
     const data = await response.json();
     const text = (data.content || []).map(b => b.text || '').join('').trim();
-    if (!text) throw new Error('empty');
+    if (!text) throw new Error('empty response');
+
+    // ── Determine card colour by question type ──
+    const accent = (isBudget || isFeasible) ? '#c9952a' : (isHiring ? '#4a7ec0' : '#7ec87e');
+    const accentDim = (isBudget || isFeasible) ? 'rgba(201,149,42,0.1)' : (isHiring ? 'rgba(74,126,192,0.1)' : 'rgba(126,200,126,0.08)');
+    const label = (isBudget || isFeasible) ? '💰 Budget Analysis' : (isHiring ? '👷 Hiring Guide' : (isProcess ? '📋 Process Guide' : '🤖 Local Insight'));
 
     const card = document.getElementById('ai-ctx-card');
     if (card) {
-      card.innerHTML = `<div style="background:rgba(126,200,126,0.08);border:1px solid rgba(126,200,126,0.22);
+      card.innerHTML = `<div style="background:${accentDim};border:1px solid ${accent}33;
         border-radius:10px;padding:14px;margin-bottom:12px;">
-        <div style="font-size:10px;letter-spacing:.08em;color:var(--green);text-transform:uppercase;
-          font-weight:700;margin-bottom:7px;">🤖 MjengoAI · Local Insight</div>
-        <div style="font-size:12.5px;color:var(--text);line-height:1.8;">${text}</div>
+        <div style="font-size:10px;letter-spacing:.08em;color:${accent};text-transform:uppercase;
+          font-weight:700;margin-bottom:8px;">MjengoAI · ${label}</div>
+        <div style="font-size:12.5px;color:var(--text);line-height:1.85;">${text}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px;padding-top:8px;
+          border-top:1px solid rgba(255,255,255,0.06);">
+          Based on live MjengoAI database · Prices as of today · Always get 3 quotes
+        </div>
       </div>`;
     }
   } catch(e) {
-    // Silently remove the placeholder if AI fails
     const card = document.getElementById('ai-ctx-card');
     if (card) card.remove();
-    console.warn('[MjengoAI] Context card failed:', e.message);
+    console.warn('[MjengoAI] AI context failed:', e.message);
   }
 }
 
