@@ -551,20 +551,62 @@ async function mjRegister(data) {
       artisans: {
         mason:'masons', plumber:'plumbers', electrician:'electricians',
         carpenter:'carpenters', welder:'welders', painter:'painters',
-        tiler:'tiles_fixers', 'steel fixer':'steel_fixers'
+        tiler:'tiles_fixers', 'steel fixer':'steel_fixers',
+        glazier:'glass_expert', glass:'glass_expert',
+        landscap:'landscapers_art', foreman:'foreman'
       },
       professionals: {
         architect:'architects', engineer:'structural_eng',
         'quantity surveyor':'quantity_surveyor', 'mep engineer':'mep_eng',
-        'construction manager':'construction_mgr'
+        'construction manager':'construction_mgr',
+        'physical planner':'physical_planner', 'land economist':'land_economist',
+        'interior designer':'interior_designer', 'interior design':'interior_designer',
+        structural:'structural_eng', civil:'structural_eng'
+      },
+      vendors: {
+        hardware:'hardware_vendors', timber:'timber_vendors', wood:'timber_vendors',
+        precast:'precast_vendors', block:'precast_vendors',
+        roofing:'roofing_mat', mabati:'roofing_mat',
+        quarry:'crushers', crusher:'crushers', ballast:'crushers',
+        factory:'factory_vendors', workshop:'workshop_vendors'
+      },
+      contractors: {
+        builder:'builders', contractor:'builders', construction:'builders'
+      },
+      materials: {
+        cement:'hardware_vendors', steel:'hardware_vendors',
+        hardware:'hardware_vendors', material:'hardware_vendors'
       }
     };
     const subLow = (data.subCategory||'').toLowerCase();
     const catMap  = keyMap[cat] || {};
+    // Find best matching DB key: try every keyword as a substring of the user's subcategory
     const dbKey   = Object.keys(catMap).find(k => subLow.includes(k));
-    if (dbKey && DB[catMap[dbKey]]) {
-      DB[catMap[dbKey]].unshift(newEntry); // appear at top of results
-      console.log('[MjengoAI] Added to local DB key:', catMap[dbKey]);
+    // Fallback: use the first key in that category's map if nothing matched
+    const resolvedKey = dbKey ? catMap[dbKey] : (Object.values(catMap)[0] || null);
+    if (resolvedKey && DB[resolvedKey]) {
+      DB[resolvedKey].unshift(newEntry); // appear at top of results
+      console.log('[MjengoAI] Added to local DB key:', resolvedKey);
+    } else {
+      // Last resort: push into the flat all-entries array via a generic key
+      const allVals = Object.values(DB).flat();
+      allVals.unshift(newEntry);
+      console.log('[MjengoAI] Added to generic DB (no specific key matched for cat:', cat, 'sub:', subLow, ')');
+    }
+
+    /* 4 — Save to Firebase Firestore (dormant until admin approves) */
+    if (_mjPhone && typeof window.MjengoSaveProfile === 'function') {
+      window.MjengoSaveProfile(_mjPhone, {
+        name:         data.name        || '',
+        category:     data.category    || '',
+        subCategory:  data.subCategory || '',
+        location:     data.location    || '',
+        price:        data.price       || '',
+        email:        data.email       || '',
+        about:        data.about       || '',
+        nca_reg:      data.nca_reg     || '',
+        phone:        _mjPhone
+      }).catch(e => console.warn('[MjengoAI] Firebase save error:', e));
     }
 
     return { ok: true };
@@ -2544,17 +2586,16 @@ function openPanelSkeleton(q) {
   document.getElementById('povl').classList.add('open');
   document.getElementById('lview').style.display = 'flex';
   document.getElementById('dview').classList.remove('open');
-  // NEVER wipe pbody here — skeleton only shown when panel is truly empty
   const pbody = document.getElementById('pbody');
-  if (!_lsHasResults && !pbody.querySelector('.lcard')) {
+  // Only show skeleton when there is truly nothing to display yet
+  if (!_lsHasResults && !pbody.querySelector('.lcard') && !pbody.querySelector('.skel')) {
     document.getElementById('psub').textContent = 'Finding results…';
-    // Only inject skeleton if pbody has nothing real yet
-    if (!pbody.querySelector('.skel')) {
-      const sk = document.createElement('div');
-      sk.className = 'skelwrap';
-      sk.innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
-      pbody.appendChild(sk);
-    }
+    // Wipe any stale content before inserting skeleton so there is no double-flash
+    [...pbody.children].forEach(el => el.remove());
+    const sk = document.createElement('div');
+    sk.className = 'skelwrap';
+    sk.innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
+    pbody.appendChild(sk);
   }
 }
 
