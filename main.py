@@ -1,23 +1,24 @@
 from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 from typing import Optional
 import os
 import json
+import httpx
 import traceback
 from dotenv import load_dotenv
 from search import handle_query
 
 load_dotenv()
 
-# ── Supabase client (service-role key — stays on server, never sent to browser) ──
+# ── Supabase client ───────────────────────────────────────────────────
 from supabase import create_client, Client
 _SURL: str = os.environ.get("SUPABASE_URL", "")
-_SKEY: str = os.environ.get("SUPABASE_KEY", "")   # service-role key
+_SKEY: str = os.environ.get("SUPABASE_KEY", "")
 _sb: Client = create_client(_SURL, _SKEY) if _SURL and _SKEY else None
 
-# ── Firebase Admin (server-side only) ──
+# ── Firebase Admin ────────────────────────────────────────────────────
 try:
     import firebase_admin
     from firebase_admin import credentials, firestore as fs
@@ -31,10 +32,36 @@ except Exception as _fe:
     print(f"[MjengoAI] Firebase init skipped: {_fe}")
     _fdb = None
 
+# ── WhatsApp + Anthropic env vars ─────────────────────────────────────
+WA_TOKEN        = os.environ.get("WHATSAPP_TOKEN", "")
+WA_PHONE_ID     = os.environ.get("WHATSAPP_PHONE_ID", "")
+WA_VERIFY_TOKEN = os.environ.get("WHATSAPP_VERIFY_TOKEN", "MjengoAI2026!")
+ANTHROPIC_KEY   = os.environ.get("ANTHROPIC_KEY", "")
+
+# ── MjengoAI WhatsApp system prompt ──────────────────────────────────
+WA_SYSTEM_PROMPT = """You are MjengoAI, a smart construction assistant for Kenya built by Mineco Systems.
+You help users with:
+- Construction material prices in KES (cement, steel, sand, ballast, blocks, timber, roofing)
+- Finding artisans, contractors, professionals, and vendors across Kenya
+- House planning — plot sizes, bedroom counts, build costs per sqm
+- Construction phases from site prep to finishing
+- Cost estimates: self-build saves ~30% vs full contract
+- Precast products from Caireney/Mineco catalog
+
+Key facts:
+- Cement: ~KES 720/50kg bag (13.8 bags per m³ of Class 20 concrete)
+- Mason day rate: KES 1,800 | Unskilled labour: KES 900 | Foreman: KES 2,400
+- HICB blocks (200mm wall): 15.2 blocks per m²
+- Substructure = 15–18% of total build cost
+
+Keep replies SHORT and friendly — this is WhatsApp.
+Use bullet points for lists. Use KES for all prices.
+If unsure, say so and suggest visiting www.mjengoai.com"""
+
 
 app = FastAPI(
     title="MjengoAI API",
-    description="Generative AI construction search — powered by OpenAI + Supabase",
+    description="Generative AI construction search — powered by Claude + Supabase",
     version="1.0.0"
 )
 
@@ -91,6 +118,148 @@ class SaveProfileRequest(BaseModel):
 
 
 # ════════════════════════════════════════════════════════════════
+#  WHATSAPP HELPER FUNCTIONS
+# ════════════════════════════════════════════════════════════════
+
+async def wa_send_message(to: str, text: str):
+    """Send a WhatsApp text message via Meta Cloud API."""
+    url = f"https://graph.facebook.com/v19.0/{WA_PHONE_ID}/messages"
+    headers = {
+        "Authorization": f"Bearer {WA_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": to,
+        "type": "text",
+        "text": {"body": text},
+    }
+    async with httpx.AsyncClient() as client:
+        r = await client.post(url, headers=headers, json=payload, timeout=10)
+        if r.status_code != 200:
+            print(f"[WhatsApp] Send error {r.status_code}: {r.text}")
+
+
+def wa_get_history(phone: str, limit: int = 10) -> list:
+    """Fetch last N conversation messages for this phone number."""
+    if not _sb:
+        return []
+    try:
+        r = _sb.table("conversations") \
+               .select("role,content") \
+               .eq("phone", phone) \
+               .order("created_at", desc=True) \
+               .limit(limit) \
+               .execute()
+        return list(reversed(r.data or []))
+    except Exception as e:
+        print(f"[WhatsApp] History error: {e}")
+        return []
+
+
+def wa_save_message(phone: str, role: str, content: str):
+    """Save a message to the conversations table."""
+    if not _sb:
+        return
+    try:
+        _sb.table("conversations").insert({
+            "phone": phone,
+            "role": role,
+            "content": content,
+        }).execute()
+    except Exception as e:
+        print(f"[WhatsApp] Save error: {e}")
+
+
+async def wa_ask_claude(history: list, user_message: str) -> str:
+    """Send message to Claude and get a reply."""
+    messages = history + [{"role": "user", "content": user_message}]
+    headers = {
+        "x-api-key": ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 400,
+        "system": WA_SYSTEM_PROMPT,
+        "messages": messages,
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            data = r.json()
+            return data.get("content", [{}])[0].get("text", "Sorry, I couldn't process that. Try again!")
+    except Exception as e:
+        print(f"[WhatsApp] Claude error: {e}")
+        return "Sorry, I'm having trouble right now. Please try again in a moment."
+
+
+# ════════════════════════════════════════════════════════════════
+#  WHATSAPP ROUTES
+# ════════════════════════════════════════════════════════════════
+
+@app.get("/whatsapp")
+async def whatsapp_verify(request: Request):
+    """Meta webhook verification — called once when you click Verify and Save."""
+    params    = dict(request.query_params)
+    mode      = params.get("hub.mode")
+    token     = params.get("hub.verify_token")
+    challenge = params.get("hub.challenge")
+
+    print(f"[WhatsApp] Verify request — mode={mode} token={token}")
+
+    if mode == "subscribe" and token == WA_VERIFY_TOKEN:
+        print("[WhatsApp] ✅ Webhook verified!")
+        return PlainTextResponse(content=challenge, status_code=200)
+
+    print("[WhatsApp] ❌ Verification failed")
+    return PlainTextResponse(content="Forbidden", status_code=403)
+
+
+@app.post("/whatsapp")
+async def whatsapp_incoming(request: Request):
+    """Receive incoming WhatsApp messages and reply with Claude AI."""
+    # Always return 200 immediately so Meta doesn't retry
+    try:
+        body    = await request.json()
+        message = (
+            body.get("entry", [{}])[0]
+                .get("changes", [{}])[0]
+                .get("value", {})
+                .get("messages", [{}])[0]
+        )
+
+        # Only handle text messages
+        if not message or message.get("type") != "text":
+            return JSONResponse(content={"ok": True}, status_code=200)
+
+        phone = message.get("from", "")
+        text  = message.get("text", {}).get("body", "").strip()
+
+        print(f"[WhatsApp] 📩 From {phone}: {text}")
+
+        # Get history → save user msg → ask Claude → save reply → send
+        history = wa_get_history(phone)
+        wa_save_message(phone, "user", text)
+        reply = await wa_ask_claude(history, text)
+        wa_save_message(phone, "assistant", reply)
+        await wa_send_message(phone, reply)
+
+        print(f"[WhatsApp] ✅ Replied to {phone}")
+
+    except Exception as e:
+        print(f"[WhatsApp] Handler error: {e}\n{traceback.format_exc()}")
+
+    return JSONResponse(content={"ok": True}, status_code=200)
+
+
+# ════════════════════════════════════════════════════════════════
 #  EXISTING ROUTES (unchanged)
 # ════════════════════════════════════════════════════════════════
 
@@ -136,16 +305,8 @@ async def search(req: SearchRequest, request: Request):
         )
 
 
-# ════════════════════════════════════════════════════════════════
-#  NEW SECURE ROUTES — all secrets stay here on the server
-# ════════════════════════════════════════════════════════════════
-
 @app.post("/register")
 async def register(req: RegisterRequest):
-    """
-    Receives new member registration from the browser.
-    Browser sends plain JSON — no API key needed from client side.
-    """
     if not _sb:
         return JSONResponse(status_code=503, content={"ok": False, "error": "DB not configured"})
     try:
@@ -169,10 +330,6 @@ async def register(req: RegisterRequest):
 
 @app.post("/register-profile")
 async def register_profile(req: RegisterProfileRequest):
-    """
-    Inserts into artisans / professionals table based on category.
-    Called fire-and-forget from the browser after /register succeeds.
-    """
     if not _sb:
         return JSONResponse(status_code=503, content={"ok": False, "error": "DB not configured"})
     cat   = (req.cat or "").lower()
@@ -215,10 +372,6 @@ async def register_profile(req: RegisterProfileRequest):
 
 @app.post("/save-profile")
 async def save_profile(req: SaveProfileRequest):
-    """
-    Saves member to Firestore (dormant until admin approves).
-    Replaces the old browser-side Firebase Firestore write.
-    """
     if not _fdb:
         return JSONResponse(status_code=503, content={"ok": False, "error": "Firebase not configured"})
     try:
@@ -248,10 +401,6 @@ async def save_profile(req: SaveProfileRequest):
 
 @app.get("/profile")
 async def get_profile(phone: str = Query(...)):
-    """
-    Returns a live Firestore profile — active members only.
-    Called when opening a contact card to get live data.
-    """
     if not _fdb:
         return JSONResponse(status_code=503, content={})
     try:
@@ -259,7 +408,6 @@ async def get_profile(phone: str = Query(...)):
         if doc.exists:
             d = doc.to_dict()
             if d.get("active"):
-                # Strip sensitive admin fields before returning
                 d.pop("joined", None)
                 return d
         return JSONResponse(status_code=404, content={})
@@ -273,11 +421,6 @@ async def get_contact(
     id:   Optional[str] = Query(None),
     name: Optional[str] = Query(None)
 ):
-    """
-    Returns phone + email for a listing when the user clicks 'Unlock Contact'.
-    Looks up Supabase artisans → professionals → registrations tables.
-    Phone numbers are NEVER sent to the browser until this endpoint is called.
-    """
     if not _sb:
         return JSONResponse(status_code=503, content={})
 
@@ -311,10 +454,6 @@ async def get_contact(
 
 @app.get("/prices")
 async def get_prices():
-    """
-    Returns material prices from Supabase for the homepage ticker.
-    Replaces the old browser-side Supabase SDK call.
-    """
     if not _sb:
         return JSONResponse(status_code=503, content=[])
     try:
