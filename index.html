@@ -583,18 +583,34 @@ async function mjRegister(data) {
     };
     const subLow = (data.subCategory||'').toLowerCase();
     const catMap  = keyMap[cat] || {};
-    // Find best matching DB key: try every keyword as a substring of the user's subcategory
     const dbKey   = Object.keys(catMap).find(k => subLow.includes(k));
-    // Fallback: use the first key in that category's map if nothing matched
     const resolvedKey = dbKey ? catMap[dbKey] : (Object.values(catMap)[0] || null);
-    if (resolvedKey && DB[resolvedKey]) {
-      DB[resolvedKey].unshift(newEntry); // appear at top of results
-      console.log('[MjengoAI] Added to local DB key:', resolvedKey);
+
+    if (resolvedKey) {
+      // Always ensure the DB key exists as an array before inserting
+      if (!DB[resolvedKey]) DB[resolvedKey] = [];
+      DB[resolvedKey].unshift(newEntry);
+      console.log('[MjengoAI] ✓ Added to DB[' + resolvedKey + ']');
     } else {
-      // Last resort: push into the flat all-entries array via a generic key
-      const allVals = Object.values(DB).flat();
-      allVals.unshift(newEntry);
-      console.log('[MjengoAI] Added to generic DB (no specific key matched for cat:', cat, 'sub:', subLow, ')');
+      // Absolute fallback — create a 'new_members' bucket in DB
+      if (!DB['new_members']) DB['new_members'] = [];
+      DB['new_members'].unshift(newEntry);
+      console.log('[MjengoAI] Added to DB[new_members] (cat:', cat, 'sub:', subLow, ')');
+    }
+
+    // ── Refresh the search panel so the new entry appears immediately ──
+    const currentQuery = document.getElementById('sinput')?.value?.trim();
+    if (currentQuery && _lsHasResults) {
+      // Update fData and re-render if the new entry matches the current search
+      const subWords = subLow.split(/\s+/);
+      const queryLow = currentQuery.toLowerCase();
+      const matches  = subWords.some(w => w && queryLow.includes(w)) ||
+                       queryLow.includes((data.name||'').toLowerCase().split(' ')[0]);
+      if (matches) {
+        fData.unshift(newEntry);
+        cData.unshift(newEntry);
+        renderList(fData, currentQuery);
+      }
     }
 
     /* 4 — Save to Firebase Firestore (dormant until admin approves) */
@@ -2878,11 +2894,42 @@ async function doSearch(qOverride) {
     cData = data.sources || [];
     fData = [...cData];
     _lsHasResults = true;
-    _aiAnswered = true;  // lock — don't let debounce overwrite this
-    document.getElementById('psub').textContent = (data.intent || 'AI results') + (county ? ' · ' + county : '');
-    setPbody(aiCard);
+    _aiAnswered   = true;
+    document.getElementById('ptitle').textContent = 'Results: ' + q;
+    document.getElementById('psub').textContent   = (data.intent || 'AI results') + (county ? ' · ' + county : '');
+
+    /* ── Render AI card into the placeholder — never wipe the whole panel ── */
+    const pbody = document.getElementById('pbody');
+    // Remove skeleton if still present
+    const sk = pbody.querySelector('.skelwrap');
+    if (sk) sk.remove();
+
+    // Get or create the AI card placeholder
+    let aiPh = document.getElementById('ai-ctx-card');
+    if (!aiPh) {
+      aiPh = document.createElement('div');
+      aiPh.id = 'ai-ctx-card';
+      pbody.insertBefore(aiPh, pbody.firstChild);
+    }
+    aiPh.style.display = '';
+    aiPh.innerHTML = `<div style="background:rgba(126,200,126,0.08);border:1px solid
+      rgba(126,200,126,0.22);border-radius:10px;padding:14px;margin-bottom:14px;">
+      <div style="font-size:10px;letter-spacing:.08em;color:var(--green);
+        text-transform:uppercase;margin-bottom:8px;font-weight:600;">🤖 MjengoAI Answer</div>
+      <div style="font-size:13px;color:var(--text);line-height:1.75;">${data.answer || ''}</div>
+    </div>`;
+
+    // Remove old result cards, keep AI card
+    [...pbody.children].forEach(el => {
+      if (el.id !== 'ai-ctx-card') el.remove();
+    });
     if (cData.length) renderList(cData, q);
-    else document.getElementById('pbody').innerHTML += '<div style="color:var(--muted);font-size:13px;padding:8px 0">No listings found — try a different keyword or county.</div>';
+    else {
+      const em = document.createElement('div');
+      em.style.cssText = 'color:var(--muted);font-size:13px;padding:8px 0';
+      em.textContent = 'No listings found — try a different keyword or county.';
+      pbody.appendChild(em);
+    }
     return;
 
   } catch (workerErr) {
@@ -2940,15 +2987,28 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
         document.getElementById('ptitle').textContent = 'Results: ' + q;
         document.getElementById('psub').textContent   = (parsed.intent || '') + (county ? ' · ' + county : '');
 
-        const aiCard = `<div style="background:rgba(126,200,126,0.08);border:1px solid
+        /* ── Inject AI card without wiping panel ── */
+        const pbody2 = document.getElementById('pbody');
+        const sk2 = pbody2.querySelector('.skelwrap');
+        if (sk2) sk2.remove();
+
+        let aiPh2 = document.getElementById('ai-ctx-card');
+        if (!aiPh2) {
+          aiPh2 = document.createElement('div');
+          aiPh2.id = 'ai-ctx-card';
+          pbody2.insertBefore(aiPh2, pbody2.firstChild);
+        }
+        aiPh2.style.display = '';
+        aiPh2.innerHTML = `<div style="background:rgba(126,200,126,0.08);border:1px solid
           rgba(126,200,126,0.22);border-radius:10px;padding:14px;margin-bottom:14px;">
           <div style="font-size:10px;letter-spacing:.08em;color:var(--green);
             text-transform:uppercase;margin-bottom:8px;font-weight:600;">🤖 MjengoAI Answer</div>
           <div style="font-size:13px;color:var(--text);line-height:1.75;">${parsed.answer || ''}</div>
         </div>`;
+
+        [...pbody2.children].forEach(el => { if (el.id !== 'ai-ctx-card') el.remove(); });
         _lsHasResults = true;
-        _aiAnswered = true;  // lock — don't let debounce overwrite this
-        setPbody(aiCard);
+        _aiAnswered   = true;
         buildFilt(k);
         if (fData.length) renderList(fData, q);
         return;
