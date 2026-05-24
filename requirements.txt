@@ -4,3 +4,4 @@ openai
 supabase
 python-dotenv
 pydantic
+httpx
