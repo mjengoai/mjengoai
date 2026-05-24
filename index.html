@@ -3323,6 +3323,45 @@ async function loadTicker(){
 loadTicker();
 setInterval(loadTicker,5*60*1000);
 
+/* ════════════════════ BOT STATUS CHECKER ════════════════════
+ * Pings the Render backend and updates both bot status indicators.
+ * Green  = backend is alive and responding
+ * Orange = backend is slow or degraded (Render cold start)
+ * Red    = backend is down
+ * ═══════════════════════════════════════════════════════════ */
+async function checkBotStatus() {
+  const waStatEl  = document.getElementById('wa-stat-txt');
+  const aiDot     = document.querySelector('.ai-ph-dot');
+  const aiStatEl  = document.querySelector('.ai-ph-status');
+
+  const start = Date.now();
+  try {
+    const res = await fetch('https://mjengoai.onrender.com/ping', {
+      signal: AbortSignal.timeout(6000)
+    });
+    const ms = Date.now() - start;
+
+    if (res.ok) {
+      if (ms < 2000) {
+        // Fast — fully online
+        if (waStatEl) waStatEl.textContent = '🟢 Online · Replies instantly';
+        if (aiDot)    aiDot.style.background = 'var(--green)';
+      } else {
+        // Slow — Render cold start waking up
+        if (waStatEl) waStatEl.textContent = '🟡 Waking up · May take ~30s';
+        if (aiDot)    aiDot.style.background = '#e8a04a';
+      }
+    } else {
+      throw new Error('non-200');
+    }
+  } catch(e) {
+    if (waStatEl) waStatEl.textContent = '🔴 Offline · Try mjengoai.com';
+    if (aiDot)    aiDot.style.background = '#d9534f';
+  }
+}
+checkBotStatus();
+setInterval(checkBotStatus, 60 * 1000); // re-check every minute
+
 /* ════════════════════ INIT ════════════════════ */
 buildCats();
 buildCounties('');
@@ -3478,7 +3517,7 @@ buildCounties('');
       </div>
       <div class="wa-info">
         <div class="wa-name">MjengoAI WhatsApp Bot</div>
-        <div class="wa-stat">Typically replies instantly</div>
+        <div class="wa-stat" id="wa-stat-txt">Checking status…</div>
       </div>
       <button class="wa-close" onclick="toggleWA()">✕</button>
     </div>
