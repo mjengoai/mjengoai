@@ -594,14 +594,15 @@ async function mjRegister(data) {
     } else {
       // Absolute fallback — create a 'new_members' bucket in DB
       if (!DB['new_members']) DB['new_members'] = [];
-      DB['new_members'].unshift(newEntry);
+      DB['new_members'].unshift({ ...newEntry, _cat: cat, _sub: subLow });
       console.log('[MjengoAI] Added to DB[new_members] (cat:', cat, 'sub:', subLow, ')');
+      console.warn('[MjengoAI] No keyMap match — check category/subCategory values:', cat, subLow);
     }
 
     // ── Refresh the search panel so the new entry appears immediately ──
     const currentQuery = document.getElementById('sinput')?.value?.trim();
-    if (currentQuery && _lsHasResults) {
-      // Update fData and re-render if the new entry matches the current search
+    if (currentQuery) {
+      // Inject into panel regardless of whether it's currently open
       const subWords = subLow.split(/\s+/);
       const queryLow = currentQuery.toLowerCase();
       const matches  = subWords.some(w => w && queryLow.includes(w)) ||
@@ -609,7 +610,7 @@ async function mjRegister(data) {
       if (matches) {
         fData.unshift(newEntry);
         cData.unshift(newEntry);
-        renderList(fData, currentQuery);
+        if (_lsHasResults) renderList(fData, currentQuery);
       }
     }
 
@@ -655,6 +656,9 @@ async function mjSendOTPClick() {
   if (raw.replace(/\D/g,'').length < 9) {
     return mjRegErr('mj-err1','Enter a valid Kenyan phone number');
   }
+  if (!window.MjengoAuth) {
+    return mjRegErr('mj-err1','Auth not ready — please wait a moment and try again.');
+  }
   mjRegErr('mj-err1','');
   mjBtn('mj-btn1','Sending…',true);
   const res = await mjSendOTP(raw);
@@ -685,7 +689,7 @@ async function mjSubmitProfile() {
   const loc  = document.getElementById('mj-loc').value.trim();
   if (!name||!cat||!sub||!loc) return mjRegErr('mj-err3','Fill in all required fields (*)');
   mjRegErr('mj-err3','');
-  mjBtn('mj-btn3','Submitting…',true);
+  mjBtn('mj-btn3','⏳ Saving to server…',true);
   const res = await mjRegister({
     name, category:cat, subCategory:sub, location:loc,
     email:  document.getElementById('mj-email').value.trim(),
@@ -2759,6 +2763,7 @@ let _lsTimer = null;   // debounce timer
 let _lsLast  = '';     // last query sent (avoid duplicate calls)
 let _lsHasResults = false; // track whether panel already has real results
 let _aiAnswered = false;   // true when AI has given a real answer — block further rebuilds
+let _aiPending = false;    // true while fetchAIContext is in-flight — prevents duplicate calls
 
 function liveSearch(val) {
   const q = val.trim();
@@ -2787,8 +2792,9 @@ function liveSearch(val) {
   // Debounce — only fire doSearch when query actually changes
   _lsTimer = setTimeout(() => {
     if (q === _lsLast && _lsHasResults) return; // already showing results for this query
+    const queryChanged = (q !== _lsLast);
     _lsLast = q;
-    _aiAnswered = false;
+    if (queryChanged) { _aiAnswered = false; _aiPending = false; } // reset only on real change
     doSearch(q);
   }, 400);
 }
@@ -2802,8 +2808,8 @@ function openPanelSkeleton(q) {
   // Only show skeleton when there is truly nothing to display yet
   if (!_lsHasResults && !pbody.querySelector('.lcard') && !pbody.querySelector('.skel')) {
     document.getElementById('psub').textContent = 'Finding results…';
-    // Wipe any stale content before inserting skeleton so there is no double-flash
-    [...pbody.children].forEach(el => el.remove());
+    // Wipe stale content but preserve the AI card placeholder to avoid flicker
+    [...pbody.children].forEach(el => { if (el.id !== 'ai-ctx-card') el.remove(); });
     const sk = document.createElement('div');
     sk.className = 'skelwrap';
     sk.innerHTML = '<div class="skel"></div><div class="skel"></div><div class="skel"></div>';
@@ -2992,11 +2998,15 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
         const sk2 = pbody2.querySelector('.skelwrap');
         if (sk2) sk2.remove();
 
+        // Always reuse existing placeholder — never create a second one
         let aiPh2 = document.getElementById('ai-ctx-card');
         if (!aiPh2) {
           aiPh2 = document.createElement('div');
           aiPh2.id = 'ai-ctx-card';
           pbody2.insertBefore(aiPh2, pbody2.firstChild);
+        } else {
+          // Move to top if not already there
+          if (pbody2.firstChild !== aiPh2) pbody2.insertBefore(aiPh2, pbody2.firstChild);
         }
         aiPh2.style.display = '';
         aiPh2.innerHTML = `<div style="background:rgba(126,200,126,0.08);border:1px solid
@@ -3159,6 +3169,10 @@ async function fetchAIContext(q, county) {
      'need','want','hire','build','construct','much','many'].some(w => ql.startsWith(w));
   if (!isQuestion) return;
 
+  // Prevent duplicate in-flight calls for the same query
+  if (_aiPending) return;
+  _aiPending = true;
+
   // ── Detect question type ──
   const isBudget    = /\d+m|\d+k|\d+ million|\d+,\d{3}|budget|afford|cost|price|how much|kes/i.test(q);
   const isFeasible  = /can i|can we|is it possible|feasible|enough|sufficient/i.test(q);
@@ -3280,6 +3294,7 @@ ${(isBudget || isFeasible) && planPrices ? 'House plan prices: ' + planPrices : 
     const card = document.getElementById('ai-ctx-card');
     if (card) {
       _aiAnswered = true;  // context card received — freeze panel
+      _aiPending  = false;
       card.style.display = '';
       card.innerHTML = `<div style="background:${accentDim};border:1px solid ${accent}33;
         border-radius:10px;padding:14px;margin-bottom:12px;">
@@ -3294,6 +3309,7 @@ ${(isBudget || isFeasible) && planPrices ? 'House plan prices: ' + planPrices : 
     }
   } catch(e) {
     // Card is hidden — just leave it hidden, no visible change
+    _aiPending = false;
     console.warn('[MjengoAI] AI context unavailable:', e.message);
   }
 }
