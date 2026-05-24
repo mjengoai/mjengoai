@@ -1,0 +1,42 @@
+# ═══════════════════════════════════════════════════════════════
+#  MjengoAI — Render Blueprint (render.yaml)
+#  Place this file in the ROOT of your GitHub repository.
+#  Render reads it automatically on every push to deploy.
+# ═══════════════════════════════════════════════════════════════
+
+services:
+  - type: web
+    name: mjengoai
+    runtime: node
+    region: oregon          # closest to Kenya with lowest latency to Supabase
+    plan: starter           # $7/mo — NEVER sleeps (critical for registrations)
+    branch: main            # auto-deploy on push to main
+
+    # ── Build ──────────────────────────────────────────────────
+    buildCommand: npm install
+    startCommand: node server.js
+
+    # ── Health check — Render restarts if this fails ───────────
+    healthCheckPath: /ping
+
+    # ── Auto-deploy on every GitHub push ──────────────────────
+    autoDeploy: true
+
+    # ── Environment variables ──────────────────────────────────
+    # Set the VALUES in Render Dashboard → your service → Environment
+    # (never put real keys in this file — it goes in GitHub)
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 3000
+
+      - key: SUPABASE_URL
+        sync: false          # set manually in Render dashboard
+
+      - key: SUPABASE_SERVICE_KEY
+        sync: false          # set manually in Render dashboard (service_role key)
+
+      - key: ANTHROPIC_API_KEY
+        sync: false          # set manually in Render dashboard
