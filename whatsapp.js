@@ -1,166 +1,426 @@
-// ═══════════════════════════════════════════════════════════════════════
-//  MjengoAI — WhatsApp Webhook Route
-//  Add this to your Render Node.js Express server (server.js / index.js)
-//
-//  Phone Number ID : 1129775893552932
-//  Webhook URL     : https://mjengoai.onrender.com/whatsapp
-//  Verify Token    : MjengoAI2026!
-// ═══════════════════════════════════════════════════════════════════════
+/**
+ * ═══════════════════════════════════════════════════════════════
+ *  MjengoAI — WhatsApp Meta Cloud API Webhook Handler
+ *  File: whatsapp.js
+ *  Mount in your main server.js:  require('./whatsapp')(app, supabase)
+ * ═══════════════════════════════════════════════════════════════
+ *
+ *  ENV VARIABLES REQUIRED (set in Render dashboard):
+ *    WHATSAPP_TOKEN          — your permanent System User access token
+ *    WHATSAPP_PHONE_ID       — Phone Number ID from Meta dashboard
+ *    WHATSAPP_VERIFY_TOKEN   — any secret string you choose (for webhook verification)
+ *
+ *  Meta Dashboard setup:
+ *    1. App > WhatsApp > Configuration > Webhook URL:
+ *       https://mjengoai.onrender.com/wa-webhook
+ *    2. Verify Token: same value as WHATSAPP_VERIFY_TOKEN
+ *    3. Subscribe to: messages
+ * ═══════════════════════════════════════════════════════════════
+ */
 
-const express  = require("express");
-const fetch    = require("node-fetch"); // already in your project
-const { createClient } = require("@supabase/supabase-js");
+const axios = require('axios');
 
-// ── Env vars (set in Render Dashboard → Environment) ─────────────────
-const WHATSAPP_TOKEN     = process.env.WHATSAPP_TOKEN;
-const WHATSAPP_PHONE_ID  = process.env.WHATSAPP_PHONE_ID;
-const VERIFY_TOKEN       = process.env.WHATSAPP_VERIFY_TOKEN;
-const ANTHROPIC_KEY      = process.env.ANTHROPIC_KEY;
-const SUPABASE_URL       = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY  = process.env.SUPABASE_ANON_KEY;
+// ── Category keyword map — mirrors the frontend DB keys ──────────────────────
+const CATEGORY_MAP = {
+  mason:            'masons',
+  fundi:            'masons',
+  bricklayer:       'masons',
+  plumber:          'plumbers',
+  electrician:      'electricians',
+  electrical:       'electricians',
+  carpenter:        'carpenters',
+  welder:           'welders',
+  painter:          'painters',
+  tiler:            'tiles_fixers',
+  'steel fixer':    'steel_fixers',
+  'steel fix':      'steel_fixers',
+  glazier:          'glass_expert',
+  glass:            'glass_expert',
+  foreman:          'foreman',
+  'site manager':   'foreman',
+  landscape:        'landscapers_art',
+  garden:           'landscapers_art',
+  architect:        'architects',
+  engineer:         'structural_eng',
+  structural:       'structural_eng',
+  civil:            'structural_eng',
+  mep:              'mep_eng',
+  mechanical:       'mep_eng',
+  'quantity surveyor': 'quantity_surveyor',
+  qs:               'quantity_surveyor',
+  'interior design':'interior_designer',
+  interior:         'interior_designer',
+  'physical planner':'physical_planner',
+  planner:          'physical_planner',
+  'land economist': 'land_economist',
+  contractor:       'builders',
+  builder:          'builders',
+  hardware:         'hardware_vendors',
+  cement:           'hardware_vendors',
+  timber:           'timber_vendors',
+  wood:             'timber_vendors',
+  lumber:           'timber_vendors',
+  precast:          'precast_vendors',
+  'hollow block':   'precast_vendors',
+  block:            'precast_vendors',
+  roofing:          'roofing_mat',
+  mabati:           'roofing_mat',
+  quarry:           'crushers',
+  crusher:          'crushers',
+  ballast:          'crushers',
+  nema:             'nema_eia',
+  eia:              'nema_eia',
+};
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ── Simple session store — tracks each user's conversation state ──────────────
+// In production, replace with Redis or a Supabase sessions table
+const sessions = new Map();
 
-// ── MjengoAI system prompt ────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are MjengoAI, a smart construction assistant for Kenya built by Mineco Systems.
-You help users with:
-- Construction material prices in KES (cement, steel, sand, ballast, blocks, timber, roofing)
-- Finding artisans, contractors, professionals, and vendors across Kenya
-- House planning — plot sizes, bedroom counts, build costs per sqm
-- Construction phases from site prep to finishing
-- Cost estimates: self-build saves ~30% vs full contract
-- Precast products from Caireney/Mineco catalog
-
-Key facts:
-- Cement: ~KES 720/50kg bag (13.8 bags per m³ of Class 20 concrete)
-- Mason day rate: KES 1,800 | Unskilled labour: KES 900 | Foreman: KES 2,400
-- HICB blocks (200mm wall): 15.2 blocks per m²
-- Substructure = 15–18% of total build cost
-
-Keep replies SHORT and friendly — this is WhatsApp.
-Use bullet points for lists. Use KES for all prices.
-If unsure, say so and suggest visiting www.mjengoai.com`;
-
-// ── Send WhatsApp message ─────────────────────────────────────────────
-async function sendMessage(to, text) {
-  await fetch(`https://graph.facebook.com/v19.0/${WHATSAPP_PHONE_ID}/messages`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${WHATSAPP_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to,
-      type: "text",
-      text: { body: text },
-    }),
-  });
-}
-
-// ── Get conversation history from Supabase ────────────────────────────
-async function getHistory(phone) {
-  const { data } = await supabase
-    .from("conversations")
-    .select("role, content")
-    .eq("phone", phone)
-    .order("created_at", { ascending: false })
-    .limit(10);
-  return (data || []).reverse();
-}
-
-// ── Save message to Supabase ──────────────────────────────────────────
-async function saveMessage(phone, role, content) {
-  await supabase.from("conversations").insert({ phone, role, content });
-}
-
-// ── Ask Claude ────────────────────────────────────────────────────────
-async function askClaude(history, userMessage) {
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": ANTHROPIC_KEY,
-      "anthropic-version": "2023-06-01",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 400,
-      system: SYSTEM_PROMPT,
-      messages: [...history, { role: "user", content: userMessage }],
-    }),
-  });
-  const data = await res.json();
-  return data.content?.[0]?.text || "Sorry, I couldn't process that. Try again!";
-}
-
-// ═══════════════════════════════════════════════════════════════════════
-//  ROUTES — paste these into your Express app
-// ═══════════════════════════════════════════════════════════════════════
-
-const router = express.Router();
-
-// ── GET /whatsapp — Meta webhook verification ─────────────────────────
-router.get("/whatsapp", (req, res) => {
-  const mode      = req.query["hub.mode"];
-  const token     = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-
-  if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("✅ WhatsApp webhook verified");
-    return res.status(200).send(challenge);
+function getSession(phone) {
+  if (!sessions.has(phone)) {
+    sessions.set(phone, { step: 'menu', lastQuery: null, lastResults: [] });
   }
-  res.sendStatus(403);
-});
+  return sessions.get(phone);
+}
 
-// ── POST /whatsapp — Incoming messages ───────────────────────────────
-router.post("/whatsapp", async (req, res) => {
-  // Always reply 200 immediately so Meta doesn't retry
-  res.sendStatus(200);
+// ── Detect category from free text ───────────────────────────────────────────
+function detectCategory(text) {
+  const t = text.toLowerCase();
+  for (const [keyword, table] of Object.entries(CATEGORY_MAP)) {
+    if (t.includes(keyword)) return table;
+  }
+  return null;
+}
+
+// ── Extract location from text ────────────────────────────────────────────────
+function extractLocation(text) {
+  // Common Kenya towns/counties — extend as needed
+  const locations = [
+    'nairobi','mombasa','kisumu','nakuru','eldoret','thika','chuka','embu',
+    'meru','nyeri','garissa','isiolo','kitui','machakos','muranga','kiambu',
+    'nanyuki','malindi','lamu','voi','chogoria','ruiru','juja','githurai',
+    'westlands','karen','langata','kilimani','parklands','eastleigh','kangemi',
+  ];
+  const t = text.toLowerCase();
+  return locations.find(l => t.includes(l)) || null;
+}
+
+// ── Query Supabase for professionals ─────────────────────────────────────────
+async function queryProfessionals(supabase, table, location, limit = 5) {
+  try {
+    let query = supabase
+      .from(table)
+      .select('name, phone, email, loc, sub, price, rat')
+      .limit(limit);
+
+    if (location) {
+      query = query.ilike('loc', `%${location}%`);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  } catch (e) {
+    console.error('[WA] Supabase query error:', e.message);
+    return [];
+  }
+}
+
+// ── Format results as WhatsApp message ───────────────────────────────────────
+function formatResults(results, category, location) {
+  if (!results.length) {
+    return `😔 No results found for *${category}*${location ? ` in ${location}` : ' in Kenya'}.\n\nTry a broader search or visit mjengoai.com for the full directory.`;
+  }
+
+  const locLabel = location ? ` in ${location.charAt(0).toUpperCase() + location.slice(1)}` : '';
+  let msg = `✅ *Found ${results.length} ${category}${locLabel}:*\n\n`;
+
+  results.forEach((r, i) => {
+    msg += `*${i + 1}. ${r.name || 'Unknown'}*\n`;
+    if (r.sub)   msg += `   📋 ${r.sub}\n`;
+    if (r.loc)   msg += `   📍 ${r.loc}\n`;
+    if (r.rat && r.rat > 0) msg += `   ⭐ ${r.rat}/5\n`;
+    if (r.price && r.price !== 'Unlock contact') msg += `   💰 ${r.price}\n`;
+    if (r.phone) msg += `   📞 ${r.phone}\n`;
+    else         msg += `   📞 Visit mjengoai.com to unlock contact\n`;
+    msg += '\n';
+  });
+
+  msg += `🔍 See more at *mjengoai.com*`;
+  return msg;
+}
+
+// ── Send WhatsApp message ─────────────────────────────────────────────────────
+async function sendMessage(to, text) {
+  const phoneId = process.env.WHATSAPP_PHONE_ID;
+  const token   = process.env.WHATSAPP_TOKEN;
 
   try {
-    const message = req.body?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-
-    // Only handle text messages
-    if (!message || message.type !== "text") return;
-
-    const phone = message.from;   // e.g. "254712345678"
-    const text  = message.text.body.trim();
-
-    console.log(`📩 From ${phone}: ${text}`);
-
-    // Get history, save user msg, ask Claude, save + send reply
-    const history = await getHistory(phone);
-    await saveMessage(phone, "user", text);
-    const reply = await askClaude(history, text);
-    await saveMessage(phone, "assistant", reply);
-    await sendMessage(phone, reply);
-
-    console.log(`✅ Replied to ${phone}`);
-  } catch (err) {
-    console.error("WhatsApp handler error:", err);
+    await axios.post(
+      `https://graph.facebook.com/v19.0/${phoneId}/messages`,
+      {
+        messaging_product: 'whatsapp',
+        to,
+        type: 'text',
+        text: { body: text },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  } catch (e) {
+    console.error('[WA] Send error:', e.response?.data || e.message);
   }
-});
+}
 
-module.exports = router;
+// ── Send interactive list menu ────────────────────────────────────────────────
+async function sendMenu(to) {
+  const phoneId = process.env.WHATSAPP_PHONE_ID;
+  const token   = process.env.WHATSAPP_TOKEN;
 
+  // WhatsApp interactive menus require approved templates or use simple text menu
+  // Using text-based menu for reliability without template approval
+  const menuText =
+    `👷 *Welcome to MjengoAI!*\n` +
+    `Kenya's construction directory 🏗️\n\n` +
+    `What do you need?\n\n` +
+    `*1* — Find an Artisan (mason, plumber, welder…)\n` +
+    `*2* — Find a Professional (architect, engineer…)\n` +
+    `*3* — Find a Vendor (hardware, timber, precast…)\n` +
+    `*4* — Material Prices (cement, steel, mabati…)\n` +
+    `*5* — House Plans & BOQ\n\n` +
+    `Reply with a number *or* just type what you need\n` +
+    `e.g. _"mason Nairobi"_ or _"hardware Chuka"_`;
 
-// ═══════════════════════════════════════════════════════════════════════
-//  HOW TO ADD TO YOUR server.js / index.js:
-//
-//  const whatsappRouter = require("./whatsapp"); // adjust path
-//  app.use("/", whatsappRouter);
-//
-// ═══════════════════════════════════════════════════════════════════════
+  await sendMessage(to, menuText);
+}
 
+// ── Handle material price queries ─────────────────────────────────────────────
+async function sendPrices(supabase, to) {
+  try {
+    const { data } = await supabase
+      .from('material_prices')
+      .select('name, price_kes, unit, change_pct')
+      .limit(10);
 
-// ═══════════════════════════════════════════════════════════════════════
-//  FINAL STEP — Set webhook in Meta Developer Console:
-//
-//  1. Go to developers.facebook.com → mjengoai app
-//  2. WhatsApp → Configuration
-//  3. Webhook URL  : https://mjengoai.onrender.com/whatsapp
-//  4. Verify Token : MjengoAI2026!
-//  5. Click Verify and Save
-//  6. Subscribe to: messages
-// ═══════════════════════════════════════════════════════════════════════
+    if (data && data.length) {
+      let msg = `📊 *Live Material Prices (Kenya)*\n\n`;
+      data.forEach(p => {
+        const change = p.change_pct
+          ? (p.change_pct > 0 ? `🔺${p.change_pct}%` : `🔻${Math.abs(p.change_pct)}%`)
+          : '';
+        msg += `• *${p.name}*: KES ${Number(p.price_kes).toLocaleString()}/${p.unit || 'unit'} ${change}\n`;
+      });
+      msg += `\n_Updated daily · mjengoai.com_`;
+      await sendMessage(to, msg);
+    } else {
+      // Fallback hardcoded prices
+      await sendMessage(to,
+        `📊 *Material Prices (Kenya)*\n\n` +
+        `• *Cement 50kg*: KES 720 🔺2.1%\n` +
+        `• *Steel rod 12mm*: KES 680/m 🔻1.5%\n` +
+        `• *Roofing sheet*: KES 1,250 🔺5.0%\n` +
+        `• *Hollow block*: KES 48 (Stable)\n` +
+        `• *River sand/t*: KES 2,100 🔺1.8%\n` +
+        `• *Murram lorry*: KES 4,200 🔻3.0%\n` +
+        `• *Timber 2×4"*: KES 320/m\n` +
+        `• *BRC mesh*: KES 8,500/roll\n\n` +
+        `_Visit mjengoai.com for full live prices_`
+      );
+    }
+  } catch (e) {
+    console.error('[WA] Prices error:', e.message);
+    await sendMessage(to, `Sorry, couldn't fetch prices right now. Visit mjengoai.com for live prices.`);
+  }
+}
+
+// ── Core message router ───────────────────────────────────────────────────────
+async function handleMessage(supabase, from, messageText) {
+  const text    = (messageText || '').trim();
+  const textLow = text.toLowerCase();
+  const session = getSession(from);
+
+  console.log(`[WA] From: ${from} | Text: "${text}" | Step: ${session.step}`);
+
+  // ── Greetings / menu trigger ──────────────────────────────────────────────
+  if (['hi','hello','hujambo','habari','menu','start','help','0'].includes(textLow) || session.step === 'menu') {
+    session.step = 'waiting';
+    await sendMenu(from);
+    return;
+  }
+
+  // ── Numbered menu selections ──────────────────────────────────────────────
+  if (text === '1') {
+    session.step = 'artisan_location';
+    session.pendingCategory = null;
+    await sendMessage(from,
+      `🔨 *Find an Artisan*\n\nWhich trade are you looking for?\n\n` +
+      `Mason · Plumber · Electrician · Carpenter · Welder · Painter · Tiler · Foreman · Glazier · Steel Fixer\n\n` +
+      `Type the trade and location e.g. _"mason Nairobi"_`
+    );
+    return;
+  }
+
+  if (text === '2') {
+    session.step = 'professional_location';
+    await sendMessage(from,
+      `👔 *Find a Professional*\n\nWhich profession?\n\n` +
+      `Architect · Civil Engineer · Quantity Surveyor · Construction Manager · Interior Designer · Physical Planner · Land Economist · MEP Engineer\n\n` +
+      `Type e.g. _"architect Nairobi"_ or _"QS Mombasa"_`
+    );
+    return;
+  }
+
+  if (text === '3') {
+    session.step = 'vendor_location';
+    await sendMessage(from,
+      `🏪 *Find a Vendor*\n\nWhat type?\n\n` +
+      `Hardware · Timber · Precast · Crusher/Quarry · Roofing\n\n` +
+      `Type e.g. _"hardware Chuka"_ or _"precast Embu"_`
+    );
+    return;
+  }
+
+  if (text === '4') {
+    session.step = 'waiting';
+    await sendPrices(supabase, from);
+    return;
+  }
+
+  if (text === '5') {
+    session.step = 'waiting';
+    await sendMessage(from,
+      `🏠 *House Plans & BOQ*\n\n` +
+      `Browse our full plan repository at:\n` +
+      `👉 *mjengoai.com* → House Plans\n\n` +
+      `Or tell me what you need:\n` +
+      `e.g. _"3 bedroom house plan under 3M"_\n` +
+      `and I'll suggest options from our directory.`
+    );
+    return;
+  }
+
+  // ── Free-text search — detect category + location ─────────────────────────
+  const category = detectCategory(text);
+  const location = extractLocation(text);
+
+  if (category) {
+    session.step = 'results';
+    session.lastQuery = { category, location };
+
+    await sendMessage(from, `🔍 Searching for *${category.replace(/_/g,' ')}*${location ? ` in *${location}*` : ''}…`);
+
+    const results = await queryProfessionals(supabase, category, location);
+    session.lastResults = results;
+
+    await sendMessage(from, formatResults(results, category.replace(/_/g,' '), location));
+
+    // Prompt for follow-up
+    await sendMessage(from,
+      `💬 Need more results or a different location?\n` +
+      `Reply *more* for next 5, or type a new search.\n` +
+      `Reply *menu* to go back to the main menu.`
+    );
+    return;
+  }
+
+  // ── "More results" pagination ──────────────────────────────────────────────
+  if (textLow === 'more' && session.lastQuery) {
+    const { category: cat, location: loc } = session.lastQuery;
+    const offset = session.lastResults.length;
+
+    try {
+      let query = supabase
+        .from(cat)
+        .select('name, phone, email, loc, sub, price, rat')
+        .range(offset, offset + 4);
+      if (loc) query = query.ilike('loc', `%${loc}%`);
+
+      const { data } = await query;
+      if (data && data.length) {
+        session.lastResults.push(...data);
+        await sendMessage(from, formatResults(data, cat.replace(/_/g,' '), loc));
+      } else {
+        await sendMessage(from, `No more results. Visit *mjengoai.com* to see the full directory.`);
+      }
+    } catch (e) {
+      await sendMessage(from, `Couldn't load more results. Please try again.`);
+    }
+    return;
+  }
+
+  // ── Price-specific queries ─────────────────────────────────────────────────
+  if (/price|bei|cost|how much|kes|cement|steel|mabati|timber|sand|ballast/i.test(text)) {
+    await sendPrices(supabase, from);
+    return;
+  }
+
+  // ── Fallback ───────────────────────────────────────────────────────────────
+  await sendMessage(from,
+    `🤔 I didn't quite catch that.\n\n` +
+    `Try:\n` +
+    `• _"mason Nairobi"_ — find a mason in Nairobi\n` +
+    `• _"hardware Chuka"_ — find hardware shops in Chuka\n` +
+    `• _"cement price"_ — get material prices\n` +
+    `• *menu* — show the main menu\n\n` +
+    `Or visit *mjengoai.com* for the full directory.`
+  );
+}
+
+// ── Express route registration ────────────────────────────────────────────────
+module.exports = function registerWhatsAppRoutes(app, supabase) {
+
+  // ── Webhook verification (Meta calls this once during setup) ──────────────
+  app.get('/wa-webhook', (req, res) => {
+    const mode      = req.query['hub.mode'];
+    const token     = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    if (mode === 'subscribe' && token === process.env.WHATSAPP_VERIFY_TOKEN) {
+      console.log('[WA] Webhook verified ✓');
+      res.status(200).send(challenge);
+    } else {
+      console.warn('[WA] Webhook verification failed');
+      res.sendStatus(403);
+    }
+  });
+
+  // ── Incoming messages ─────────────────────────────────────────────────────
+  app.post('/wa-webhook', async (req, res) => {
+    // Always respond 200 immediately — Meta will retry if you're slow
+    res.sendStatus(200);
+
+    try {
+      const body = req.body;
+      if (body.object !== 'whatsapp_business_account') return;
+
+      for (const entry of (body.entry || [])) {
+        for (const change of (entry.changes || [])) {
+          const value = change.value;
+          if (!value || !value.messages) continue;
+
+          for (const msg of value.messages) {
+            if (msg.type !== 'text') continue; // ignore images/audio for now
+
+            const from = msg.from;          // sender's phone number
+            const text = msg.text?.body;    // message content
+
+            if (!from || !text) continue;
+
+            // Process async — don't block the 200 response
+            handleMessage(supabase, from, text).catch(e =>
+              console.error('[WA] handleMessage error:', e.message)
+            );
+          }
+        }
+      }
+    } catch (e) {
+      console.error('[WA] Webhook parse error:', e.message);
+    }
+  });
+
+  console.log('[MjengoAI] WhatsApp routes registered: GET/POST /wa-webhook');
+};

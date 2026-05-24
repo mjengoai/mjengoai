@@ -129,9 +129,26 @@ app.get("/contact", async (req, res) => {
 });
 
 // ── POST /chat — Claude AI proxy ──────────────────────────────────────
+// Accepts two formats:
+//   Frontend chat widget:  { messages: [{role,content},...], max_tokens }
+//   Legacy format:         { message: "string", history: [...] }
 app.post("/chat", async (req, res) => {
   try {
-    const { message, history = [] } = req.body;
+    const { messages: msgArr, message, history = [], max_tokens = 250 } = req.body;
+
+    let messages;
+    let systemPrompt = SYSTEM_PROMPT;
+
+    if (msgArr && Array.isArray(msgArr)) {
+      // New format — separate out system message if frontend included one
+      const sysMsg = msgArr.find(m => m.role === "system");
+      if (sysMsg) systemPrompt = sysMsg.content;
+      messages = msgArr.filter(m => m.role !== "system");
+    } else {
+      // Legacy format
+      messages = [...history, { role: "user", content: message }];
+    }
+
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -141,14 +158,15 @@ app.post("/chat", async (req, res) => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-20250514",
-        max_tokens: 250,
-        system: SYSTEM_PROMPT,
-        messages: [...history, { role: "user", content: message }],
+        max_tokens,
+        system: systemPrompt,
+        messages,
       }),
     });
     const data = await response.json();
-    const reply = data.content?.[0]?.text || "Sorry, try again.";
-    res.json({ success: true, reply });
+    // Return both keys — frontend uses data.content, legacy uses data.reply
+    const text = data.content?.[0]?.text || "Sorry, try again.";
+    res.json({ success: true, content: text, reply: text });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -193,8 +211,8 @@ app.get("/prices", async (req, res) => {
 //  WHATSAPP ROUTES
 // ═══════════════════════════════════════════════════════════════════════
 
-const whatsappRouter = require("./whatsapp");
-app.use("/", whatsappRouter);
+// whatsapp.js exports a function(app, supabase) — registers GET+POST /wa-webhook
+require("./whatsapp")(app, supabase);
 
 
 // ═══════════════════════════════════════════════════════════════════════
