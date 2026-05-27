@@ -117,6 +117,17 @@ class SaveProfileRequest(BaseModel):
     nca_reg:     Optional[str] = ""
 
 
+
+class ChatMessage(BaseModel):
+    role:    str
+    content: str
+
+class ChatRequest(BaseModel):
+    messages:   list
+    max_tokens: Optional[int] = 300
+    stream:     Optional[bool] = False
+    system:     Optional[str] = None
+
 # ════════════════════════════════════════════════════════════════
 #  WHATSAPP HELPER FUNCTIONS
 # ════════════════════════════════════════════════════════════════
@@ -262,6 +273,84 @@ async def whatsapp_incoming(request: Request):
 # ════════════════════════════════════════════════════════════════
 #  EXISTING ROUTES (unchanged)
 # ════════════════════════════════════════════════════════════════
+
+
+@app.post("/chat")
+async def chat(req: ChatRequest, request: Request):
+    """
+    AI chat endpoint — used by the MjengoAI website chat widget.
+    Accepts an array of messages and returns a Claude AI response.
+    """
+    if not ANTHROPIC_KEY:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "AI service not configured", "content": "AI service unavailable — please set ANTHROPIC_KEY in Render environment."}
+        )
+    try:
+        # Extract system prompt — either from request or use default
+        system_prompt = req.system or (
+            "You are MjengoAI, Kenya\'s friendly construction directory assistant. "
+            "Help users find artisans, professionals, materials, house plans and contractors across all 47 counties. "
+            "Always respond in plain conversational text — NO markdown, NO asterisks, NO bullet points. "
+            "Use KES for prices. Be brief (3-5 sentences), practical and Kenya-specific. "
+            "Current live prices: Cement 50kg KES 720, Steel rod 12mm KES 680/m, Roofing sheet KES 1,250, Hollow block KES 48. "
+            "If asked about a specific professional, suggest they use the main search bar at www.mjengoai.com"
+        )
+
+        # Filter to only user/assistant roles (strip any system messages from array)
+        messages = [
+            {"role": m["role"], "content": m["content"]}
+            for m in req.messages
+            if isinstance(m, dict) and m.get("role") in ("user", "assistant") and m.get("content")
+        ]
+
+        if not messages:
+            return JSONResponse(status_code=400, content={"error": "No valid messages provided"})
+
+        headers = {
+            "x-api-key":          ANTHROPIC_KEY,
+            "anthropic-version":  "2023-06-01",
+            "Content-Type":       "application/json",
+        }
+        payload = {
+            "model":      "claude-sonnet-4-20250514",
+            "max_tokens": min(req.max_tokens or 300, 1000),
+            "system":     system_prompt,
+            "messages":   messages,
+        }
+
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+
+        if r.status_code != 200:
+            print(f"[chat] Anthropic error {r.status_code}: {r.text}")
+            return JSONResponse(
+                status_code=502,
+                content={"error": "AI upstream error", "content": "Sorry, AI service is temporarily busy. Please try again."}
+            )
+
+        data = r.json()
+        text = (data.get("content") or [{}])[0].get("text", "").strip()
+
+        return {"content": text, "model": "claude-sonnet-4-20250514"}
+
+    except httpx.TimeoutException:
+        print("[chat] Anthropic timeout")
+        return JSONResponse(
+            status_code=504,
+            content={"content": "Response timed out. Please try again."}
+        )
+    except Exception as e:
+        print(f"[chat] Error: {e}\\n{traceback.format_exc()}")
+        return JSONResponse(
+            status_code=500,
+            content={"content": "Something went wrong. Please try again."}
+        )
 
 @app.get("/")
 def root():
@@ -465,6 +554,23 @@ async def get_prices():
         return r.data or []
     except Exception as e:
         print(f"[prices] error: {e}")
+        return JSONResponse(status_code=500, content=[])
+
+
+
+@app.get("/registrations")
+async def get_registrations(limit: int = Query(50), status: Optional[str] = Query(None)):
+    """View new registrations from the website — for admin review."""
+    if not _sb:
+        return JSONResponse(status_code=503, content=[])
+    try:
+        q = _sb.table("registrations").select("*").order("id", desc=True).limit(limit)
+        if status:
+            q = q.eq("status", status)
+        r = q.execute()
+        return {"count": len(r.data or []), "registrations": r.data or []}
+    except Exception as e:
+        print(f"[registrations] error: {e}")
         return JSONResponse(status_code=500, content=[])
 
 
