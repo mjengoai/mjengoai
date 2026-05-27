@@ -1,0 +1,34 @@
+name: Refresh WhatsApp Token
+
+on:
+  schedule:
+    - cron: '0 */20 * * *'   # Every 20 hours — before 24hr expiry
+  workflow_dispatch:          # Also run manually anytime
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate new WhatsApp token
+        id: get_token
+        run: |
+          RESPONSE=$(curl -s -X GET \
+            "https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${{ secrets.META_APP_ID }}&client_secret=${{ secrets.META_APP_SECRET }}&fb_exchange_token=${{ secrets.WA_TOKEN_SEED }}")
+          echo "Response: $RESPONSE"
+          NEW_TOKEN=$(echo $RESPONSE | python3 -c "import sys,json; print(json.load(sys.stdin).get('access_token',''))")
+          echo "new_token=$NEW_TOKEN" >> $GITHUB_OUTPUT
+
+      - name: Update token on Render
+        if: steps.get_token.outputs.new_token != ''
+        run: |
+          curl -s -X PATCH \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/env-vars" \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '[{"key":"WHATSAPP_TOKEN","value":"${{ steps.get_token.outputs.new_token }}"}]'
+          echo "Token updated on Render ✓"
+
+      - name: Ping bot to confirm alive
+        run: |
+          curl -s https://mjengoai.onrender.com/ping
+          echo "Bot is alive ✓"
