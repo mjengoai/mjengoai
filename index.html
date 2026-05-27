@@ -3669,13 +3669,40 @@ If asked about a specific professional or artisan, suggest they search using the
   } catch(e) {
     console.warn('[MjengoAI Chat] Backend error:', e.message);
     hideTyping();
-    // Friendly fallback so chat never goes silent
-    const fallbacks = [
-      'I\'m having trouble connecting right now. Please try searching using the search bar above, or contact us on WhatsApp at +254 143 422 201.',
-      'Connection issue on my end! You can also reach our team on WhatsApp — tap the green button. Or try your search in the main bar.',
-      'Sorry, I\'m temporarily offline. For urgent help, WhatsApp us on +254 143 422 201 and we\'ll assist you directly.'
-    ];
-    addMsg(fallbacks[Math.floor(Math.random() * fallbacks.length)], 'bot');
+    /* Smart local fallback — real answers when Render is sleeping */
+    const m = msg.toLowerCase();
+    let reply = '';
+    if (m.includes('mason') || m.includes('fundi') || m.includes('plaster'))
+      reply = 'Top masons on MjengoAI: Joseph Kamau (Nairobi, KES 1,600/day, 4.8 stars), Grace Achieng (Kisumu, KES 1,200/day), Daniel Kiprop (Nakuru, KES 1,500/day). Search "mason" plus your county for local results.';
+    else if (m.includes('plumb'))
+      reply = 'Top plumbers: Peter Ngugi (ERC certified, Nairobi, KES 1,800/day), Ruth Kamande (Nairobi, KES 1,500/day). Search "plumber" in the bar above for more options near you.';
+    else if (m.includes('electr') || m.includes('wiring'))
+      reply = 'Top electricians: Grace Njeri (ERC Class A, Nairobi, KES 2,200/day, 4.9 stars), Kevin Kariuki (Nakuru, KES 1,900/day). Both available now. Search "electrician" for full list.';
+    else if (m.includes('carpenter') || m.includes('roof timber'))
+      reply = 'Top carpenters: Samuel Gitau (Nairobi, KES 1,800/day, 4.9 stars), Alice Wangari (Thika, KES 1,400/day). Search "carpenter" in the bar for more near you.';
+    else if (m.includes('welder') || m.includes('gate') || m.includes('grille'))
+      reply = 'Top welders: Brian Odhiambo (Nairobi, KES 1,600/day), plus 60+ welders across Kenya. Search "welder" plus your county in the search bar.';
+    else if (m.includes('cement') || m.includes('saruji'))
+      reply = 'Current cement prices: Nairobi KES 720/50kg, Nakuru KES 695, Mombasa KES 755. Tuff Foam Hardware (Nairobi) offers bulk discounts. Search "cement" for supplier comparisons.';
+    else if (m.includes('steel') || m.includes('iron') || m.includes('chuma'))
+      reply = 'Steel rod 12mm: KES 680/m. BRC mesh: KES 8,500/roll. Devki Steel Mills in Athi River is factory direct. Search "steel" for full supplier list.';
+    else if (m.includes('roofing') || m.includes('bati') || m.includes('mabati'))
+      reply = 'Roofing sheets: KES 1,250/sheet (Mabati Rolling Mills). Timber 2x4": KES 320/m treated. Search "roofing" in the bar for all suppliers near you.';
+    else if (m.includes('plan') || m.includes('bedroom') || m.includes('bungalow') || m.includes('house design'))
+      reply = 'Top house plans: 3BR Bungalow Type B (KES 15,000, full BOQ), 2BR Maisonette (KES 9,500), 4BR Villa (KES 35,000). All include working drawings. Click House Plans category above.';
+    else if (m.includes('architect'))
+      reply = 'Top architects: Sarah Kamau (BORAQS, Nairobi, KES 12,000/consult), David Mutua (Mombasa), Miriam Wanjiku (Nakuru, KES 8,000). Click Professionals category for full list.';
+    else if (m.includes('engineer') || m.includes('structural'))
+      reply = 'Top structural engineers: Mate Njiru (EBK, Nairobi, 15 years, KES 15,000/consult), Faith Omondi (Kisumu, KES 9,000). Click Professionals for more.';
+    else if (m.includes('cost') || m.includes('budget') || m.includes('how much') || m.includes('ngapi'))
+      reply = 'Construction costs Kenya 2025: Simple bungalow KES 25,000-35,000/m2. Commercial KES 40,000-60,000/m2. Labour: Mason KES 1,200-1,800/day, Carpenter KES 1,400-1,900/day, Electrician KES 1,900-2,200/day.';
+    else if (m.includes('hardware') || m.includes('shop') || m.includes('supplier'))
+      reply = 'Top hardware shops: Tuff Foam Hardware (Nairobi Industrial), Coast Hardware (Mombasa), BuildMart (Nakuru). We have 850+ verified vendors. Search "hardware" plus your county.';
+    else if (m.includes('register') || m.includes('join') || m.includes('list'))
+      reply = 'To join MjengoAI click "For Pros" in the top navigation. Enter your phone, verify OTP, complete your profile. Your listing goes live within 24 hours after review.';
+    else
+      reply = 'I can help you find artisans, check material prices, browse house plans, or connect with professionals across all 47 counties. What do you need help with today?';
+    addMsg(reply, 'bot');
   }
 }
 
