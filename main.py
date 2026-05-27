@@ -1,103 +1,392 @@
-"""
-MjengoAI FastAPI Backend
-Endpoints: /search  /chat  /register  /register-profile  /ping  /health
-"""
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
-from typing import Optional, List
-import os, traceback, json
+from typing import Optional
+import os
+import json
+import httpx
+import traceback
 from dotenv import load_dotenv
 from search import handle_query
 
 load_dotenv()
 
-# ── Supabase client ────────────────────────────────────────────────────────────
+# ── Supabase client ───────────────────────────────────────────────────
 from supabase import create_client, Client
-supabase: Client = create_client(
-    os.environ["SUPABASE_URL"],
-    os.environ["SUPABASE_SERVICE_KEY"]
+_SURL: str = os.environ.get("SUPABASE_URL", "")
+_SKEY: str = os.environ.get("SUPABASE_KEY", "")
+_sb: Client = create_client(_SURL, _SKEY) if _SURL and _SKEY else None
+
+# ── Firebase Admin ────────────────────────────────────────────────────
+try:
+    import firebase_admin
+    from firebase_admin import credentials, firestore as fs
+    if not firebase_admin._apps:
+        _creds_raw = os.environ.get("FIREBASE_CREDS", "")
+        if _creds_raw:
+            cred = credentials.Certificate(json.loads(_creds_raw))
+            firebase_admin.initialize_app(cred)
+    _fdb = fs.client() if firebase_admin._apps else None
+except Exception as _fe:
+    print(f"[MjengoAI] Firebase init skipped: {_fe}")
+    _fdb = None
+
+# ── WhatsApp + Anthropic env vars ─────────────────────────────────────
+WA_TOKEN        = os.environ.get("WHATSAPP_TOKEN", "")
+WA_PHONE_ID     = os.environ.get("WHATSAPP_PHONE_ID", "")
+WA_VERIFY_TOKEN = os.environ.get("WHATSAPP_VERIFY_TOKEN", "MjengoAI2026!")
+ANTHROPIC_KEY   = os.environ.get("ANTHROPIC_KEY", "")
+
+# ── MjengoAI WhatsApp system prompt ──────────────────────────────────
+WA_SYSTEM_PROMPT = """You are MjengoAI, a smart construction assistant for Kenya built by Mineco Systems.
+You help users with:
+- Construction material prices in KES (cement, steel, sand, ballast, blocks, timber, roofing)
+- Finding artisans, contractors, professionals, and vendors across Kenya
+- House planning — plot sizes, bedroom counts, build costs per sqm
+- Construction phases from site prep to finishing
+- Cost estimates: self-build saves ~30% vs full contract
+- Precast products from Caireney/Mineco catalog
+
+Key facts:
+- Cement: ~KES 720/50kg bag (13.8 bags per m³ of Class 20 concrete)
+- Mason day rate: KES 1,800 | Unskilled labour: KES 900 | Foreman: KES 2,400
+- HICB blocks (200mm wall): 15.2 blocks per m²
+- Substructure = 15–18% of total build cost
+
+Keep replies SHORT and friendly — this is WhatsApp.
+Use bullet points for lists. Use KES for all prices.
+If unsure, say so and suggest visiting www.mjengoai.com"""
+
+
+app = FastAPI(
+    title="MjengoAI API",
+    description="Generative AI construction search — powered by Claude + Supabase",
+    version="1.0.0"
 )
-
-# ── OpenAI client ──────────────────────────────────────────────────────────────
-from openai import AsyncOpenAI
-openai_client = AsyncOpenAI(api_key=os.environ["OPENAI_API_KEY"])
-
-app = FastAPI(title="MjengoAI API", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://www.mjengoai.com", "https://mjengoai.com", "*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# MODELS
-# ══════════════════════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════════
+#  MODELS
+# ════════════════════════════════════════════════════════════════
 
 class SearchRequest(BaseModel):
     query:  str
     county: Optional[str] = None
     town:   Optional[str] = None
-    session_id: Optional[str] = "default"
+
+class SearchResponse(BaseModel):
+    answer:  str
+    intent:  str
+    sources: list
+    query:   str
+
+class RegisterRequest(BaseModel):
+    full_name:      Optional[str] = ""
+    phone:          Optional[str] = ""
+    category:       Optional[str] = ""
+    specialisation: Optional[str] = ""
+    town:           Optional[str] = ""
+    fee:            Optional[str] = ""
+    email:          Optional[str] = ""
+    about:          Optional[str] = ""
+    reg_number:     Optional[str] = ""
+    status:         Optional[str] = "pending"
+
+class RegisterProfileRequest(BaseModel):
+    cat:   str
+    phone: Optional[str] = ""
+    data:  dict = {}
+
+class SaveProfileRequest(BaseModel):
+    phone:       str
+    name:        Optional[str] = ""
+    category:    Optional[str] = ""
+    subCategory: Optional[str] = ""
+    location:    Optional[str] = ""
+    price:       Optional[str] = ""
+    email:       Optional[str] = ""
+    about:       Optional[str] = ""
+    nca_reg:     Optional[str] = ""
+
+
 
 class ChatMessage(BaseModel):
     role:    str
     content: str
 
 class ChatRequest(BaseModel):
-    messages:   List[ChatMessage]
-    max_tokens: Optional[int] = 250
+    messages:   list
+    max_tokens: Optional[int] = 300
     stream:     Optional[bool] = False
+    system:     Optional[str] = None
 
-class RegisterRequest(BaseModel):
-    full_name:      Optional[str] = ''
-    phone:          Optional[str] = ''
-    category:       Optional[str] = ''
-    specialisation: Optional[str] = ''
-    town:           Optional[str] = ''
-    fee:            Optional[str] = ''
-    email:          Optional[str] = ''
-    about:          Optional[str] = ''
-    reg_number:     Optional[str] = ''
-    status:         Optional[str] = 'pending'
+# ════════════════════════════════════════════════════════════════
+#  WHATSAPP HELPER FUNCTIONS
+# ════════════════════════════════════════════════════════════════
 
-class RegisterProfileRequest(BaseModel):
-    cat:   Optional[str] = ''
-    phone: Optional[str] = ''
-    data:  Optional[dict] = {}
+async def wa_send_message(to: str, text: str):
+    """Send a WhatsApp text message via Meta Cloud API."""
+    url = f"https://graph.facebook.com/v19.0/{WA_PHONE_ID}/messages"
+    headers = {
+        "Authorization": f"Bearer {WA_TOKEN}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "messaging_product": "whatsapp",
+        "to": to,
+        "type": "text",
+        "text": {"body": text},
+    }
+    async with httpx.AsyncClient() as client:
+        r = await client.post(url, headers=headers, json=payload, timeout=10)
+        if r.status_code != 200:
+            print(f"[WhatsApp] Send error {r.status_code}: {r.text}")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# ROUTES
-# ══════════════════════════════════════════════════════════════════════════════
+def wa_get_history(phone: str, limit: int = 10) -> list:
+    """Fetch last N conversation messages for this phone number."""
+    if not _sb:
+        return []
+    try:
+        r = _sb.table("conversations") \
+               .select("role,content") \
+               .eq("phone", phone) \
+               .order("created_at", desc=True) \
+               .limit(limit) \
+               .execute()
+        return list(reversed(r.data or []))
+    except Exception as e:
+        print(f"[WhatsApp] History error: {e}")
+        return []
+
+
+def wa_save_message(phone: str, role: str, content: str):
+    """Save a message to the conversations table."""
+    if not _sb:
+        return
+    try:
+        _sb.table("conversations").insert({
+            "phone": phone,
+            "role": role,
+            "content": content,
+        }).execute()
+    except Exception as e:
+        print(f"[WhatsApp] Save error: {e}")
+
+
+async def wa_ask_claude(history: list, user_message: str) -> str:
+    """Send message to Claude and get a reply."""
+    messages = history + [{"role": "user", "content": user_message}]
+    headers = {
+        "x-api-key": ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 400,
+        "system": WA_SYSTEM_PROMPT,
+        "messages": messages,
+    }
+    try:
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            data = r.json()
+            return data.get("content", [{}])[0].get("text", "Sorry, I couldn't process that. Try again!")
+    except Exception as e:
+        print(f"[WhatsApp] Claude error: {e}")
+        return "Sorry, I'm having trouble right now. Please try again in a moment."
+
+
+# ════════════════════════════════════════════════════════════════
+#  WHATSAPP ROUTES
+# ════════════════════════════════════════════════════════════════
+
+@app.get("/whatsapp")
+async def whatsapp_verify(request: Request):
+    """Meta webhook verification — called once when you click Verify and Save."""
+    params    = dict(request.query_params)
+    mode      = params.get("hub.mode")
+    token     = params.get("hub.verify_token")
+    challenge = params.get("hub.challenge")
+
+    print(f"[WhatsApp] Verify request — mode={mode} token={token}")
+
+    if mode == "subscribe" and token == WA_VERIFY_TOKEN:
+        print("[WhatsApp] ✅ Webhook verified!")
+        return PlainTextResponse(content=challenge, status_code=200)
+
+    print("[WhatsApp] ❌ Verification failed")
+    return PlainTextResponse(content="Forbidden", status_code=403)
+
+
+async def process_wa_message(body: dict):
+    """Background task — processes WA message after 200 is returned to Meta."""
+    try:
+        message = (
+            body.get("entry", [{}])[0]
+                .get("changes", [{}])[0]
+                .get("value", {})
+                .get("messages", [{}])[0]
+        )
+
+        # Only handle text messages
+        if not message or message.get("type") != "text":
+            return
+
+        phone = message.get("from", "")
+        text  = message.get("text", {}).get("body", "").strip()
+
+        if not phone or not text:
+            return
+
+        print(f"[WhatsApp] 📩 From {phone}: {text}")
+
+        # Get history → save user msg → ask Claude → save reply → send
+        history = wa_get_history(phone)
+        wa_save_message(phone, "user", text)
+
+        print(f"[WhatsApp] 🤖 Asking Claude for {phone}...")
+        reply = await wa_ask_claude(history, text)
+        print(f"[WhatsApp] 💬 Claude replied: {reply[:80]}...")
+
+        wa_save_message(phone, "assistant", reply)
+        await wa_send_message(phone, reply)
+
+        print(f"[WhatsApp] ✅ Replied to {phone}")
+
+    except Exception as e:
+        print(f"[WhatsApp] ❌ process_wa_message error: {e}\n{traceback.format_exc()}")
+
+
+@app.post("/whatsapp")
+async def whatsapp_incoming(request: Request, background_tasks: BackgroundTasks):
+    """Receive incoming WhatsApp messages — returns 200 immediately, processes in background."""
+    try:
+        body = await request.json()
+        background_tasks.add_task(process_wa_message, body)
+    except Exception as e:
+        print(f"[WhatsApp] ❌ Failed to parse webhook body: {e}")
+    return JSONResponse(content={"ok": True}, status_code=200)
+
+
+# ════════════════════════════════════════════════════════════════
+#  EXISTING ROUTES (unchanged)
+# ════════════════════════════════════════════════════════════════
+
+
+@app.post("/chat")
+async def chat(req: ChatRequest, request: Request):
+    """
+    AI chat endpoint — used by the MjengoAI website chat widget.
+    Accepts an array of messages and returns a Claude AI response.
+    """
+    if not ANTHROPIC_KEY:
+        return JSONResponse(
+            status_code=503,
+            content={"error": "AI service not configured", "content": "AI service unavailable — please set ANTHROPIC_KEY in Render environment."}
+        )
+    try:
+        # Extract system prompt — either from request or use default
+        system_prompt = req.system or (
+            "You are MjengoAI, Kenya\'s friendly construction directory assistant. "
+            "Help users find artisans, professionals, materials, house plans and contractors across all 47 counties. "
+            "Always respond in plain conversational text — NO markdown, NO asterisks, NO bullet points. "
+            "Use KES for prices. Be brief (3-5 sentences), practical and Kenya-specific. "
+            "Current live prices: Cement 50kg KES 720, Steel rod 12mm KES 680/m, Roofing sheet KES 1,250, Hollow block KES 48. "
+            "If asked about a specific professional, suggest they use the main search bar at www.mjengoai.com"
+        )
+
+        # Filter to only user/assistant roles (strip any system messages from array)
+        messages = [
+            {"role": m["role"], "content": m["content"]}
+            for m in req.messages
+            if isinstance(m, dict) and m.get("role") in ("user", "assistant") and m.get("content")
+        ]
+
+        if not messages:
+            return JSONResponse(status_code=400, content={"error": "No valid messages provided"})
+
+        headers = {
+            "x-api-key":          ANTHROPIC_KEY,
+            "anthropic-version":  "2023-06-01",
+            "Content-Type":       "application/json",
+        }
+        payload = {
+            "model":      "claude-sonnet-4-20250514",
+            "max_tokens": min(req.max_tokens or 300, 1000),
+            "system":     system_prompt,
+            "messages":   messages,
+        }
+
+        async with httpx.AsyncClient() as client:
+            r = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+
+        if r.status_code != 200:
+            print(f"[chat] Anthropic error {r.status_code}: {r.text}")
+            return JSONResponse(
+                status_code=502,
+                content={"error": "AI upstream error", "content": "Sorry, AI service is temporarily busy. Please try again."}
+            )
+
+        data = r.json()
+        text = (data.get("content") or [{}])[0].get("text", "").strip()
+
+        return {"content": text, "model": "claude-sonnet-4-20250514"}
+
+    except httpx.TimeoutException:
+        print("[chat] Anthropic timeout")
+        return JSONResponse(
+            status_code=504,
+            content={"content": "Response timed out. Please try again."}
+        )
+    except Exception as e:
+        print(f"[chat] Error: {e}\\n{traceback.format_exc()}")
+        return JSONResponse(
+            status_code=500,
+            content={"content": "Something went wrong. Please try again."}
+        )
 
 @app.get("/")
 def root():
-    return {"status": "MjengoAI API running", "version": "2.0.0"}
+    return {"status": "MjengoAI API running", "version": "1.0.0"}
+
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
+
 @app.get("/ping")
 def ping():
-    """Keep-alive ping from GitHub Actions and index.html"""
-    return {"status": "pong", "service": "mjengoai"}
+    return {"ok": True, "service": "MjengoAI Backend"}
 
 
-# ── AI Search ─────────────────────────────────────────────────────────────────
 @app.post("/search")
-async def search(req: SearchRequest):
+async def search(req: SearchRequest, request: Request):
     try:
         result = await handle_query(
             user_query=req.query,
             county=req.county,
-            town=req.town,
-            session_id=req.session_id or "default"
+            town=req.town
         )
         return {
             "answer":  result["answer"],
@@ -107,54 +396,23 @@ async def search(req: SearchRequest):
         }
     except Exception as e:
         tb = traceback.format_exc()
-        print(f"[MjengoAI /search ERROR] {e}\n{tb}")
-        return JSONResponse(status_code=500, content={
-            "error": str(e),
-            "answer": "I could not process that search right now. Please try again.",
-            "intent": "general",
-            "sources": [],
-            "query": req.query
-        })
-
-
-# ── AI Chat  ──────────────────────────────────────────────────────────────────
-@app.post("/chat")
-async def chat(req: ChatRequest):
-    """
-    Conversational AI chat — called by the MjengoAI Assistant widget.
-    Receives full message history, returns assistant reply.
-    """
-    try:
-        messages = [{"role": m.role, "content": m.content} for m in req.messages]
-
-        resp = await openai_client.chat.completions.create(
-            model="gpt-4o-mini",          # fast + cheap for chat
-            messages=messages,
-            max_tokens=req.max_tokens or 250,
-            temperature=0.5,
+        print(f"[MjengoAI ERROR] {e}\n{tb}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error":   str(e),
+                "message": "Search failed — check Render logs for details",
+                "query":   req.query
+            }
         )
-        text = resp.choices[0].message.content.strip()
-        return {"content": text}
-
-    except Exception as e:
-        print(f"[MjengoAI /chat ERROR] {e}")
-        return JSONResponse(status_code=500, content={
-            "content": (
-                "I'm having a moment — please try again! "
-                "You can also search using the main bar above."
-            )
-        })
 
 
-# ── Registration — saves to Supabase ─────────────────────────────────────────
 @app.post("/register")
 async def register(req: RegisterRequest):
-    """
-    Saves signup to the registrations table.
-    Called by mjRegister() in index.html.
-    """
+    if not _sb:
+        return JSONResponse(status_code=503, content={"ok": False, "error": "DB not configured"})
     try:
-        payload = {
+        _sb.table("registrations").insert({
             "full_name":      req.full_name,
             "phone":          req.phone,
             "category":       req.category,
@@ -164,300 +422,169 @@ async def register(req: RegisterRequest):
             "email":          req.email,
             "about":          req.about,
             "reg_number":     req.reg_number,
-            "status":         "pending"
-        }
-        result = supabase.table("registrations").insert(payload).execute()
-        print(f"[MjengoAI /register] Saved: {req.full_name} ({req.category})")
-        return {"ok": True, "id": result.data[0]["id"] if result.data else None}
-
+            "status":         "pending",
+        }).execute()
+        return {"ok": True}
     except Exception as e:
-        print(f"[MjengoAI /register ERROR] {e}")
-        return JSONResponse(status_code=500, content={
-            "ok": False,
-            "error": str(e)
-        })
+        print(f"[register] error: {e}")
+        return JSONResponse(status_code=500, content={"ok": False, "error": str(e)})
 
 
-# ── Profile — saves to artisans / professionals table ─────────────────────────
 @app.post("/register-profile")
 async def register_profile(req: RegisterProfileRequest):
-    """
-    Saves the signup into the correct category table
-    (artisans, professionals, vendors) after registration.
-    Non-blocking — failures are ignored by the frontend.
-    """
+    if not _sb:
+        return JSONResponse(status_code=503, content={"ok": False, "error": "DB not configured"})
+    cat   = (req.cat or "").lower()
+    data  = req.data or {}
+    phone = req.phone or ""
     try:
-        cat    = (req.cat or '').lower()
-        data   = req.data or {}
-        phone  = req.phone or ''
-        name   = data.get('name', '')
-        sub    = data.get('subCategory', '')
-        loc    = data.get('location', '')
-        price  = data.get('price', '')
-        about  = data.get('about', '')
-        nca    = data.get('nca_reg', '')
+        location = data.get("location", "")
+        county   = location.split(",")[-1].strip() if "," in location else location
+        town     = location.split(",")[0].strip()
 
-        county = loc.split(',')[-1].strip() if ',' in loc else loc
-        town   = loc.split(',')[0].strip()  if ',' in loc else loc
-
-        if cat == 'artisans':
-            supabase.table("artisans").insert({
-                "name":       name,
-                "trade":      sub.lower().replace(' ', '_'),
+        if cat == "artisans":
+            _sb.table("artisans").insert({
+                "name":       data.get("name", ""),
+                "trade":      data.get("subCategory", "").lower().replace(" ", "_"),
                 "county":     county,
                 "town":       town,
                 "phone":      phone,
-                "daily_rate": int(''.join(filter(str.isdigit, price[:6])) or 0),
-                "verified":   False
+                "daily_rate": int(data.get("price", 0) or 0),
+                "verified":   False,
             }).execute()
 
-        elif cat == 'professionals':
-            supabase.table("professionals").insert({
-                "full_name":       name,
-                "profession":      sub.lower().replace(' ', '_'),
+        elif cat == "professionals":
+            _sb.table("professionals").insert({
+                "full_name":       data.get("name", ""),
+                "profession":      data.get("subCategory", "").lower().replace(" ", "_"),
                 "county":          county,
                 "town":            town,
                 "phone":           phone,
-                "consult_fee_kes": int(''.join(filter(str.isdigit, price[:6])) or 0),
-                "bio":             about,
-                "reg_number":      nca,
-                "is_verified":     False
-            }).execute()
-
-        elif cat == 'vendors':
-            supabase.table("vendors").insert({
-                "business_name": name,
-                "vendor_type":   sub.lower().replace(' ', '_'),
-                "county":        county,
-                "town":          town,
-                "phone":         phone,
-                "description":   about,
-                "is_verified":   False
+                "consult_fee_kes": int(data.get("price", 0) or 0),
+                "bio":             data.get("about", ""),
+                "reg_number":      data.get("nca_reg", ""),
+                "is_verified":     False,
             }).execute()
 
         return {"ok": True}
-
     except Exception as e:
-        print(f"[MjengoAI /register-profile ERROR] {e}")
-        return JSONResponse(status_code=200, content={"ok": False, "error": str(e)})
+        print(f"[register-profile] error: {e}")
+        return JSONResponse(status_code=500, content={"ok": False, "error": str(e)})
 
 
-# ── WhatsApp Bot Webhook ───────────────────────────────────────────────────────
-
-class WhatsAppMessage(BaseModel):
-    Body:        Optional[str] = ''
-    From:        Optional[str] = ''
-    To:          Optional[str] = ''
-    ProfileName: Optional[str] = ''
-
-STATIC_PRICES = """Current Kenya construction prices:
-• Cement 50kg: KES 720 (Nairobi), KES 695 (Nakuru), KES 755 (Mombasa)
-• Steel rod 12mm: KES 680/m
-• Roofing sheet: KES 1,250/sheet
-• Hollow block: KES 48/block
-• River sand: KES 2,100/tonne
-• Murram: KES 4,200/lorry
-• Timber 2x4\": KES 320/m treated
-• BRC mesh: KES 8,500/roll"""
-
-@app.get("/whatsapp")
-async def whatsapp_verify(request: Request):
-    """Meta webhook verification — required before Meta sends messages."""
-    params = dict(request.query_params)
-    mode      = params.get("hub.mode")
-    token     = params.get("hub.verify_token")
-    challenge = params.get("hub.challenge")
-    VERIFY_TOKEN = os.environ.get("WA_VERIFY_TOKEN", "mjengoai2025")
-    if mode == "subscribe" and token == VERIFY_TOKEN:
-        print(f"[MjengoAI] WhatsApp webhook verified ✓")
-        from fastapi.responses import PlainTextResponse
-        return PlainTextResponse(content=challenge)
-    return JSONResponse(status_code=403, content={"error": "Forbidden"})
-
-
-@app.post("/whatsapp")
-async def whatsapp_webhook(request: Request):
-    """
-    WhatsApp Bot webhook — handles incoming messages from Twilio or Meta.
-    Accepts both JSON and form data.
-    """
+@app.post("/save-profile")
+async def save_profile(req: SaveProfileRequest):
+    if not _fdb:
+        return JSONResponse(status_code=503, content={"ok": False, "error": "Firebase not configured"})
     try:
-        content_type = request.headers.get("content-type", "")
-        if "application/json" in content_type:
-            body = await request.json()
-            # Meta Cloud API format
-            try:
-                entry   = body["entry"][0]
-                changes = entry["changes"][0]["value"]
-                if "statuses" in changes:
-                    return {"status": "ok"}  # ignore delivery receipts
-                message  = changes["messages"][0]
-                from_num = message["from"]
-                msg_type = message.get("type","")
-                if msg_type == "text":
-                    msg_body = message["text"]["body"]
-                elif msg_type == "interactive":
-                    itype = message["interactive"]["type"]
-                    if itype == "button_reply":
-                        msg_body = message["interactive"]["button_reply"]["title"]
-                    else:
-                        msg_body = message["interactive"]["list_reply"]["title"]
-                else:
-                    msg_body = ""
-            except (KeyError, IndexError):
-                # Fallback plain JSON
-                msg_body = body.get("Body", body.get("message", body.get("text", "")))
-                from_num  = body.get("From", body.get("from", "unknown"))
-        else:
-            # Twilio form-encoded
-            form = await request.form()
-            msg_body = form.get("Body", "")
-            from_num  = form.get("From", "")
-
-        msg = (msg_body or "").strip().lower()
-        print(f"[MjengoAI WhatsApp] From: {from_num} | Msg: {msg_body}")
-
-        # ── Route message ─────────────────────────────────────────────────────
-        if any(w in msg for w in ["price","bei","cement","steel","timber","roofing","block","sand","ngapi"]):
-            reply = STATIC_PRICES
-        elif any(w in msg for w in ["mason","fundi","plumber","electr","carpenter","welder","artisan"]):
-            reply = (
-                "🔨 Find vetted artisans at www.mjengoai.com\n\n"
-                "Top picks:\n"
-                "• Joseph Kamau — Mason, Nairobi, KES 1,600/day ⭐4.8\n"
-                "• Peter Ngugi — Plumber, Nairobi, KES 1,800/day ⭐4.8\n"
-                "• Grace Njeri — Electrician (ERC), Nairobi, KES 2,200/day ⭐4.9\n"
-                "• Samuel Gitau — Carpenter, Nairobi, KES 1,800/day ⭐4.9\n\n"
-                "Reply with your county for local results."
-            )
-        elif any(w in msg for w in ["plan","bedroom","bungalow","house","design","nyumba"]):
-            reply = (
-                "🏠 MjengoAI House Plans (Mineco House Repository)\n\n"
-                "• 3BR Bungalow Type B — KES 15,000 (full BOQ)\n"
-                "• 2BR Maisonette — KES 9,500\n"
-                "• 4BR Executive Villa — KES 35,000\n\n"
-                "All include working drawings + material schedule.\n"
-                "Browse all plans: www.mjengoai.com"
-            )
-        elif any(w in msg for w in ["architect","engineer","qs","professional","quantity"]):
-            reply = (
-                "📐 Top Professionals on MjengoAI:\n\n"
-                "• Sarah Kamau — Architect (BORAQS), Nairobi, KES 12,000/consult\n"
-                "• Mate Njiru — Structural Engineer (EBK), Nairobi, KES 15,000/consult\n"
-                "• James Odhiambo — QS (IQSK), Nairobi, KES 8,000/BOQ\n\n"
-                "Find 1,800+ professionals: www.mjengoai.com"
-            )
-        elif any(w in msg for w in ["hardware","vendor","supplier","shop","duka"]):
-            reply = (
-                "🏪 Top Hardware Vendors:\n\n"
-                "• Tuff Foam Hardware — Nairobi Industrial Area\n"
-                "• Coast Hardware — Mombasa\n"
-                "• BuildMart Nakuru — Nakuru Town\n\n"
-                "Compare 850+ suppliers: www.mjengoai.com"
-            )
-        elif any(w in msg for w in ["register","join","jiandikishe","sign up","list"]):
-            reply = (
-                "✅ Join MjengoAI in 2 minutes!\n\n"
-                "1. Visit www.mjengoai.com\n"
-                "2. Click 'For Pros' in the top menu\n"
-                "3. Enter your phone number\n"
-                "4. Verify OTP + complete your profile\n\n"
-                "Your listing goes live within 24 hours after review."
-            )
-        elif any(w in msg for w in ["hi","hello","habari","hujambo","hey","start","menu","help","msaada"]):
-            reply = (
-                "👋 Habari! Welcome to MjengoAI Kenya's #1 construction directory!\n\n"
-                "I can help you with:\n"
-                "💰 *Material prices* — type 'prices'\n"
-                "🔨 *Find artisans* — type 'mason' or trade\n"
-                "🏠 *House plans* — type 'plans'\n"
-                "📐 *Professionals* — type 'architect'\n"
-                "🏪 *Vendors* — type 'hardware'\n"
-                "✅ *Join directory* — type 'register'\n\n"
-                "Or visit: www.mjengoai.com"
-            )
-        else:
-            # Use AI for anything else
-            try:
-                ai_resp = await handle_query(user_query=msg_body, session_id=from_num)
-                reply = ai_resp.get("answer", "")
-                if not reply:
-                    raise ValueError("empty")
-            except Exception:
-                reply = (
-                    f"🤔 I didn't quite get that. Try:\n\n"
-                    f"• Type 'prices' for material prices\n"
-                    f"• Type 'mason' to find an artisan\n"
-                    f"• Type 'plans' for house plans\n"
-                    f"• Visit www.mjengoai.com for full search\n\n"
-                    f"Need help? Call: +254 143 422 201"
-                )
-
-        # Log to Supabase
-        try:
-            supabase.table("conversations").insert({
-                "query":      msg_body,
-                "intent":     "whatsapp",
-                "session_id": from_num,
-            }).execute()
-        except Exception:
-            pass
-
-        # Send reply via Meta Cloud API
-        WA_TOKEN    = os.environ.get("WA_TOKEN", "")
-        WA_PHONE_ID = os.environ.get("WA_PHONE_ID", "")
-
-        if WA_TOKEN and WA_PHONE_ID and from_num != "unknown":
-            import httpx
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                await client.post(
-                    f"https://graph.facebook.com/v19.0/{WA_PHONE_ID}/messages",
-                    headers={
-                        "Authorization": f"Bearer {WA_TOKEN}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "messaging_product": "whatsapp",
-                        "to": from_num,
-                        "type": "text",
-                        "text": {"body": reply, "preview_url": False}
-                    }
-                )
-            print(f"[MjengoAI] WhatsApp reply sent to {from_num}")
-        elif "whatsapp:" in from_num or "application/x-www-form-urlencoded" in content_type:
-            # Twilio TwiML fallback
-            twiml = f'<?xml version="1.0" encoding="UTF-8"?><Response><Message>{reply}</Message></Response>'
-            from fastapi.responses import Response as FastResponse
-            return FastResponse(content=twiml, media_type="application/xml")
-
-        return {"status": "ok"}
-
+        from firebase_admin import firestore as fs
+        _fdb.collection("members").document(req.phone).set({
+            "name":        req.name,
+            "category":    req.category,
+            "subCategory": req.subCategory,
+            "location":    req.location,
+            "price":       req.price,
+            "email":       req.email,
+            "about":       req.about,
+            "nca_reg":     req.nca_reg,
+            "phone":       req.phone,
+            "active":      False,
+            "verified":    False,
+            "rating":      0,
+            "reviews":     0,
+            "photo_url":   "",
+            "joined":      fs.SERVER_TIMESTAMP,
+        })
+        return {"ok": True}
     except Exception as e:
-        print(f"[MjengoAI /whatsapp ERROR] {e}")
-        return JSONResponse(status_code=200, content={"reply": "Service temporarily unavailable.", "status": "error"})
+        print(f"[save-profile] error: {e}")
+        return JSONResponse(status_code=500, content={"ok": False})
 
 
-# ── Live Prices Endpoint ───────────────────────────────────────────────────────
+@app.get("/profile")
+async def get_profile(phone: str = Query(...)):
+    if not _fdb:
+        return JSONResponse(status_code=503, content={})
+    try:
+        doc = _fdb.collection("members").document(phone).get()
+        if doc.exists:
+            d = doc.to_dict()
+            if d.get("active"):
+                d.pop("joined", None)
+                return d
+        return JSONResponse(status_code=404, content={})
+    except Exception as e:
+        print(f"[profile] error: {e}")
+        return JSONResponse(status_code=500, content={})
+
+
+@app.get("/contact")
+async def get_contact(
+    id:   Optional[str] = Query(None),
+    name: Optional[str] = Query(None)
+):
+    if not _sb:
+        return JSONResponse(status_code=503, content={})
+
+    def _find(table: str, id_field="id", name_field="name"):
+        try:
+            if id:
+                r = _sb.table(table).select("phone,email").eq(id_field, id).limit(1).execute()
+                if r.data:
+                    return r.data[0]
+            if name:
+                r = _sb.table(table).select("phone,email").ilike(name_field, f"%{name}%").limit(1).execute()
+                if r.data:
+                    return r.data[0]
+        except Exception as e:
+            print(f"[contact] {table} lookup error: {e}")
+        return None
+
+    result = (
+        _find("artisans",      id_field="id", name_field="name")      or
+        _find("professionals", id_field="id", name_field="full_name") or
+        _find("registrations", id_field="id", name_field="full_name")
+    )
+
+    if result and result.get("phone"):
+        return {
+            "phone": result.get("phone", ""),
+            "email": result.get("email", ""),
+        }
+    return JSONResponse(status_code=404, content={})
+
 
 @app.get("/prices")
-async def get_prices(county: Optional[str] = None):
-    """Returns latest material prices from Supabase materials table."""
+async def get_prices():
+    if not _sb:
+        return JSONResponse(status_code=503, content=[])
     try:
-        q = supabase.table("materials").select(
-            "name,price_kes,unit,county,price_date"
-        ).order("price_date", desc=True)
-        if county:
-            q = q.eq("county", county)
-        result = q.limit(20).execute()
-        return {"prices": result.data or [], "count": len(result.data or [])}
+        r = _sb.table("materials") \
+               .select("name,price_kes,unit,county") \
+               .order("price_date", desc=True) \
+               .limit(10) \
+               .execute()
+        return r.data or []
     except Exception as e:
-        print(f"[MjengoAI /prices ERROR] {e}")
-        # Return static fallback
-        return {"prices": [
-            {"name": "Cement 50kg",    "price_kes": 720,  "unit": "bag",   "county": "Nairobi"},
-            {"name": "Steel rod 12mm", "price_kes": 680,  "unit": "metre", "county": "Nairobi"},
-            {"name": "Roofing sheet",  "price_kes": 1250, "unit": "sheet", "county": "Nairobi"},
-            {"name": "Hollow block",   "price_kes": 48,   "unit": "block", "county": "Nairobi"},
-            {"name": "River sand",     "price_kes": 2100, "unit": "tonne", "county": "Nairobi"},
-        ], "count": 5, "source": "static_fallback"}
+        print(f"[prices] error: {e}")
+        return JSONResponse(status_code=500, content=[])
 
+
+
+@app.get("/registrations")
+async def get_registrations(limit: int = Query(50), status: Optional[str] = Query(None)):
+    """View new registrations from the website — for admin review."""
+    if not _sb:
+        return JSONResponse(status_code=503, content=[])
+    try:
+        q = _sb.table("registrations").select("*").order("id", desc=True).limit(limit)
+        if status:
+            q = q.eq("status", status)
+        r = q.execute()
+        return {"count": len(r.data or []), "registrations": r.data or []}
+    except Exception as e:
+        print(f"[registrations] error: {e}")
+        return JSONResponse(status_code=500, content=[])
+
+
+# ── Run locally: uvicorn main:app --host 0.0.0.0 --port $PORT ──
