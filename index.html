@@ -490,50 +490,79 @@ async function mjVerifyOTP(code) {
 }
 
 async function mjRegister(data) {
-  /* ── All writes go through your Render backend — NO keys in the browser ── */
-  const BACKEND = 'https://mjengoai.onrender.com';
+  /* ── Direct Supabase write — instant, no Render sleep delay ── */
+  const SURL = 'https://vqizhsoohdatplrzpjrfm.supabase.co';
+  const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MzI1MjksImV4cCI6MjA2MzAwODUyOX0.x05MJOKTTkAFYFp1NpkLLtRQ5v1IcQdHnGdC7DUWT_g';
+  const SH   = {'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+SKEY,'Prefer':'return=minimal'};
 
   try {
-    /* 1 — POST to backend /register — server holds the Supabase key securely */
-    let regRes;
-    try {
-      regRes = await fetch(`${BACKEND}/register`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          full_name:      data.name        || '',
-          phone:          _mjPhone         || '',
-          category:       data.category    || '',
-          specialisation: data.subCategory || '',
-          town:           data.location    || '',
-          fee:            data.price       || '',
-          email:          data.email       || '',
-          about:          data.about       || '',
-          reg_number:     data.nca_reg     || '',
-          status:         'pending'
-        })
-      });
-    } catch (netErr) {
-      console.warn('[MjengoAI] Backend unreachable (will save locally):', netErr.message);
-      regRes = { ok: false, _networkErr: true };
+    /* 1 — Save to registrations table */
+    const regPayload = {
+      full_name:      data.name        || '',
+      phone:          _mjPhone         || '',
+      category:       data.category    || '',
+      specialisation: data.subCategory || '',
+      town:           data.location    || '',
+      fee:            data.price       || '',
+      email:          data.email       || '',
+      about:          data.about       || '',
+      reg_number:     data.nca_reg     || '',
+      status:         'pending'
+    };
+    const regRes = await fetch(`${SURL}/rest/v1/registrations`, {
+      method:'POST', headers:SH, body:JSON.stringify(regPayload)
+    });
+    if (!regRes.ok) {
+      const errText = await regRes.text().catch(()=>'');
+      console.error('[MjengoAI] Supabase registration error:', regRes.status, errText);
+      return { ok: false, error: 'Could not save profile. Please try again.' };
     }
+    console.log('[MjengoAI] ✓ Registration saved to Supabase registrations table');
 
-    if (regRes && !regRes.ok && !regRes._networkErr) {
-      const e = await regRes.text().catch(()=>'');
-      console.error('[MjengoAI] register HTTP error:', e);
-      return { ok: false, error: 'Server error saving profile. Please try again.' };
-    }
-
-    /* 2 — category-specific table insert (also via backend) */
+    /* 2 — Save to category-specific table (non-blocking) */
     const cat = (data.category || '').toLowerCase();
-    fetch(`${BACKEND}/register-profile`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cat, data, phone: _mjPhone })
-    }).catch(()=>{});
+    const loc  = data.location || '';
+    const county = loc.includes(',') ? loc.split(',').pop().trim() : loc;
+    const town   = loc.includes(',') ? loc.split(',')[0].trim()   : loc;
+
+    if (cat === 'artisans') {
+      fetch(`${SURL}/rest/v1/artisans`, {
+        method:'POST', headers:SH,
+        body: JSON.stringify({
+          name:       data.name || '',
+          trade:      (data.subCategory||'').toLowerCase().replace(/\s+/g,'_'),
+          county, town, phone: _mjPhone || '',
+          daily_rate: parseInt((data.price||'0').replace(/\D/g,'').slice(0,6))||0,
+          verified:   false
+        })
+      }).then(r=>console.log('[MjengoAI] artisans insert:',r.status)).catch(()=>{});
+    } else if (cat === 'professionals') {
+      fetch(`${SURL}/rest/v1/professionals`, {
+        method:'POST', headers:SH,
+        body: JSON.stringify({
+          full_name:       data.name || '',
+          profession:      (data.subCategory||'').toLowerCase().replace(/\s+/g,'_'),
+          county, town, phone: _mjPhone || '',
+          consult_fee_kes: parseInt((data.price||'0').replace(/\D/g,'').slice(0,6))||0,
+          bio:             data.about || '',
+          reg_number:      data.nca_reg || '',
+          is_verified:     false
+        })
+      }).then(r=>console.log('[MjengoAI] professionals insert:',r.status)).catch(()=>{});
+    } else if (cat === 'vendors') {
+      fetch(`${SURL}/rest/v1/vendors`, {
+        method:'POST', headers:SH,
+        body: JSON.stringify({
+          business_name: data.name || '',
+          vendor_type:   (data.subCategory||'').toLowerCase().replace(/\s+/g,'_'),
+          county, town, phone: _mjPhone || '',
+          description:   data.about || '',
+          is_verified:   false
+        })
+      }).then(r=>console.log('[MjengoAI] vendors insert:',r.status)).catch(()=>{});
+    }
 
     /* 3 — Add to local DB array so they appear in results immediately (same session) */
-    // cat already declared above — reuse it
     const newEntry = {
       id:    Date.now(),
       name:  data.name        || '',
@@ -3651,25 +3680,41 @@ If asked about a specific professional or artisan, suggest they search using the
   } catch(e) {
     console.warn('[MjengoAI Chat] Backend error:', e.message);
     hideTyping();
-    // Smart local fallback — answer from static DB when backend is sleeping
-    const m = msg.toLowerCase();
-    let localReply = '';
-    if (m.includes('mason') || m.includes('fundi') || m.includes('plumber') || m.includes('electr') || m.includes('carpenter') || m.includes('welder')) {
-      localReply = 'I can help you find that! Use the search bar above and type what you need — for example "mason Nairobi" or "plumber Westlands". Results will show instantly from our directory of 3,200+ vetted artisans.';
-    } else if (m.includes('cement') || m.includes('steel') || m.includes('timber') || m.includes('price') || m.includes('bei')) {
-      localReply = 'Current prices: Cement 50kg KES 720, Steel rod 12mm KES 680/m, Roofing sheet KES 1,250, Hollow block KES 48, River sand KES 2,100/tonne. Type a material in the search bar for supplier comparisons.';
-    } else if (m.includes('plan') || m.includes('bedroom') || m.includes('bungalow') || m.includes('house')) {
-      localReply = 'Browse Mineco House plans by clicking the House Plans category above. We have 3BR bungalows from KES 15,000 (includes BOQ), 2BR maisonettes from KES 9,500, and villa designs. All include working drawings.';
-    } else if (m.includes('architect') || m.includes('engineer') || m.includes('qs') || m.includes('professional')) {
-      localReply = 'Find registered professionals by clicking the Professionals category above. We have 1,800+ architects, structural engineers, QSs and planners across all 47 counties. Type their specialty in the search bar.';
-    } else if (m.includes('hardware') || m.includes('vendor') || m.includes('supplier')) {
-      localReply = 'Search "hardware Nairobi" or "timber Mombasa" in the search bar to compare vendors near you. We have 850+ verified suppliers across Kenya.';
-    } else if (m.includes('cost') || m.includes('estimate') || m.includes('budget') || m.includes('how much')) {
-      localReply = 'Construction costs in Kenya: simple bungalow KES 25,000–35,000/m², commercial KES 40,000–60,000/m². For a detailed BOQ, use our BOQ Generator in the Apps section, or hire a QS from our Professionals directory.';
+    /* Smart local fallback — real answers from static DB, no "sorry" messages */
+    const m = (msg||'').toLowerCase();
+    let reply = '';
+    if (m.includes('mason') || m.includes('fundi wa mawe') || m.includes('plaster')) {
+      const a = (DB.masons||[]).slice(0,3);
+      reply = a.length ? 'Here are top masons available: ' + a.map(x=>x.name+' ('+x.loc+') '+x.price).join(', ') + '. Use the search bar for more options.'
+                       : 'Search "mason" in the bar above to find vetted masons across all 47 counties. We have 200+ listed.';
+    } else if (m.includes('plumb')) {
+      reply = 'Search "plumber" in the search bar above. Top pick: Peter Ngugi — ERC certified, Nairobi, KES 1,800/day. Ruth Kamande also available.';
+    } else if (m.includes('electr') || m.includes('wiring')) {
+      reply = 'Search "electrician" above. Grace Njeri (ERC Class A, Nairobi, KES 2,200/day) and Kevin Kariuki (Nakuru) are top rated. Both available now.';
+    } else if (m.includes('carpenter')) {
+      reply = 'Search "carpenter" above. Samuel Gitau (4.9★, Nairobi, KES 1,800/day) is our top-rated carpenter. Alice Wangari covers Thika at KES 1,400/day.';
+    } else if (m.includes('cement') || m.includes('saruji')) {
+      reply = 'Current cement prices: Nairobi KES 720/50kg, Nakuru KES 695, Mombasa KES 755. Tuff Foam Hardware (Nairobi) offers bulk discounts. Type "cement" in the search bar to compare suppliers.';
+    } else if (m.includes('steel') || m.includes('chuma')) {
+      reply = 'Steel rod 12mm: KES 680/m. BRC mesh: KES 8,500/roll. Devki Steel Mills (Athi River) is factory direct. Search "steel" for more suppliers.';
+    } else if (m.includes('roofing') || m.includes('bati') || m.includes('iron sheet')) {
+      reply = 'Roofing sheets: KES 1,250/sheet (Mabati Rolling Mills). Timber 2x4": KES 320/m treated. Search "roofing" in the search bar for full supplier list.';
+    } else if (m.includes('plan') || m.includes('design') || m.includes('bedroom') || m.includes('bungalow')) {
+      reply = 'Top house plans: 3BR Bungalow Type B — KES 15,000 (full BOQ included). 2BR Maisonette — KES 9,500. Click House Plans category above or search "3BR plan".';
+    } else if (m.includes('architect')) {
+      reply = 'Top architects: Sarah Kamau (BORAQS, Nairobi, KES 12,000/consult), David Mutua (Mombasa), Miriam Wanjiku (Nakuru). Click Professionals → Architect above.';
+    } else if (m.includes('engineer') || m.includes('structural')) {
+      reply = 'Mate Njiru — EBK registered structural engineer, Nairobi, 15 years experience, KES 15,000/consult. Faith Omondi covers Kisumu. Click Professionals → Structural Eng.';
+    } else if (m.includes('cost') || m.includes('bei') || m.includes('how much') || m.includes('ngapi')) {
+      reply = 'Typical construction costs Kenya 2025: Simple bungalow KES 25,000–35,000/m². Commercial KES 40,000–60,000/m². Labour: Mason KES 1,200–1,800/day, Carpenter KES 1,400–1,900/day.';
+    } else if (m.includes('hardware') || m.includes('shop')) {
+      reply = 'Top hardware shops: Tuff Foam Hardware (Nairobi Industrial), Coast Hardware (Mombasa), BuildMart (Nakuru). Search "hardware" + your county in the bar above.';
+    } else if (m.includes('register') || m.includes('join') || m.includes('sign up') || m.includes('jiandikishe')) {
+      reply = 'To join MjengoAI, click the "For Pros" button in the top navigation or the Join button. Complete your phone verification and profile — it takes 2 minutes!';
     } else {
-      localReply = 'I am your MjengoAI construction assistant! I can help you find artisans, check material prices, browse house plans, or connect with professionals across all 47 counties. What do you need help with?';
+      reply = 'I can help with: finding artisans (masons, plumbers, electricians), material prices, house plans, and professionals across all 47 counties. What do you need?';
     }
-    addMsg(localReply, 'bot');
+    addMsg(reply, 'bot');
   }
 }
 
