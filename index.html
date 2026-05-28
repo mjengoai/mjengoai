@@ -504,7 +504,7 @@ async function mjVerifyOTP(code) {
 async function mjRegister(data) {
   /* ── Direct Supabase write — instant, bypasses sleeping Render ── */
   const SURL = 'https://vqizhsohdatplrzpjrfm.supabase.co';
-  const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MzI1MjksImV4cCI6MjA2MzAwODUyOX0.x05MJOKTTkAFYFp1NpkLLtRQ5v1IcQdHnGdC7DUWT_g';
+  const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NDgyNTQsImV4cCI6MjA5NDUyNDI1NH0.IebkqeFmHB9tfZS1WzmKzO7_RRYVIrCdODd6Z1r1UUY';
   const SH = {'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+SKEY,'Prefer':'return=minimal'};
 
   try {
@@ -3775,7 +3775,7 @@ window.addEventListener('appinstalled', () => {
 /* ═══ MjengoAI Registration Fix — Supabase Direct Write ═══ */
 (function(){
   const SURL = 'https://vqizhsohdatplrzpjrfm.supabase.co';
-  const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc0MzI1MjksImV4cCI6MjA2MzAwODUyOX0.x05MJOKTTkAFYFp1NpkLLtRQ5v1IcQdHnGdC7DUWT_g';
+  const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NDgyNTQsImV4cCI6MjA5NDUyNDI1NH0.IebkqeFmHB9tfZS1WzmKzO7_RRYVIrCdODd6Z1r1UUY';
   const SH = {'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+SKEY,'Prefer':'return=minimal'};
 
   window.mjRegister = async function(data) {
