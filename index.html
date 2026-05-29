@@ -207,6 +207,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:11px 2
 .g7::before{background:radial-gradient(ellipse at top,rgba(201,149,42,.14),transparent 70%);}
 .g8::before{background:radial-gradient(ellipse at top,rgba(126,200,126,.14),transparent 70%);}
 .g9::before{background:radial-gradient(ellipse at top,rgba(201,149,42,.2),transparent 70%);}
+.g10::before{background:radial-gradient(ellipse at top,rgba(26,115,232,.2),transparent 70%);}
 .cicon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;}
 .clabel{font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:center;line-height:1.25;position:relative;z-index:1;transition:color .2s;}
 .cwrap:hover .clabel,.citem.active .clabel{color:var(--text);}
@@ -381,7 +382,6 @@ footer{border:none;padding:0;margin:0;background:transparent;}
 .cbox-loading{text-align:center;padding:20px;color:var(--muted);font-size:13px;}::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px;}::-webkit-scrollbar-thumb:hover{background:var(--muted);}
 
-.g10::before{background:radial-gradient(ellipse at top,rgba(26,115,232,.2),transparent 70%);}
 @media(max-width:900px){
   .cgrid{grid-template-columns:repeat(5,1fr);}
   .fgrid{grid-template-columns:1fr 1fr;}
@@ -888,53 +888,15 @@ document.addEventListener('DOMContentLoaded', () => {
             <option value="Tech, IoT &amp; Security">Tech, IoT &amp; Security</option>
           </select>
         </div>
-        <!-- Tech IoT & Security subcategory dropdown — shown only when that category is selected -->
         <div id="mj-tech-subcat-wrap" style="display:none;">
           <label style="font-size:10px;font-weight:700;color:#7ec87e;letter-spacing:2px;text-transform:uppercase;display:block;margin-bottom:6px;">Specialisation *</label>
           <select id="mj-tech-subcat" style="width:100%;background:#2a2a26;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f0ede6;font-size:13px;outline:none;box-sizing:border-box;">
             <option value="">Select specialisation...</option>
-            <optgroup label="🏠 Smart Home &amp; Automation">
-              <option>Smart Home Installer</option>
-              <option>Home Automation Technician</option>
-              <option>IoT Systems Integrator</option>
-              <option>Smart Lighting Installer</option>
-              <option>Smart Meter Technician</option>
-              <option>Solar &amp; Smart Energy Technician</option>
-            </optgroup>
-            <optgroup label="📡 Data &amp; Networking">
-              <option>Network Engineer</option>
-              <option>IT Infrastructure Technician</option>
-              <option>Structured Cabling Technician</option>
-              <option>Fibre Optic Technician</option>
-              <option>Wi-Fi &amp; LAN Installer</option>
-              <option>VSAT / Satellite Installer</option>
-              <option>TV &amp; DSTV Installer</option>
-            </optgroup>
-            <optgroup label="📷 Surveillance">
-              <option>CCTV Installer</option>
-              <option>IP Camera Technician</option>
-              <option>Video Surveillance Engineer</option>
-              <option>Access Control Technician</option>
-              <option>Intercom &amp; Video Doorbell Installer</option>
-              <option>Drone Surveillance Technician</option>
-            </optgroup>
-            <optgroup label="⚡ Security Systems">
-              <option>Electric Fence Installer</option>
-              <option>Alarm Systems Technician</option>
-              <option>Intruder Detection Installer</option>
-              <option>Biometric Systems Technician</option>
-              <option>Gate Automation Technician</option>
-              <option>Boom Barrier Installer</option>
-              <option>Perimeter Security Installer</option>
-            </optgroup>
-            <optgroup label="🌐 IoT &amp; Advanced Tech">
-              <option>IoT Device Technician</option>
-              <option>Building Management Systems (BMS) Technician</option>
-              <option>SCADA Systems Technician</option>
-              <option>Remote Monitoring Technician</option>
-              <option>Smart Irrigation Installer</option>
-              <option>EV Charging Point Installer</option>
-            </optgroup>
+            <optgroup label="Smart Home &amp; Automation"><option>Smart Home Installer</option><option>Home Automation Technician</option><option>IoT Systems Integrator</option><option>Smart Lighting Installer</option><option>Smart Meter Technician</option><option>Solar &amp; Smart Energy Technician</option></optgroup>
+            <optgroup label="Data &amp; Networking"><option>Network Engineer</option><option>IT Infrastructure Technician</option><option>Structured Cabling Technician</option><option>Fibre Optic Technician</option><option>Wi-Fi &amp; LAN Installer</option><option>VSAT / Satellite Installer</option><option>TV &amp; DSTV Installer</option></optgroup>
+            <optgroup label="Surveillance"><option>CCTV Installer</option><option>IP Camera Technician</option><option>Video Surveillance Engineer</option><option>Access Control Technician</option><option>Intercom &amp; Video Doorbell Installer</option><option>Drone Surveillance Technician</option></optgroup>
+            <optgroup label="Security Systems"><option>Electric Fence Installer</option><option>Alarm Systems Technician</option><option>Intruder Detection Installer</option><option>Biometric Systems Technician</option><option>Gate Automation Technician</option><option>Boom Barrier Installer</option><option>Perimeter Security Installer</option></optgroup>
+            <optgroup label="IoT &amp; Advanced Tech"><option>IoT Device Technician</option><option>Building Management Systems (BMS) Technician</option><option>SCADA Systems Technician</option><option>Remote Monitoring Technician</option><option>Smart Irrigation Installer</option><option>EV Charging Point Installer</option></optgroup>
           </select>
         </div>
         <div>
@@ -2256,11 +2218,6 @@ const DB={
   mjt_exchange:[
     {id:250,name:"MJT Exchange",sub:"Token Exchange · Phase 5",tags:["Token exchange","MJT trading","Liquidity","Rewards"],price:"0.5% per trade",rat:0,rev:0,loc:"Kenya-wide",avC:"#e8a04a",init:"MX",badge:"Phase 5",bc:"bgold",type:"Exchange",phone:"",exp:"",reg:"CMA Innovation Env.",avail:"Phase 5 launch",about:"The MJT Exchange allows users to trade, earn and redeem Mjengo Tokens. Green MJT incentives for eco-friendly construction practices. CMA innovation environment."},
   ],
-  tech_iot:[
-    /* Tech, IoT & Security listings will populate here as technicians register.
-       Category codes: SHA (Smart Home), DAN (Data & Networking), SUR (Surveillance),
-       SEC (Security Systems), IOT (IoT & Advanced Tech) */
-  ],
   foreman:[
     {id:2034,name:"Cow Antony Mugo",sub:"Foreman",tags:["Foreman","Kenya"],price:"Unlock contact",rat:0,rev:0,loc:"Kenya",avC:"#c9952a",init:"CA",badge:"Listed",bc:"bg",type:"Foreman",phone:"",exp:"",reg:"",avail:"Call to confirm",about:"Cow Antony Mugo — Foreman contact. Email: antonymwiti4@gmail.vom"},
     {id:2035,name:"Cow Muriuki",sub:"Foreman",tags:["Foreman","Kenya"],price:"Unlock contact",rat:0,rev:0,loc:"Thika",avC:"#c9952a",init:"CM",badge:"Listed",bc:"bg",type:"Foreman",phone:"",exp:"",reg:"",avail:"Call to confirm",about:"Cow Muriuki Eliza Thika — Foreman contact."},
@@ -2355,65 +2312,17 @@ const DB={
 
 /* ════════════════════ 10 CATEGORIES ════════════════════ */
 const CATS=[
-  {
-    id:"houseplans",label:"House Plans",gi:0,bg:"rgba(126,200,126,.15)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><path d="M18 4L33 16H29V31H7V16H3Z" fill="#3a8c3a"/><path d="M18 4L33 16H18Z" fill="#2d7a2d"/><rect x="7" y="16" width="22" height="15" fill="#d4e8c8"/><rect x="15" y="21" width="6" height="10" rx=".8" fill="#8a6a3a"/><circle cx="20" cy="26" r=".7" fill="#c8a060"/><rect x="8.5" y="18.5" width="5" height="4.5" rx=".5" fill="#a8d4f0"/><line x1="11" y1="18.5" x2="11" y2="23" stroke="#7ab0d0" stroke-width=".8"/><line x1="8.5" y1="20.7" x2="13.5" y2="20.7" stroke="#7ab0d0" stroke-width=".8"/><rect x="22.5" y="18.5" width="5" height="4.5" rx=".5" fill="#a8d4f0"/><line x1="25" y1="18.5" x2="25" y2="23" stroke="#7ab0d0" stroke-width=".8"/><line x1="22.5" y1="20.7" x2="27.5" y2="20.7" stroke="#7ab0d0" stroke-width=".8"/><rect x="24" y="8" width="3.5" height="7" rx=".5" fill="#c8a080"/></svg>`,
-    subs:[{l:"Residential",ic:"🏠",k:"residential",n:4},{l:"Institutions",ic:"🏫",k:"commercial",n:4},{l:"Commercial",ic:"🏢",k:"commercial",n:4},{l:"Industrial",ic:"🏭",k:"commercial",n:4},{l:"Infrastructure",ic:"🛣️",k:"commercial",n:4},{l:"Agricultural",ic:"🌾",k:"commercial",n:4},{l:"Speciality",ic:"⭐",k:"residential",n:4}]
-  },
-  {
-    id:"professionals",label:"Professionals",gi:2,bg:"rgba(74,126,192,.16)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="7" y="5" width="22" height="26" rx="2.5" fill="#1a3a6c"/><rect x="7" y="5" width="22" height="26" rx="2.5" stroke="#4a7ec0" stroke-width="1"/><line x1="13" y1="5" x2="13" y2="31" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="19" y1="5" x2="19" y2="31" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="11" x2="29" y2="11" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="17" x2="29" y2="17" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="23" x2="29" y2="23" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><path d="M11 22L11 14L18 9L25 14V22Z" stroke="#7ab4f0" stroke-width="1.2" fill="none"/><rect x="16" y="17" width="4" height="5" stroke="#7ab4f0" stroke-width="1" fill="none"/><path d="M22 6L29 6L29 13Z" fill="#4a7ec0" opacity=".8"/></svg>`,
-    subs:[{l:"Architect",ic:"📐",k:"architects",n:40},{l:"Civil Structural Eng.",ic:"🔩",k:"structural_eng",n:38},{l:"Mechanical Engineer",ic:"⚙️",k:"mep_eng",n:2},{l:"Electrical Engineer",ic:"⚡",k:"electrical_eng",n:29},{l:"Construction Manager",ic:"🏗️",k:"construction_mgr",n:22},{l:"Quantity Surveyor",ic:"📋",k:"quantity_surveyor",n:6},{l:"Land Economist",ic:"📊",k:"land_economist",n:8},{l:"Landscaper",ic:"🌿",k:"landscaper_prof",n:1},{l:"Interior Designer",ic:"🛋️",k:"interior_designer",n:15},{l:"Physical Planners",ic:"🗺️",k:"physical_planner",n:13},{l:"EIA/NEMA Expert",ic:"🌱",k:"nema_eia",n:7}]
-  },
-  {
-    id:"artisans",label:"Artisans",gi:3,bg:"rgba(232,160,74,.16)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><ellipse cx="18" cy="12" rx="9" ry="5.5" fill="#e8a04a"/><rect x="9" y="12" width="18" height="2.5" rx="1.2" fill="#c8803a"/><rect x="11" y="14.5" width="14" height="1.5" rx=".7" fill="#b06820"/><circle cx="18" cy="21" r="5" fill="#f5c580"/><path d="M10 34Q10 27 18 27Q26 27 26 34" fill="#e8a04a"/><rect x="16.5" y="27" width="3" height="7" fill="#f5c040" opacity=".7"/><rect x="25" y="25" width="2" height="9" rx="1" fill="#888" transform="rotate(-18 25 25)"/></svg>`,
-    subs:[{l:"Foreman",ic:"👷",k:"foreman",n:35},{l:"Mason",ic:"🧱",k:"masons",n:84},{l:"Steel Fixers",ic:"⚙️",k:"steel_fixers",n:20},{l:"Tiles Fixers",ic:"🪨",k:"tiles_fixers",n:5},{l:"Glass Expert",ic:"🪟",k:"glass_expert",n:8},{l:"Carpenters",ic:"🪵",k:"carpenters",n:40},{l:"Welders",ic:"🔥",k:"welders",n:66},{l:"Plumbers",ic:"🔧",k:"plumbers",n:22},{l:"Electricians",ic:"⚡",k:"electricians",n:26},{l:"Painters",ic:"🖌️",k:"painters",n:3},{l:"Landscapers",ic:"🌿",k:"landscapers_art",n:1}]
-  },
-  {
-    id:"materials",label:"Materials",gi:1,bg:"rgba(136,135,128,.2)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="4" y="29" width="28" height="3.5" rx="1" fill="#7a6040"/><rect x="6" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="14" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="22" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="5" y="22" width="11" height="8" rx="1.5" fill="#d4c8a8"/><text x="10.5" y="28" text-anchor="middle" font-size="4" fill="#8a7a60" font-family="sans-serif" font-weight="bold">50KG</text><rect x="18" y="22" width="11" height="8" rx="1.5" fill="#d4c8a8"/><text x="23.5" y="28" text-anchor="middle" font-size="4" fill="#8a7a60" font-family="sans-serif" font-weight="bold">50KG</text><rect x="8" y="19" width="20" height="3" rx="1" fill="#8a9ab0"/><line x1="10" y1="19" x2="10" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="14" y1="19" x2="14" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="18" y1="19" x2="18" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="22" y1="19" x2="22" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="26" y1="19" x2="26" y2="22" stroke="#6a7a90" stroke-width="1"/><rect x="8" y="12" width="8" height="7" rx="1" fill="#b8b0a0"/><rect x="9.5" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="13" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="18" y="12" width="8" height="7" rx="1" fill="#b8b0a0"/><rect x="19.5" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="23" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/></svg>`,
-    subs:[{l:"Aggregates",ic:"🪨",k:"foundation_mat",n:3},{l:"Foundation",ic:"⛏️",k:"foundation_mat",n:3},{l:"Walling",ic:"🧱",k:"walling_mat",n:2},{l:"Roofing",ic:"🏠",k:"roofing_mat",n:3},{l:"Doors & Windows",ic:"🚪",k:"finishes_mat",n:3},{l:"Finishes",ic:"🪣",k:"finishes_mat",n:3},{l:"Fixtures",ic:"🔩",k:"finishes_mat",n:3},{l:"MEP",ic:"⚡",k:"finishes_mat",n:3},{l:"Interior & Deco",ic:"🛋️",k:"finishes_mat",n:3},{l:"Landscaping",ic:"🌿",k:"finishes_mat",n:3}]
-  },
-  {
-    id:"vendors",label:"Vendors",gi:4,bg:"rgba(58,175,184,.15)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="3" y="16" width="30" height="17" rx="2" fill="#2a5a6c"/><rect x="3" y="16" width="30" height="17" rx="2" stroke="#3aafb8" stroke-width="1"/><path d="M3 16L6 8H30L33 16" fill="#1a4a5c"/><path d="M3 16L6 8H30L33 16" stroke="#3aafb8" stroke-width="1" fill="none"/><rect x="8" y="22" width="7" height="11" rx="1" fill="#3aafb8" opacity=".7"/><rect x="21" y="24" width="8" height="5" rx=".8" fill="#a8d4f0" opacity=".8"/><line x1="25" y1="24" x2="25" y2="29" stroke="#3aafb8" stroke-width=".7"/><rect x="14" y="12" width="8" height="4" rx=".5" fill="#3aafb8" opacity=".5"/><circle cx="10" cy="34" r="2.5" fill="#2a5a6c" stroke="#3aafb8" stroke-width="1"/><circle cx="26" cy="34" r="2.5" fill="#2a5a6c" stroke="#3aafb8" stroke-width="1"/></svg>`,
-    subs:[{l:"Hardwares",ic:"🏪",k:"hardware_vendors",n:136},{l:"Factory",ic:"🏭",k:"factory_vendors",n:2},{l:"Precast Yard",ic:"🧱",k:"precast_vendors",n:88},{l:"Crusher",ic:"⛏️",k:"crushers",n:19},{l:"Workshops",ic:"🔨",k:"workshop_vendors",n:2},{l:"Timber Yard",ic:"🪵",k:"timber_vendors",n:44}]
-  },
-  {
-    id:"tech_iot",label:"Tech, IoT & Security",gi:10,bg:"rgba(26,115,232,.16)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><path d="M18 3L31 9V19C31 27 25 32 18 34C11 32 5 27 5 19V9Z" fill="#0d1a3a"/><path d="M18 3L31 9V19C31 27 25 32 18 34C11 32 5 27 5 19V9Z" stroke="#1A73E8" stroke-width="1.2" fill="none"/><rect x="11" y="12" width="14" height="10" rx="1.5" fill="#1a2a4a" stroke="#1A73E8" stroke-width=".8"/><circle cx="14" cy="17" r="2" fill="#1A73E8" opacity=".9"/><path d="M17 15h5M17 17h4M17 19h3" stroke="#7ab4f0" stroke-width=".9" stroke-linecap="round"/><path d="M12 10V8M18 10V8M24 10V8" stroke="#1A73E8" stroke-width="1" stroke-linecap="round"/><circle cx="27" cy="9" r="4.5" fill="#1A73E8"/><path d="M25 9L26.5 10.5L29 7.5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
-    subs:[
-      {l:"Smart Home",ic:"🏠",k:"tech_iot",n:0},{l:"Data & Networking",ic:"📡",k:"tech_iot",n:0},
-      {l:"Surveillance",ic:"📷",k:"tech_iot",n:0},{l:"Security Systems",ic:"⚡",k:"tech_iot",n:0},
-      {l:"IoT & Advanced Tech",ic:"🌐",k:"tech_iot",n:0}
-    ]
-  },
-  {
-    id:"contractors",label:"Contractors",gi:6,bg:"rgba(74,126,192,.15)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="3" y="28" width="30" height="5" rx="1" fill="#2a3a6c" opacity=".8"/><rect x="6" y="10" width="10" height="18" rx="1" fill="#3a4a7c"/><rect x="7" y="11" width="8" height="16" rx=".5" fill="#4a5a8c"/><rect x="9" y="13" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="13" y="13" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="9" y="17" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="13" y="17" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="9" y="21" width="5" height="7" rx=".5" fill="#2a3a6c"/><rect x="18" y="15" width="14" height="13" rx="1" fill="#3a4a7c"/><rect x="19" y="16" width="12" height="11" rx=".5" fill="#4a5a8c"/><rect x="21" y="18" width="3" height="3" rx=".3" fill="#a8d4f0"/><rect x="26" y="18" width="3" height="3" rx=".3" fill="#a8d4f0"/><rect x="21" y="23" width="7" height="5" rx=".5" fill="#2a3a6c"/><path d="M12 10V7L18 4L24 7V15" stroke="#7ab4f0" stroke-width="1.3" fill="none" stroke-linejoin="round"/><rect x="15" y="4" width="6" height="1.5" rx=".7" fill="#7ab4f0"/></svg>`,
-    subs:[{l:"Builders Works",ic:"🏗️",k:"builders",n:15},{l:"Interior Works",ic:"🛋️",k:"interior_works",n:1},{l:"MEP Works",ic:"⚡",k:"mep_works",n:1},{l:"Repairs & Renovations",ic:"🔧",k:"repairs",n:1}]
-  },
-  {
-    id:"apps",label:"Apps",gi:5,bg:"rgba(58,175,184,.13)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="9" y="4" width="18" height="28" rx="3" fill="#2a3a4a"/><rect x="10" y="5" width="16" height="26" rx="2" fill="#1a2530"/><rect x="11" y="6" width="14" height="20" rx="1.5" fill="#0d1a22"/><rect x="12" y="7" width="12" height="5" rx="1" fill="#1a3a2a"/><text x="22.5" y="10.5" text-anchor="end" font-size="4" fill="#7ec87e" font-family="monospace">3,450</text><rect x="12.5" y="13.5" width="3.5" height="3.5" rx=".8" fill="#3aafb8" opacity=".9"/><rect x="17.5" y="13.5" width="3.5" height="3.5" rx=".8" fill="#4a7ec0" opacity=".9"/><rect x="22.5" y="13.5" width="1.5" height="3.5" rx=".5" fill="#e8a04a" opacity=".9"/><rect x="12.5" y="18.5" width="3.5" height="3.5" rx=".8" fill="#c9952a" opacity=".9"/><rect x="17.5" y="18.5" width="3.5" height="3.5" rx=".8" fill="#7ec87e" opacity=".9"/><circle cx="18" cy="29.5" r="1.5" fill="#3a4a5a"/><circle cx="27" cy="9" r="5" fill="#3aafb8"/><path d="M27 6V11" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M24.5 9L27 11.5L29.5 9" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
-    subs:[{l:"Pm App",ic:"📊",k:"pm_app",n:1},{l:"Calculators",ic:"🧮",k:"calculators",n:4}]
-  },
-  {
-    id:"tenders",label:"Tenders",gi:7,bg:"rgba(201,149,42,.14)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="7" y="4" width="22" height="28" rx="2" fill="#2a2010"/><rect x="7" y="4" width="22" height="28" rx="2" stroke="#c9952a" stroke-width="1"/><rect x="10" y="9" width="16" height="2" rx="1" fill="#c9952a" opacity=".8"/><rect x="10" y="14" width="12" height="1.5" rx=".7" fill="#888" opacity=".7"/><rect x="10" y="17.5" width="14" height="1.5" rx=".7" fill="#888" opacity=".7"/><rect x="10" y="21" width="10" height="1.5" rx=".7" fill="#888" opacity=".7"/><circle cx="26" cy="25" r="6" fill="#1a2010"/><circle cx="26" cy="25" r="6" stroke="#c9952a" stroke-width="1.2"/><path d="M23.5 25L25.5 27L28.5 23" stroke="#c9952a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
-    subs:[{l:"Tender Alert",ic:"🔔",k:"tender_alert",n:1},{l:"Tender App",ic:"📝",k:"tender_app",n:1}]
-  },
-  {
-    id:"statutory",label:"Statutory",gi:8,bg:"rgba(126,200,126,.14)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><path d="M18 3L32 9V19C32 27 26 32 18 34C10 32 4 27 4 19V9Z" fill="#0d2a1a"/><path d="M18 3L32 9V19C32 27 26 32 18 34C10 32 4 27 4 19V9Z" stroke="#3a8c3a" stroke-width="1.2" fill="none"/><rect x="12" y="13" width="12" height="14" rx="1.5" fill="#1a4a2a"/><rect x="12" y="13" width="12" height="14" rx="1.5" stroke="#3a8c3a" stroke-width=".8"/><rect x="14" y="16" width="8" height="1.2" rx=".5" fill="#7ec87e" opacity=".8"/><rect x="14" y="19" width="6" height="1.2" rx=".5" fill="#7ec87e" opacity=".6"/><rect x="14" y="22" width="7" height="1.2" rx=".5" fill="#7ec87e" opacity=".6"/><circle cx="27" cy="10" r="5" fill="#3a8c3a"/><path d="M24.5 10L26.5 12L29.5 8" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,
-    subs:[{l:"NCA",ic:"🏛️",k:"nca",n:1},{l:"Local Authority Approval",ic:"🏢",k:"local_authority",n:1},{l:"Boma Yangu",ic:"🏠",k:"boma_yangu",n:1}]
-  },
-  {
-    id:"token",label:"Mjengo Token",gi:9,bg:"rgba(201,149,42,.17)",
-    icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><ellipse cx="18" cy="31" rx="10" ry="2" fill="#8a6010" opacity=".35"/><circle cx="18" cy="17" r="13" fill="url(#gtok)"/><circle cx="18" cy="17" r="10.5" fill="none" stroke="#f0c040" stroke-width=".8" opacity=".6"/><text x="18" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#6a4200" font-family="Georgia,serif">MJT</text><ellipse cx="13" cy="11" rx="3" ry="1.6" fill="white" opacity=".22" transform="rotate(-35 13 11)"/><circle cx="18" cy="17" r="13" fill="none" stroke="#c07010" stroke-width="1.5"/><defs><radialGradient id="gtok" cx="35%" cy="28%" r="70%"><stop offset="0%" stop-color="#f8d860"/><stop offset="50%" stop-color="#e8a820"/><stop offset="100%" stop-color="#b86800"/></radialGradient></defs></svg>`,
-    subs:[{l:"e-Wallet",ic:"👛",k:"ewallet",n:1},{l:"MJT Coin",ic:"🪙",k:"mjt_coin",n:1},{l:"MJT Exchange",ic:"📈",k:"mjt_exchange",n:1}]
-  },
+  {id:"houseplans",label:"House Plans",gi:0,bg:"rgba(126,200,126,.15)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><path d="M18 4L33 16H29V31H7V16H3Z" fill="#3a8c3a"/><path d="M18 4L33 16H18Z" fill="#2d7a2d"/><rect x="7" y="16" width="22" height="15" fill="#d4e8c8"/><rect x="15" y="21" width="6" height="10" rx=".8" fill="#8a6a3a"/><circle cx="20" cy="26" r=".7" fill="#c8a060"/><rect x="8.5" y="18.5" width="5" height="4.5" rx=".5" fill="#a8d4f0"/><line x1="11" y1="18.5" x2="11" y2="23" stroke="#7ab0d0" stroke-width=".8"/><line x1="8.5" y1="20.7" x2="13.5" y2="20.7" stroke="#7ab0d0" stroke-width=".8"/><rect x="22.5" y="18.5" width="5" height="4.5" rx=".5" fill="#a8d4f0"/><line x1="25" y1="18.5" x2="25" y2="23" stroke="#7ab0d0" stroke-width=".8"/><line x1="22.5" y1="20.7" x2="27.5" y2="20.7" stroke="#7ab0d0" stroke-width=".8"/><rect x="24" y="8" width="3.5" height="7" rx=".5" fill="#c8a080"/></svg>`,subs:[{l:"Residential",ic:"🏠",k:"residential",n:4},{l:"Institutions",ic:"🏫",k:"commercial",n:4},{l:"Commercial",ic:"🏢",k:"commercial",n:4},{l:"Industrial",ic:"🏭",k:"commercial",n:4},{l:"Infrastructure",ic:"🛣️",k:"commercial",n:4},{l:"Agricultural",ic:"🌾",k:"commercial",n:4},{l:"Speciality",ic:"⭐",k:"residential",n:4}]},
+  {id:"professionals",label:"Professionals",gi:2,bg:"rgba(74,126,192,.16)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="7" y="5" width="22" height="26" rx="2.5" fill="#1a3a6c"/><rect x="7" y="5" width="22" height="26" rx="2.5" stroke="#4a7ec0" stroke-width="1"/><line x1="13" y1="5" x2="13" y2="31" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="19" y1="5" x2="19" y2="31" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="11" x2="29" y2="11" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="17" x2="29" y2="17" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><line x1="7" y1="23" x2="29" y2="23" stroke="#4a7ec0" stroke-width=".5" opacity=".5"/><path d="M11 22L11 14L18 9L25 14V22Z" stroke="#7ab4f0" stroke-width="1.2" fill="none"/><rect x="16" y="17" width="4" height="5" stroke="#7ab4f0" stroke-width="1" fill="none"/><path d="M22 6L29 6L29 13Z" fill="#4a7ec0" opacity=".8"/></svg>`,subs:[{l:"Architect",ic:"📐",k:"architects",n:40},{l:"Civil Structural Eng.",ic:"🔩",k:"structural_eng",n:38},{l:"Mechanical Engineer",ic:"⚙️",k:"mep_eng",n:2},{l:"Electrical Engineer",ic:"⚡",k:"electrical_eng",n:29},{l:"Construction Manager",ic:"🏗️",k:"construction_mgr",n:22},{l:"Quantity Surveyor",ic:"📋",k:"quantity_surveyor",n:6},{l:"Land Economist",ic:"📊",k:"land_economist",n:8},{l:"Landscaper",ic:"🌿",k:"landscaper_prof",n:1},{l:"Interior Designer",ic:"🛋️",k:"interior_designer",n:15},{l:"Physical Planners",ic:"🗺️",k:"physical_planner",n:13},{l:"EIA/NEMA Expert",ic:"🌱",k:"nema_eia",n:7}]},
+  {id:"artisans",label:"Artisans",gi:3,bg:"rgba(232,160,74,.16)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><ellipse cx="18" cy="12" rx="9" ry="5.5" fill="#e8a04a"/><rect x="9" y="12" width="18" height="2.5" rx="1.2" fill="#c8803a"/><rect x="11" y="14.5" width="14" height="1.5" rx=".7" fill="#b06820"/><circle cx="18" cy="21" r="5" fill="#f5c580"/><path d="M10 34Q10 27 18 27Q26 27 26 34" fill="#e8a04a"/><rect x="16.5" y="27" width="3" height="7" fill="#f5c040" opacity=".7"/><rect x="25" y="25" width="2" height="9" rx="1" fill="#888" transform="rotate(-18 25 25)"/></svg>`,subs:[{l:"Foreman",ic:"👷",k:"foreman",n:35},{l:"Mason",ic:"🧱",k:"masons",n:84},{l:"Steel Fixers",ic:"⚙️",k:"steel_fixers",n:20},{l:"Tiles Fixers",ic:"🪨",k:"tiles_fixers",n:5},{l:"Glass Expert",ic:"🪟",k:"glass_expert",n:8},{l:"Carpenters",ic:"🪵",k:"carpenters",n:40},{l:"Welders",ic:"🔥",k:"welders",n:66},{l:"Plumbers",ic:"🔧",k:"plumbers",n:22},{l:"Electricians",ic:"⚡",k:"electricians",n:26},{l:"Painters",ic:"🖌️",k:"painters",n:3},{l:"Landscapers",ic:"🌿",k:"landscapers_art",n:1}]},
+  {id:"materials",label:"Materials",gi:1,bg:"rgba(136,135,128,.2)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="4" y="29" width="28" height="3.5" rx="1" fill="#7a6040"/><rect x="6" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="14" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="22" y="31" width="5" height="2" rx=".5" fill="#5a4025"/><rect x="5" y="22" width="11" height="8" rx="1.5" fill="#d4c8a8"/><text x="10.5" y="28" text-anchor="middle" font-size="4" fill="#8a7a60" font-family="sans-serif" font-weight="bold">50KG</text><rect x="18" y="22" width="11" height="8" rx="1.5" fill="#d4c8a8"/><text x="23.5" y="28" text-anchor="middle" font-size="4" fill="#8a7a60" font-family="sans-serif" font-weight="bold">50KG</text><rect x="8" y="19" width="20" height="3" rx="1" fill="#8a9ab0"/><line x1="10" y1="19" x2="10" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="14" y1="19" x2="14" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="18" y1="19" x2="18" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="22" y1="19" x2="22" y2="22" stroke="#6a7a90" stroke-width="1"/><line x1="26" y1="19" x2="26" y2="22" stroke="#6a7a90" stroke-width="1"/><rect x="8" y="12" width="8" height="7" rx="1" fill="#b8b0a0"/><rect x="9.5" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="13" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="18" y="12" width="8" height="7" rx="1" fill="#b8b0a0"/><rect x="19.5" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/><rect x="23" y="13.5" width="2.5" height="4" rx=".5" fill="#8a8278"/></svg>`,subs:[{l:"Aggregates",ic:"🪨",k:"foundation_mat",n:3},{l:"Foundation",ic:"⛏️",k:"foundation_mat",n:3},{l:"Walling",ic:"🧱",k:"walling_mat",n:2},{l:"Roofing",ic:"🏠",k:"roofing_mat",n:3},{l:"Doors & Windows",ic:"🚪",k:"finishes_mat",n:3},{l:"Finishes",ic:"🪣",k:"finishes_mat",n:3},{l:"Fixtures",ic:"🔩",k:"finishes_mat",n:3},{l:"MEP",ic:"⚡",k:"finishes_mat",n:3},{l:"Interior & Deco",ic:"🛋️",k:"finishes_mat",n:3},{l:"Landscaping",ic:"🌿",k:"finishes_mat",n:3}]},
+  {id:"vendors",label:"Vendors",gi:4,bg:"rgba(58,175,184,.15)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="3" y="16" width="30" height="17" rx="2" fill="#2a5a6c"/><rect x="3" y="16" width="30" height="17" rx="2" stroke="#3aafb8" stroke-width="1"/><path d="M3 16L6 8H30L33 16" fill="#1a4a5c"/><path d="M3 16L6 8H30L33 16" stroke="#3aafb8" stroke-width="1" fill="none"/><rect x="8" y="22" width="7" height="11" rx="1" fill="#3aafb8" opacity=".7"/><rect x="21" y="24" width="8" height="5" rx=".8" fill="#a8d4f0" opacity=".8"/><line x1="25" y1="24" x2="25" y2="29" stroke="#3aafb8" stroke-width=".7"/><rect x="14" y="12" width="8" height="4" rx=".5" fill="#3aafb8" opacity=".5"/><circle cx="10" cy="34" r="2.5" fill="#2a5a6c" stroke="#3aafb8" stroke-width="1"/><circle cx="26" cy="34" r="2.5" fill="#2a5a6c" stroke="#3aafb8" stroke-width="1"/></svg>`,subs:[{l:"Hardwares",ic:"🏪",k:"hardware_vendors",n:136},{l:"Factory",ic:"🏭",k:"factory_vendors",n:2},{l:"Precast Yard",ic:"🧱",k:"precast_vendors",n:88},{l:"Crusher",ic:"⛏️",k:"crushers",n:19},{l:"Workshops",ic:"🔨",k:"workshop_vendors",n:2},{l:"Timber Yard",ic:"🪵",k:"timber_vendors",n:44}]},
+  {id:"tech_iot",label:"Tech, IoT & Security",gi:10,bg:"rgba(26,115,232,.16)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><path d="M18 3L31 9V19C31 27 25 32 18 34C11 32 5 27 5 19V9Z" fill="#0d1a3a"/><path d="M18 3L31 9V19C31 27 25 32 18 34C11 32 5 27 5 19V9Z" stroke="#1A73E8" stroke-width="1.2" fill="none"/><rect x="11" y="12" width="14" height="10" rx="1.5" fill="#1a2a4a" stroke="#1A73E8" stroke-width=".8"/><circle cx="14" cy="17" r="2" fill="#1A73E8" opacity=".9"/><path d="M17 15h5M17 17h4M17 19h3" stroke="#7ab4f0" stroke-width=".9" stroke-linecap="round"/><path d="M12 10V8M18 10V8M24 10V8" stroke="#1A73E8" stroke-width="1" stroke-linecap="round"/><circle cx="27" cy="9" r="4.5" fill="#1A73E8"/><path d="M25 9L26.5 10.5L29 7.5" stroke="white" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,subs:[{l:"Smart Home",ic:"🏠",k:"tech_iot",n:0},{l:"Data & Networking",ic:"📡",k:"tech_iot",n:0},{l:"Surveillance",ic:"📷",k:"tech_iot",n:0},{l:"Security Systems",ic:"⚡",k:"tech_iot",n:0},{l:"IoT & Advanced Tech",ic:"🌐",k:"tech_iot",n:0}]},
+  {id:"contractors",label:"Contractors",gi:6,bg:"rgba(74,126,192,.15)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="3" y="28" width="30" height="5" rx="1" fill="#2a3a6c" opacity=".8"/><rect x="6" y="10" width="10" height="18" rx="1" fill="#3a4a7c"/><rect x="7" y="11" width="8" height="16" rx=".5" fill="#4a5a8c"/><rect x="9" y="13" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="13" y="13" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="9" y="17" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="13" y="17" width="2" height="2.5" rx=".3" fill="#a8d4f0"/><rect x="9" y="21" width="5" height="7" rx=".5" fill="#2a3a6c"/><rect x="18" y="15" width="14" height="13" rx="1" fill="#3a4a7c"/><rect x="19" y="16" width="12" height="11" rx=".5" fill="#4a5a8c"/><rect x="21" y="18" width="3" height="3" rx=".3" fill="#a8d4f0"/><rect x="26" y="18" width="3" height="3" rx=".3" fill="#a8d4f0"/><rect x="21" y="23" width="7" height="5" rx=".5" fill="#2a3a6c"/><path d="M12 10V7L18 4L24 7V15" stroke="#7ab4f0" stroke-width="1.3" fill="none" stroke-linejoin="round"/><rect x="15" y="4" width="6" height="1.5" rx=".7" fill="#7ab4f0"/></svg>`,subs:[{l:"Builders Works",ic:"🏗️",k:"builders",n:15},{l:"Interior Works",ic:"🛋️",k:"interior_works",n:1},{l:"MEP Works",ic:"⚡",k:"mep_works",n:1},{l:"Repairs & Renovations",ic:"🔧",k:"repairs",n:1}]},
+  {id:"apps",label:"Apps",gi:5,bg:"rgba(58,175,184,.13)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="9" y="4" width="18" height="28" rx="3" fill="#2a3a4a"/><rect x="10" y="5" width="16" height="26" rx="2" fill="#1a2530"/><rect x="11" y="6" width="14" height="20" rx="1.5" fill="#0d1a22"/><rect x="12" y="7" width="12" height="5" rx="1" fill="#1a3a2a"/><text x="22.5" y="10.5" text-anchor="end" font-size="4" fill="#7ec87e" font-family="monospace">3,450</text><rect x="12.5" y="13.5" width="3.5" height="3.5" rx=".8" fill="#3aafb8" opacity=".9"/><rect x="17.5" y="13.5" width="3.5" height="3.5" rx=".8" fill="#4a7ec0" opacity=".9"/><rect x="22.5" y="13.5" width="1.5" height="3.5" rx=".5" fill="#e8a04a" opacity=".9"/><rect x="12.5" y="18.5" width="3.5" height="3.5" rx=".8" fill="#c9952a" opacity=".9"/><rect x="17.5" y="18.5" width="3.5" height="3.5" rx=".8" fill="#7ec87e" opacity=".9"/><circle cx="18" cy="29.5" r="1.5" fill="#3a4a5a"/><circle cx="27" cy="9" r="5" fill="#3aafb8"/><path d="M27 6V11" stroke="white" stroke-width="1.5" stroke-linecap="round"/><path d="M24.5 9L27 11.5L29.5 9" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,subs:[{l:"Pm App",ic:"📊",k:"pm_app",n:1},{l:"Calculators",ic:"🧮",k:"calculators",n:4}]},
+  {id:"tenders",label:"Tenders",gi:7,bg:"rgba(201,149,42,.14)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><rect x="7" y="4" width="22" height="28" rx="2" fill="#2a2010"/><rect x="7" y="4" width="22" height="28" rx="2" stroke="#c9952a" stroke-width="1"/><rect x="10" y="9" width="16" height="2" rx="1" fill="#c9952a" opacity=".8"/><rect x="10" y="14" width="12" height="1.5" rx=".7" fill="#888" opacity=".7"/><rect x="10" y="17.5" width="14" height="1.5" rx=".7" fill="#888" opacity=".7"/><rect x="10" y="21" width="10" height="1.5" rx=".7" fill="#888" opacity=".7"/><circle cx="26" cy="25" r="6" fill="#1a2010"/><circle cx="26" cy="25" r="6" stroke="#c9952a" stroke-width="1.2"/><path d="M23.5 25L25.5 27L28.5 23" stroke="#c9952a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,subs:[{l:"Tender Alert",ic:"🔔",k:"tender_alert",n:1},{l:"Tender App",ic:"📝",k:"tender_app",n:1}]},
+  {id:"statutory",label:"Statutory",gi:8,bg:"rgba(126,200,126,.14)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><path d="M18 3L32 9V19C32 27 26 32 18 34C10 32 4 27 4 19V9Z" fill="#0d2a1a"/><path d="M18 3L32 9V19C32 27 26 32 18 34C10 32 4 27 4 19V9Z" stroke="#3a8c3a" stroke-width="1.2" fill="none"/><rect x="12" y="13" width="12" height="14" rx="1.5" fill="#1a4a2a"/><rect x="12" y="13" width="12" height="14" rx="1.5" stroke="#3a8c3a" stroke-width=".8"/><rect x="14" y="16" width="8" height="1.2" rx=".5" fill="#7ec87e" opacity=".8"/><rect x="14" y="19" width="6" height="1.2" rx=".5" fill="#7ec87e" opacity=".6"/><rect x="14" y="22" width="7" height="1.2" rx=".5" fill="#7ec87e" opacity=".6"/><circle cx="27" cy="10" r="5" fill="#3a8c3a"/><path d="M24.5 10L26.5 12L29.5 8" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>`,subs:[{l:"NCA",ic:"🏛️",k:"nca",n:1},{l:"Local Authority Approval",ic:"🏢",k:"local_authority",n:1},{l:"Boma Yangu",ic:"🏠",k:"boma_yangu",n:1}]},
+  {id:"token",label:"Mjengo Token",gi:9,bg:"rgba(201,149,42,.17)",icon:`<svg width="32" height="32" viewBox="0 0 36 36" fill="none"><ellipse cx="18" cy="31" rx="10" ry="2" fill="#8a6010" opacity=".35"/><circle cx="18" cy="17" r="13" fill="url(#gtok)"/><circle cx="18" cy="17" r="10.5" fill="none" stroke="#f0c040" stroke-width=".8" opacity=".6"/><text x="18" y="22" text-anchor="middle" font-size="11" font-weight="700" fill="#6a4200" font-family="Georgia,serif">MJT</text><ellipse cx="13" cy="11" rx="3" ry="1.6" fill="white" opacity=".22" transform="rotate(-35 13 11)"/><circle cx="18" cy="17" r="13" fill="none" stroke="#c07010" stroke-width="1.5"/><defs><radialGradient id="gtok" cx="35%" cy="28%" r="70%"><stop offset="0%" stop-color="#f8d860"/><stop offset="50%" stop-color="#e8a820"/><stop offset="100%" stop-color="#b86800"/></radialGradient></defs></svg>`,subs:[{l:"e-Wallet",ic:"👛",k:"ewallet",n:1},{l:"MJT Coin",ic:"🪙",k:"mjt_coin",n:1},{l:"MJT Exchange",ic:"📈",k:"mjt_exchange",n:1}]},
 ];
 
 /* ════════════════════ BUILD GRID ════════════════════ */
@@ -2500,7 +2409,6 @@ const FMAP={
   tender_alert:['All'],tender_app:['All'],
   nca:['All'],local_authority:['All'],boma_yangu:['All'],
   ewallet:['All'],mjt_coin:['All'],mjt_exchange:['All'],
-  tech_iot:['All','Smart Home','Data & Networking','Surveillance','Security Systems','IoT & Tech'],
 };
 
 function buildFilt(k){
@@ -3203,11 +3111,6 @@ Query: "${q}"${county ? '\nCounty: ' + county : ''}`;
   else if(ql.includes('precast')||ql.includes('hollow block')||ql.includes('slab'))k='precast_vendors';
   else if(ql.includes('roofing')||ql.includes('mabati'))k='roofing_mat';
   else if(ql.includes('quarry')||ql.includes('crusher')||ql.includes('ballast'))k='crushers';
-  else if(ql.includes('cctv')||ql.includes('camera')||ql.includes('surveillance'))k='tech_iot';
-  else if(ql.includes('electric fence')||ql.includes('alarm')||ql.includes('intruder'))k='tech_iot';
-  else if(ql.includes('smart home')||ql.includes('home automation')||ql.includes('iot'))k='tech_iot';
-  else if(ql.includes('gate automation')||ql.includes('biometric')||ql.includes('access control'))k='tech_iot';
-  else if(ql.includes('network engineer')||ql.includes('fibre optic')||ql.includes('dstv'))k='tech_iot';
   else if(ql.includes('calculator'))k='calculators';
   else if(ql.includes('tender'))k='tender_alert';
   else if(ql.includes('nca'))k='nca';
@@ -3653,11 +3556,7 @@ buildCounties('');
         </a>
         <a class="wa-cta" href="https://wa.me/254143422201?text=Hello%20MjengoAI!%20I%20need%20house%20plan%20recommendations." target="_blank" rel="noopener">
           <div class="wa-cta-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="white"><path d="M10 2L2 8v10h5v-6h6v6h5V8L10 2z"/></svg></div>
-          <div class="wa-cta-txt"><span class="wa-cta-lbl">House Plans &amp; BOQ</span><span class="wa-cta-sub">Browse Buildersee repository</span></div>
-        </a>
-        <a class="wa-cta" href="https://wa.me/254143422201?text=Hello%20MjengoAI!%20I%20need%20Tech%2C%20IoT%20or%20Security%20services." target="_blank" rel="noopener">
-          <div class="wa-cta-ico"><svg width="16" height="16" viewBox="0 0 20 20" fill="white"><path d="M10 1a9 9 0 100 18A9 9 0 0010 1zm0 3a2 2 0 110 4 2 2 0 010-4zm0 10c-2.5 0-4.7-1.3-6-3.2.5-1.7 2.1-3 4-3h4c1.9 0 3.5 1.3 4 3-1.3 1.9-3.5 3.2-6 3.2z"/></svg></div>
-          <div class="wa-cta-txt"><span class="wa-cta-lbl">🔒 Tech, IoT &amp; Security</span><span class="wa-cta-sub">CCTV, smart home, electric fence &amp; more</span></div>
+          <div class="wa-cta-txt"><span class="wa-cta-lbl">House Plans & BOQ</span><span class="wa-cta-sub">Browse Buildersee repository</span></div>
         </a>
       </div>
     </div>
@@ -3854,58 +3753,16 @@ function hideTyping(){ document.getElementById('aiTyping').style.display='none';
 
 
 <script>
-/* ════════ TECH, IoT & SECURITY — Category Logic ════════ */
-
-/* 1. Show/hide specialisation dropdown based on category selection */
-function mjToggleTechSubcat(val) {
-  var wrap = document.getElementById('mj-tech-subcat-wrap');
-  var manualSub = document.getElementById('mj-sub');
-  if (!wrap) return;
-  if (val === 'Tech, IoT & Security') {
-    wrap.style.display = 'block';
-    if (manualSub) manualSub.closest('div').style.display = 'none';
-  } else {
-    wrap.style.display = 'none';
-    if (manualSub) manualSub.closest('div').style.display = 'block';
-  }
+/* ════ TECH, IoT & SECURITY ════ */
+function mjToggleTechSubcat(val){
+  var w=document.getElementById('mj-tech-subcat-wrap');
+  var s=document.getElementById('mj-sub');
+  if(!w)return;
+  if(val==='Tech, IoT & Security'){w.style.display='block';if(s)s.closest('div').style.display='none';}
+  else{w.style.display='none';if(s)s.closest('div').style.display='block';}
 }
 
-/* 2. Patch mjSubmitProfile to pick up Tech subcategory if selected */
-(function(){
-  var _origSubmit = window.mjSubmitProfile;
-  if (typeof _origSubmit !== 'function') return;
-  window.mjSubmitProfile = function() {
-    var cat = (document.getElementById('mj-cat') || {}).value || '';
-    if (cat === 'Tech, IoT & Security') {
-      var techSub = (document.getElementById('mj-tech-subcat') || {}).value || '';
-      var manualSub = document.getElementById('mj-sub');
-      if (manualSub && techSub) manualSub.value = techSub;
-    }
-    return _origSubmit.apply(this, arguments);
-  };
-})();
-
-/* 3. NLP keyword routing for Tech & Security searches */
-window.TECH_IOT_KEYWORDS = {
-  'cctv':'CCTV Installer','camera':'IP Camera Technician',
-  'surveillance':'Video Surveillance Engineer','electric fence':'Electric Fence Installer',
-  'fence':'Electric Fence Installer','perimeter':'Perimeter Security Installer',
-  'alarm':'Alarm Systems Technician','intruder':'Intruder Detection Installer',
-  'burglar':'Intruder Detection Installer','wifi':'Wi-Fi & LAN Installer',
-  'wi-fi':'Wi-Fi & LAN Installer','network engineer':'Network Engineer',
-  'fibre':'Fibre Optic Technician','fiber':'Fibre Optic Technician',
-  'smart home':'Smart Home Installer','home automation':'Home Automation Technician',
-  'gate automation':'Gate Automation Technician','boom barrier':'Boom Barrier Installer',
-  'biometric':'Biometric Systems Technician','fingerprint':'Biometric Systems Technician',
-  'access control':'Access Control Technician','dstv':'TV & DSTV Installer',
-  'satellite dish':'VSAT / Satellite Installer','intercom':'Intercom & Video Doorbell Installer',
-  'doorbell':'Intercom & Video Doorbell Installer','iot':'IoT Device Technician',
-  'bms':'Building Management Systems (BMS) Technician',
-  'scada':'SCADA Systems Technician','ev charging':'EV Charging Point Installer',
-  'smart irrigation':'Smart Irrigation Installer','drone':'Drone Surveillance Technician'
-};
-
-
+/* ── Service Worker — only on real deployed domain ── */
 if ('serviceWorker' in navigator) {
   const _h=location.hostname;
   if(_h!=='localhost'&&_h!=='127.0.0.1'&&!_h.includes('claudeusercontent.com')&&_h!==''){
