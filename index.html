@@ -745,9 +745,17 @@ async function mjSubmitProfile() {
 
 function mjGotoDashboard() {
   const tok = window._mjRegToken || '';
+  const phone = window._mjPhone || '';
+  // Store credentials in localStorage so Dashboard can read them
+  if (phone) {
+    localStorage.setItem('mjengoai_phone', phone);
+    localStorage.setItem('mjengoai_token', tok);
+    localStorage.setItem('mjengoai_logged_in', 'true');
+    localStorage.setItem('mjengoai_login_time', Date.now().toString());
+  }
   const url = tok
-    ? 'https://mjengoai.github.io/Dashboard/?token=' + encodeURIComponent(tok)
-    : 'https://mjengoai.github.io/Dashboard/';
+    ? 'https://mjengoai.github.io/Dashboard/?token=' + encodeURIComponent(tok) + '&phone=' + encodeURIComponent(phone)
+    : 'https://mjengoai.github.io/Dashboard/?phone=' + encodeURIComponent(phone);
   window.open(url, '_blank');
 }
 
@@ -1091,7 +1099,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <a href="javascript:void(0)" class="nlink" onclick="document.getElementById('catRow').scrollIntoView({behavior:'smooth'})">Browse</a>
     <a href="javascript:void(0)" class="nlink" onclick="document.getElementById('ticker').scrollIntoView({behavior:'smooth'})">Prices</a>
     <a href="javascript:void(0)" class="nlink" onclick="handleProNav()">For Pros</a>
-    <a href="https://mjengoai.github.io/Dashboard/" class="ncta">Sign in</a>
+    <a href="javascript:void(0)" class="ncta" onclick="mjSignIn()">Sign in</a>
   </div>
 </nav>
 
@@ -3635,111 +3643,221 @@ function aiQuick(msg){
   _callAI(msg);
 }
 
+/* ════════════════════════════════════════════════
+   MJENGOAI LIVE AI — queries Supabase then Claude
+════════════════════════════════════════════════ */
+
+const _SURL = 'https://vqizhsohdatplrzpjrfm.supabase.co';
+const _SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NDgyNTQsImV4cCI6MjA5NDUyNDI1NH0.IebkqeFmHB9tfZS1WzmKzO7_RRYVIrCdODd6Z1r1UUY';
+const _SH2  = { 'apikey': _SKEY, 'Authorization': 'Bearer ' + _SKEY };
+
+/* ── Extract county/town from query ── */
+const KENYA_COUNTIES = ['nairobi','mombasa','kisumu','nakuru','eldoret','thika','meru','embu','nyeri','kakamega','kisii','kitale','malindi','lamu','garissa','isiolo','machakos','makueni','kajiado','kiambu','muranga','nyandarua','kirinyaga','laikipia','samburu','turkana','west pokot','trans nzoia','uasin gishu','elgeyo marakwet','nandi','baringo','kericho','bomet','nyamira','migori','homa bay','siaya','vihiga','bungoma','busia','kwale','kilifi','tana river','taita taveta','mandera','wajir','marsabit','isiolo','meru','tharaka nithi','embu','kitui','machakos','makueni','nyandarua','nyeri','kirinyaga','muranga','kiambu','narok','kajiado','kericho','bomet','kakamega','vihiga','bungoma','busia','siaya','kisumu','homa bay','migori','kisii','nyamira','nairobi'];
+
+function _extractLocation(q) {
+  const lower = q.toLowerCase();
+  for (const county of KENYA_COUNTIES) {
+    if (lower.includes(county)) return county;
+  }
+  return null;
+}
+
+/* ── Detect query intent ── */
+function _detectIntent(q) {
+  const m = q.toLowerCase();
+  if (m.match(/mason|fundi|plaster|bricklayer/)) return { table:'artisans', field:'trade', value:'mason', label:'Mason' };
+  if (m.match(/plumb/)) return { table:'artisans', field:'trade', value:'plumber', label:'Plumber' };
+  if (m.match(/electric|wiring|electrician/)) return { table:'artisans', field:'trade', value:'electrician', label:'Electrician' };
+  if (m.match(/carpenter|joiner|timber work/)) return { table:'artisans', field:'trade', value:'carpenter', label:'Carpenter' };
+  if (m.match(/weld|gate|grille|fabricat/)) return { table:'artisans', field:'trade', value:'welder', label:'Welder' };
+  if (m.match(/paint/)) return { table:'artisans', field:'trade', value:'painter', label:'Painter' };
+  if (m.match(/tile|tiling/)) return { table:'artisans', field:'trade', value:'tiles_fixer', label:'Tiles Fixer' };
+  if (m.match(/foreman|supervisor/)) return { table:'artisans', field:'trade', value:'foreman', label:'Foreman' };
+  if (m.match(/steel fix|bar bend|rebar/)) return { table:'artisans', field:'trade', value:'steel_fixer', label:'Steel Fixer' };
+  if (m.match(/architect/)) return { table:'professionals', field:'profession', value:'architect', label:'Architect' };
+  if (m.match(/structural eng|civil eng|engineer/)) return { table:'professionals', field:'profession', value:'structural_engineer', label:'Engineer' };
+  if (m.match(/quantity surv|qs\b|bill of quant/)) return { table:'professionals', field:'profession', value:'quantity_surveyor', label:'Quantity Surveyor' };
+  if (m.match(/interior design/)) return { table:'professionals', field:'profession', value:'interior_designer', label:'Interior Designer' };
+  if (m.match(/hardware|supplier|shop|duka/)) return { table:'vendors', field:'vendor_type', value:'hardware', label:'Hardware Shop' };
+  if (m.match(/precast|block yard/)) return { table:'vendors', field:'vendor_type', value:'precast_yard', label:'Precast Yard' };
+  if (m.match(/timber yard|timber/)) return { table:'vendors', field:'vendor_type', value:'timber_yard', label:'Timber Yard' };
+  if (m.match(/crusher|aggregate|ballast/)) return { table:'vendors', field:'vendor_type', value:'crusher', label:'Crusher/Quarry' };
+  return null;
+}
+
+/* ── Query Supabase for live results ── */
+async function _querySupabase(intent, county) {
+  try {
+    let url = '';
+    if (intent.table === 'artisans') {
+      url = `${_SURL}/rest/v1/artisans?trade=ilike.*${intent.value}*&order=rating.desc.nullslast&limit=5&select=name,trade,county,town,phone,daily_rate,rating,verified`;
+      if (county) url += `&county=ilike.*${county}*`;
+    } else if (intent.table === 'professionals') {
+      url = `${_SURL}/rest/v1/professionals?profession=ilike.*${intent.value}*&order=rating.desc.nullslast&limit=5&select=full_name,profession,county,town,phone,consult_fee_kes,rating,is_verified`;
+      if (county) url += `&county=ilike.*${county}*`;
+    } else if (intent.table === 'vendors') {
+      url = `${_SURL}/rest/v1/vendors?vendor_type=ilike.*${intent.value}*&order=business_name.asc&limit=5&select=business_name,vendor_type,county,town,phone,description,is_verified`;
+      if (county) url += `&county=ilike.*${county}*`;
+    }
+
+    const res = await fetch(url, { headers: _SH2, signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 ? data : null;
+  } catch(e) { return null; }
+}
+
+/* ── Also check registrations for recent signups ── */
+async function _queryRegistrations(intent, county) {
+  try {
+    let catFilter = '';
+    if (intent.table === 'artisans') catFilter = 'artisans';
+    else if (intent.table === 'professionals') catFilter = 'professionals';
+    else if (intent.table === 'vendors') catFilter = 'vendors';
+
+    let url = `${_SURL}/rest/v1/registrations?category=ilike.*${catFilter}*&status=eq.active&order=created_at.desc&limit=5&select=full_name,phone,category,specialisation,county,town,fee`;
+    if (county) url += `&county=ilike.*${county}*`;
+
+    const res = await fetch(url, { headers: _SH2, signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data) && data.length > 0 ? data : null;
+  } catch(e) { return null; }
+}
+
+/* ── Format Supabase results for AI context ── */
+function _formatResults(data, table) {
+  if (!data || data.length === 0) return '';
+  return data.map((r, i) => {
+    if (table === 'artisans') {
+      const rate = r.daily_rate ? `KES ${r.daily_rate.toLocaleString()}/day` : 'Contact for rate';
+      const loc = [r.town, r.county].filter(Boolean).join(', ');
+      const verified = r.verified ? '✓ Verified' : '';
+      return `${i+1}. ${r.name} | ${r.trade} | ${loc} | ${rate} | ${r.phone || 'No phone'} ${verified}`;
+    } else if (table === 'professionals') {
+      const fee = r.consult_fee_kes ? `KES ${r.consult_fee_kes.toLocaleString()}/consult` : 'Contact for fee';
+      const loc = [r.town, r.county].filter(Boolean).join(', ');
+      return `${i+1}. ${r.full_name} | ${r.profession} | ${loc} | ${fee} | ${r.phone || 'No phone'}`;
+    } else if (table === 'vendors') {
+      const loc = [r.town, r.county].filter(Boolean).join(', ');
+      return `${i+1}. ${r.business_name} | ${r.vendor_type} | ${loc} | ${r.phone || 'No phone'}`;
+    } else {
+      // registrations
+      const fee = r.fee || 'Contact for price';
+      const loc = [r.town, r.county].filter(Boolean).join(', ');
+      return `${i+1}. ${r.full_name} | ${r.specialisation || r.category} | ${loc} | ${fee} | ${r.phone || 'No phone'}`;
+    }
+  }).join('\n');
+}
+
 async function _callAI(msg) {
-  // Add to history for multi-turn context
   _chatHistory.push({ role: 'user', content: msg });
-  // Keep last 10 turns to avoid token bloat
   if (_chatHistory.length > 10) _chatHistory.splice(0, _chatHistory.length - 10);
 
+  // ── STEP 1: Detect intent and query Supabase ──
+  const intent  = _detectIntent(msg);
+  const county  = _extractLocation(msg);
+  let liveData  = '';
+  let dataSource = '';
+
+  if (intent) {
+    const [primary, fromReg] = await Promise.all([
+      _querySupabase(intent, county),
+      _queryRegistrations(intent, county)
+    ]);
+
+    if (primary && primary.length > 0) {
+      liveData = _formatResults(primary, intent.table);
+      dataSource = `Live MjengoAI database — ${primary.length} ${intent.label}(s) found`;
+    } else if (fromReg && fromReg.length > 0) {
+      liveData = _formatResults(fromReg, 'registrations');
+      dataSource = `MjengoAI registered members — ${fromReg.length} found`;
+    }
+  }
+
+  // ── STEP 2: Build system prompt with live data ──
+  const SYSTEM = `You are MjengoAI, Kenya's AI construction assistant. You help clients find the RIGHT person or supplier for their construction needs.
+Always respond in plain conversational text. NO markdown. NO asterisks. NO bullet points. Use KES for prices. Be brief and direct (3-6 sentences).
+${liveData ? `
+LIVE DATABASE RESULTS (use these real names and contacts in your answer):
+${liveData}
+Source: ${dataSource}
+
+When presenting these results: state the name, location, rate/fee, and phone number. Tell the user to call or WhatsApp the number directly.
+If phone shows "No phone", tell them to search on MjengoAI for contact details.
+` : `
+No specific database results found for this query. Give a helpful general answer about construction in Kenya.
+Current material prices: Cement 50kg KES 720 (Nairobi), Steel rod 12mm KES 680/m, Roofing sheet KES 1,250, Hollow block KES 48.
+Labour rates: Mason KES 1,200-1,800/day, Plumber KES 1,500-2,000/day, Electrician KES 1,900-2,200/day.
+`}
+Always end by suggesting the user search MjengoAI for more options or register at www.mjengoai.com.`;
+
+  // ── STEP 3: Call AI with live context ──
+  // Try Render first
   try {
     const res = await fetch('https://mjengoai.onrender.com/chat', {
-      method:  'POST',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messages: [
-          {
-            role: 'system',
-            content: `You are MjengoAI, Kenya's friendly construction directory assistant.
-Help users find artisans, professionals, materials, house plans and contractors.
-Always respond in plain conversational text — NO markdown, NO asterisks, NO bullet points.
-Use KES for prices. Be brief (3-5 sentences), practical and Kenya-specific.
-Current live prices: Cement 50kg KES 720, Steel rod 12mm KES 680/m, Roofing sheet KES 1250, Hollow block KES 48.
-If asked about a specific professional or artisan, suggest they search using the main search bar.`
-          },
-          ..._chatHistory
-        ],
-        max_tokens: 200,
-        stream: false
+        messages: [{ role: 'system', content: SYSTEM }, ..._chatHistory],
+        max_tokens: 300, stream: false
+      }),
+      signal: AbortSignal.timeout(5000)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      let text = data.content || data.text || data.response || (data.choices && data.choices[0]?.message?.content) || '';
+      if (Array.isArray(text)) text = text.map(b => b.text || '').join('');
+      text = text.trim();
+      if (text) { _chatHistory.push({ role:'assistant', content:text }); hideTyping(); addMsg(text,'bot'); return; }
+    }
+  } catch(e) {}
+
+  // Try Anthropic direct
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': window._mjAK || '',
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        system: SYSTEM,
+        messages: _chatHistory
       }),
       signal: AbortSignal.timeout(12000)
     });
-
-    let text = '';
     if (res.ok) {
-      const contentType = res.headers.get('content-type') || '';
-      if (contentType.includes('text/event-stream')) {
-        // Streamed SSE response
-        const reader  = res.body.getReader();
-        const decoder = new TextDecoder();
-        let buf = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buf += decoder.decode(value, { stream: true });
-          const lines = buf.split('\n'); buf = lines.pop();
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const d = line.slice(6).trim();
-            if (d === '[DONE]') continue;
-            try { text += JSON.parse(d).token || JSON.parse(d).text || ''; } catch {}
-          }
-        }
-      } else {
-        const data = await res.json();
-        text = data.content || data.text || data.response ||
-               (data.choices && data.choices[0]?.message?.content) || '';
-        if (Array.isArray(text)) text = text.map(b => b.text || '').join('');
-      }
-      text = text.trim();
+      const data = await res.json();
+      const text = (data.content && data.content[0]?.text || '').trim();
+      if (text) { _chatHistory.push({ role:'assistant', content:text }); hideTyping(); addMsg(text,'bot'); return; }
     }
+  } catch(e) {}
 
-    if (!text) throw new Error('empty');
-
-    // Add assistant reply to history
-    _chatHistory.push({ role: 'assistant', content: text });
-    hideTyping();
-    addMsg(text, 'bot');
-
-  } catch(e) {
-    console.warn('[MjengoAI Chat] Backend error:', e.message);
-    hideTyping();
-    /* Smart local fallback — real answers when Render is sleeping */
+  // Smart local fallback (still uses live data if we got it)
+  hideTyping();
+  let reply = '';
+  if (liveData) {
+    // Format results as natural language
+    const lines = liveData.split('\n');
+    const names = lines.slice(0,3).map(l => l.split('|')[0].replace(/^\d+\.\s*/,'')).join(', ');
+    reply = `I found ${lines.length} ${intent?.label || 'professional'}(s) on MjengoAI${county ? ' in ' + county.charAt(0).toUpperCase() + county.slice(1) : ''}. Top results: ${liveData.split('\n').slice(0,3).join(' · ')}. You can call them directly or search on www.mjengoai.com for more options.`;
+  } else {
     const m = msg.toLowerCase();
-    let reply = '';
-    if (m.includes('mason') || m.includes('fundi') || m.includes('plaster'))
-      reply = 'Top masons on MjengoAI: Joseph Kamau (Nairobi, KES 1,600/day, 4.8 stars), Grace Achieng (Kisumu, KES 1,200/day), Daniel Kiprop (Nakuru, KES 1,500/day). Search "mason" plus your county for local results.';
-    else if (m.includes('plumb'))
-      reply = 'Top plumbers: Peter Ngugi (ERC certified, Nairobi, KES 1,800/day), Ruth Kamande (Nairobi, KES 1,500/day). Search "plumber" in the bar above for more options near you.';
-    else if (m.includes('electr') || m.includes('wiring'))
-      reply = 'Top electricians: Grace Njeri (ERC Class A, Nairobi, KES 2,200/day, 4.9 stars), Kevin Kariuki (Nakuru, KES 1,900/day). Both available now. Search "electrician" for full list.';
-    else if (m.includes('carpenter') || m.includes('roof timber'))
-      reply = 'Top carpenters: Samuel Gitau (Nairobi, KES 1,800/day, 4.9 stars), Alice Wangari (Thika, KES 1,400/day). Search "carpenter" in the bar for more near you.';
-    else if (m.includes('welder') || m.includes('gate') || m.includes('grille'))
-      reply = 'Top welders: Brian Odhiambo (Nairobi, KES 1,600/day), plus 60+ welders across Kenya. Search "welder" plus your county in the search bar.';
-    else if (m.includes('cement') || m.includes('saruji'))
-      reply = 'Current cement prices: Nairobi KES 720/50kg, Nakuru KES 695, Mombasa KES 755. Tuff Foam Hardware (Nairobi) offers bulk discounts. Search "cement" for supplier comparisons.';
-    else if (m.includes('steel') || m.includes('iron') || m.includes('chuma'))
-      reply = 'Steel rod 12mm: KES 680/m. BRC mesh: KES 8,500/roll. Devki Steel Mills in Athi River is factory direct. Search "steel" for full supplier list.';
-    else if (m.includes('roofing') || m.includes('bati') || m.includes('mabati'))
-      reply = 'Roofing sheets: KES 1,250/sheet (Mabati Rolling Mills). Timber 2x4": KES 320/m treated. Search "roofing" in the bar for all suppliers near you.';
-    else if (m.includes('plan') || m.includes('bedroom') || m.includes('bungalow') || m.includes('house design'))
-      reply = 'Top house plans: 3BR Bungalow Type B (KES 15,000, full BOQ), 2BR Maisonette (KES 9,500), 4BR Villa (KES 35,000). All include working drawings. Click House Plans category above.';
-    else if (m.includes('architect'))
-      reply = 'Top architects: Sarah Kamau (BORAQS, Nairobi, KES 12,000/consult), David Mutua (Mombasa), Miriam Wanjiku (Nakuru, KES 8,000). Click Professionals category for full list.';
-    else if (m.includes('engineer') || m.includes('structural'))
-      reply = 'Top structural engineers: Mate Njiru (EBK, Nairobi, 15 years, KES 15,000/consult), Faith Omondi (Kisumu, KES 9,000). Click Professionals for more.';
-    else if (m.includes('cost') || m.includes('budget') || m.includes('how much') || m.includes('ngapi'))
-      reply = 'Construction costs Kenya 2025: Simple bungalow KES 25,000-35,000/m2. Commercial KES 40,000-60,000/m2. Labour: Mason KES 1,200-1,800/day, Carpenter KES 1,400-1,900/day, Electrician KES 1,900-2,200/day.';
-    else if (m.includes('hardware') || m.includes('shop') || m.includes('supplier'))
-      reply = 'Top hardware shops: Tuff Foam Hardware (Nairobi Industrial), Coast Hardware (Mombasa), BuildMart (Nakuru). We have 850+ verified vendors. Search "hardware" plus your county.';
-    else if (m.includes('register') || m.includes('join') || m.includes('list'))
-      reply = 'To join MjengoAI click "For Pros" in the top navigation. Enter your phone, verify OTP, complete your profile. Your listing goes live within 24 hours after review.';
-    else
-      reply = 'I can help you find artisans, check material prices, browse house plans, or connect with professionals across all 47 counties. What do you need help with today?';
-    addMsg(reply, 'bot');
+    if (m.includes('cement') || m.includes('saruji')) reply = 'Current cement prices: Nairobi KES 720/50kg, Nakuru KES 695, Mombasa KES 755. Search "cement" on MjengoAI for supplier comparisons.';
+    else if (m.includes('steel') || m.includes('chuma')) reply = 'Steel rod 12mm: KES 680/m. BRC mesh: KES 8,500/roll. Search "steel" on MjengoAI for supplier contacts.';
+    else if (m.includes('cost') || m.includes('budget') || m.includes('how much')) reply = 'Construction costs Kenya 2025: Simple bungalow KES 25,000-35,000/m². Mason KES 1,200-1,800/day, Electrician KES 1,900-2,200/day. Always get 3 quotes.';
+    else if (m.includes('plan') || m.includes('bedroom') || m.includes('bungalow')) reply = 'Browse 10,000+ house plans on MjengoAI — 3BR Bungalow from KES 15,000 with full BOQ. Click House Plans category on the homepage.';
+    else if (m.includes('hello') || m.includes('hi') || m.includes('habari')) reply = 'Habari! I\'m MjengoAI — Kenya\'s construction assistant. Ask me to find a mason, plumber, CCTV installer, architect, hardware shop or anything construction related!';
+    else reply = 'I can find artisans, professionals and suppliers from the live MjengoAI database. Try asking for a specific trade like "find a mason in Nairobi" or "plumber Nakuru".';
   }
+  _chatHistory.push({ role:'assistant', content:reply });
+  addMsg(reply, 'bot');
 }
-
 function addMsg(txt, role){
   const msgs   = document.getElementById('aiMsgs');
   const typing = document.getElementById('aiTyping');
@@ -3757,6 +3875,18 @@ function hideTyping(){ document.getElementById('aiTyping').style.display='none';
 
 
 <script>
+/* ════ SIGN IN — pass stored credentials to Dashboard ════ */
+function mjSignIn() {
+  const phone = localStorage.getItem('mjengoai_phone') || '';
+  const tok   = localStorage.getItem('mjengoai_token') || '';
+  let url = 'https://mjengoai.github.io/Dashboard/';
+  if (phone) {
+    url += '?phone=' + encodeURIComponent(phone);
+    if (tok) url += '&token=' + encodeURIComponent(tok);
+  }
+  window.open(url, '_blank');
+}
+
 /* ════ TECH, IoT & SECURITY ════ */
 function mjToggleTechSubcat(val){
   var w=document.getElementById('mj-tech-subcat-wrap');
