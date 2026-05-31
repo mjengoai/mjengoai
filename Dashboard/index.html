@@ -483,7 +483,7 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:11px 2
 <!-- ═══════════════════ PAGE: LANDING ═══════════════════ -->
 <div id="page-landing" class="page active">
   <div class="land-hero">
-    <div class="hbadge"><b></b>Powered by Buildersee &amp; Mineco House</div>
+    <div class="hbadge"><b></b>Powered by Buildersee</div>
     <h1 class="htitle">Join Mjengo<em>AI</em></h1>
     <p class="htag">Transparency &amp; Honesty</p>
     <p class="hjoin">Kenya's #1 Construction Platform — choose your role to get started</p>
@@ -525,6 +525,12 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:11px 2
       <div class="ctitle">Materials Supplier</div>
       <div class="cdesc">Factory, precast yard, timber yard or workshop — connect directly with builders and receive orders via MJT escrow.</div>
       <div class="cbadge cb">✦ Direct-to-site supply</div>
+    </div>
+    <div class="cat-card bc" onclick="showAuth('tech')">
+      <div class="cico" style="background:rgba(26,115,232,.13)">🛡️</div>
+      <div class="ctitle">Tech, IoT &amp; Security</div>
+      <div class="cdesc">CCTV installers, smart home, electric fence, gate automation, network engineers — list your services across all 47 counties.</div>
+      <div class="cbadge cb">✦ 32 specialisations</div>
     </div>
   </div>
 </div>
@@ -1312,7 +1318,7 @@ function buildMessages(){
     {av:'AM',avC:'#4a7ec0',name:'Amina Hassan',prev:'Hi, can you share the revised ground floor plan?',time:'2h ago',unread:true},
     {av:'JK',avC:'#e8a04a',name:'Joseph Kamau',prev:'Plastering is 80% complete, sending photos now',time:'4h ago',unread:true},
     {av:'TF',avC:'#c9952a',name:'Tuff Foam Hardware',prev:'Your bulk order is ready for collection',time:'Yesterday',unread:false},
-    {av:'MH',avC:'#3a8c3a',name:'Mineco House Support',prev:'Your plan download link has been sent',time:'2d ago',unread:false},
+    {av:'MH',avC:'#3a8c3a',name:'Buildersee Support',prev:'Your plan download link has been sent',time:'2d ago',unread:false},
   ]);
   return `<div class="dash-section" id="ds-messages">
     <div class="dh"><div><div class="dhtitle">Messages</div><div class="dhsub">In-platform communication</div></div><button class="dhbtn">+ New Message</button></div>
@@ -1417,7 +1423,7 @@ function buildClientProjects(){
 /* ─── CLIENT: BROWSE PLANS ─── */
 function buildPlansBrowse(){
   return `<div class="dash-section" id="ds-plans">
-    <div class="dh"><div><div class="dhtitle">Browse Plans</div><div class="dhsub">10,000+ Mineco House pre-approved designs</div></div></div>
+    <div class="dh"><div><div class="dhtitle">Browse Plans</div><div class="dhsub">10,000+ Buildersee pre-approved designs</div></div></div>
     <div class="grid3">
       ${[{e:'🏠',t:'3BR Bungalow Type B',s:'72m² · Ground floor',p:'KES 15,000'},{e:'🏡',t:'2BR Maisonette',s:'55m² · Starter home',p:'KES 9,500'},{e:'🏰',t:'4BR Executive Villa',s:'180m² · 2-storey',p:'KES 35,000'},{e:'🏗️',t:'3BR Semi-detached',s:'65m² · 2 units',p:'KES 18,000'},{e:'🏢',t:'4-Storey Plaza',s:'450m² · Commercial',p:'KES 85,000'},{e:'🏭',t:'Godown 500m²',s:'Steel frame · Industrial',p:'KES 45,000'}].map(pl=>`
       <div class="plan-card">
@@ -1548,7 +1554,7 @@ function buildTenders(){
 function buildContractorProjects(){
   return `<div class="dash-section" id="ds-projects">
     <div class="dh"><div><div class="dhtitle">Active Projects</div></div><button class="dhbtn">+ New</button></div>
-    ${[{n:'Ruiru 4BR Villa — Mineco Design',s:'Foundation',p:60,v:'KES 4.2M'},{n:'Nairobi CBD Office Fit-out',s:'Fit-out works',p:40,v:'KES 8.5M'}].map(p=>`
+    ${[{n:'Ruiru 4BR Villa — Buildersee Design',s:'Foundation',p:60,v:'KES 4.2M'},{n:'Nairobi CBD Office Fit-out',s:'Fit-out works',p:40,v:'KES 8.5M'}].map(p=>`
     <div class="card" style="margin-bottom:10px">
       <div class="card-hdr"><div class="card-title">${p.n}</div><div style="display:flex;gap:6px"><span class="tag to">${p.s}</span><span style="font-size:11px;font-weight:600;color:var(--green)">${p.v}</span></div></div>
       <div class="prog-wrap"><div class="prog-label"><span>Overall progress</span><span>${p.p}%</span></div><div class="prog"><div class="progb" style="width:${p.p}%;background:var(--orange)"></div></div></div>
@@ -1803,7 +1809,7 @@ const THREADS = [
    msgs:[{me:false,text:'Plastering is 80% complete, sending photos now',t:'4h ago'},{me:true,text:'Great work Joseph! Please ensure the bathroom walls are done before Friday.',t:'3h ago'}]},
   {id:3, av:'TF', avC:'#c9952a', name:'Tuff Foam Hardware', prev:'Your bulk order is ready for collection', time:'Yesterday', unread:false,
    msgs:[{me:true,text:'Hi, I placed an order for 50 bags cement, is it ready?',t:'Yesterday'},{me:false,text:'Your bulk order is ready for collection',t:'Yesterday'}]},
-  {id:4, av:'MH', avC:'#3a8c3a', name:'Mineco House Support', prev:'Your plan download link has been sent', time:'2d ago', unread:false,
+  {id:4, av:'MH', avC:'#3a8c3a', name:'Buildersee Support', prev:'Your plan download link has been sent', time:'2d ago', unread:false,
    msgs:[{me:true,text:'I need the full drawing set for plan MH-R-3021',t:'2d ago'},{me:false,text:'Your plan download link has been sent to your email',t:'2d ago'}]},
 ];
 let activeThread = null;
@@ -2209,6 +2215,87 @@ async function saveProfileToSupabase() {
   } catch(e) {
     showToast('Saved locally. Will sync when online.','💾');
   }
+}
+
+/* ══════════════════════════════════════
+   AUTO-LOGIN — phone/token from URL or localStorage
+══════════════════════════════════════ */
+(async function autoLogin() {
+  const params      = new URLSearchParams(window.location.search);
+  const urlPhone    = params.get('phone') || '';
+  const urlToken    = params.get('token') || '';
+  const storedPhone = localStorage.getItem('mjengoai_phone') || '';
+  const storedUser  = localStorage.getItem('mjengoaiUser') || '';
+  const phone       = urlPhone || storedPhone;
+
+  if (!phone) return;
+
+  if (urlPhone) {
+    localStorage.setItem('mjengoai_phone', urlPhone);
+    if (urlToken) localStorage.setItem('mjengoai_token', urlToken);
+  }
+
+  const SURL = 'https://vqizhsohdatplrzpjrfm.supabase.co';
+  const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxaXpoc29oZGF0cGxyenBqcmZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NDgyNTQsImV4cCI6MjA5NDUyNDI1NH0.IebkqeFmHB9tfZS1WzmKzO7_RRYVIrCdODd6Z1r1UUY';
+  const SH   = { 'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+SKEY };
+
+  try {
+    const res = await fetch(
+      `${SURL}/rest/v1/registrations?phone=eq.${encodeURIComponent(phone)}&order=created_at.desc&limit=1`,
+      { headers: SH }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data[0]) {
+        const p = data[0];
+        const roleMap = c => {
+          if (!c) return 'client';
+          const lc = c.toLowerCase();
+          if (lc.includes('professional')||lc.includes('architect')||lc.includes('engineer')) return 'professional';
+          if (lc.includes('artisan')||lc.includes('mason')||lc.includes('fundi')) return 'artisan';
+          if (lc.includes('vendor')||lc.includes('hardware')) return 'vendor';
+          if (lc.includes('contractor')||lc.includes('builder')) return 'contractor';
+          if (lc.includes('tech')||lc.includes('iot')||lc.includes('security')) return 'professional';
+          return 'client';
+        };
+        currentUser.name     = p.full_name  || 'Member';
+        currentUser.phone    = p.phone      || phone;
+        currentUser.role     = roleMap(p.category);
+        currentUser.sub      = p.specialisation || p.sub_category || '';
+        currentUser.email    = p.email      || '';
+        currentUser.about    = p.about      || '';
+        currentUser.location = p.town       || '';
+        currentUser.fee      = p.fee        || '';
+        currentUser.nca      = p.reg_number || '';
+        currentUser.status   = p.status     || 'pending';
+        localStorage.setItem('mjengoaiUser', JSON.stringify({...currentUser, updatedAt:new Date().toISOString()}));
+        launchDashboard();
+        return;
+      }
+    }
+  } catch(e) { console.warn('[Dashboard] Supabase auto-login:', e.message); }
+
+  // Fallback to localStorage
+  if (storedUser) {
+    try {
+      const u = JSON.parse(storedUser);
+      if (u && u.name) { currentUser = {...currentUser,...u}; launchDashboard(); return; }
+    } catch(e) {}
+  }
+
+  if (phone) { currentUser.name='Member'; currentUser.phone=phone; launchDashboard(); }
+})();
+
+/* ══ Tech IoT auth support ══ */
+const _origShowAuth26 = typeof showAuth === 'function' ? showAuth : null;
+if (_origShowAuth26) {
+  window.showAuth = function(role) {
+    if (role === 'tech') {
+      currentUser.role = 'professional';
+      currentUser.sub  = 'Tech, IoT & Security';
+    }
+    _origShowAuth26(role);
+  };
 }
 </script>
 </body>
